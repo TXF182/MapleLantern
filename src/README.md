@@ -59,9 +59,12 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
 | `#ui-bar` 320px 极窄档 | 无标记，`@media (max-width:340px)` | 抽屉宽 248px、收起位移 -216px，箭头回到屏内；金钱/时间/星期不截断 |
+| 衣柜内层（`Wardrobe`） | `data-ml-option` + `tidySeparators` | warmth 50px 条压成 16px 圆角条，温度说明独立卡；`Close wardrobe` / `Strip all` 等动作两列，裸 `\|` 全清；`#listoutfits` 双列、四张 outfit 卡左对齐等宽 |
+| 商店目录（`Clothing Shop`） | `markShopCats` | 15 组「图标 + 文字」收进两列胶囊卡，去掉原版 `<br><br>` 撑出的断行；warmth / 说明卡与衣柜同材质 |
+| 商店列表（`View All` 等） | `markShopCats` + `markEmptyDetails` + `tidyShopText` | `Back to shop` 取消原版绝对定位与气泡描边，回到正常流；分类图标去斜切、44×44 方卡；商品行成网格卡：48×48 图标 + 名称 + 右上价签胶囊 + 三行 stats-ball；空 `.clothing-details` 隐去 |
 
 - 让位：`window.DoLGameUI.ui.apiVersion === 1 && getCapabilities().enabled` 时不挂 `data-ml-native`，并清掉全部标记/入口，恢复原版。
-- 零轮询：无 `setInterval`、无 MutationObserver；只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` 的点击捕获和设置切换时重扫，单飞 rAF。
+- 零轮询：无 `setInterval`、无 MutationObserver；只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` / `#passages` 的点击捕获和设置切换时重扫，单飞 rAF，点击后 0 / 150ms 各补扫一次（等游戏异步换 DOM）。
 - 动效：仅 `transition` / 入场 `opacity + translateY`，尊重 `prefers-reduced-motion`、宿主 `data-dol-midnight:not([data-dgu-visualMotion])` 与本包 `data-ml-motion="off"`。
 
 ## 性能
@@ -99,7 +102,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**58 / 58 PASS**
+- `node --test tests\*.test.js`：**59 / 59 PASS**（新增「内层页：裸竖线清理，商店分类图标归入同一张卡」）
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）

@@ -132,6 +132,129 @@
 
   /* --------------------------------------------------------- 选项 / 弹层 */
 
+  function dropPipe(node) {
+    if (!node || node.nodeType !== 3) { return; }
+    if ((node.textContent || "").trim() !== "|") { return; }
+    node.parentNode.removeChild(node);
+  }
+
+  function dropPipeNear(node, step) {
+    while (node && node.nodeType === 3 && !(node.textContent || "").trim()) {
+      node = node[step];
+    }
+    dropPipe(node);
+  }
+
+  /* 衣柜动作与服装套之间用裸 "|" 分隔；卡片化后这些竖线会变成孤立色块。 */
+  function tidySeparators(root) {
+    var actions = root.querySelectorAll(".wardrobe-action");
+    for (var i = 0; i < actions.length; i++) {
+      dropPipeNear(actions[i].previousSibling, "previousSibling");
+      dropPipeNear(actions[i].nextSibling, "nextSibling");
+    }
+    var outfits = root.querySelector("#listoutfits");
+    if (!outfits) { return; }
+    var walker = doc.createTreeWalker(outfits, 4, null);
+    var texts = [];
+    while (walker.nextNode()) { texts.push(walker.currentNode); }
+    for (var j = 0; j < texts.length; j++) {
+      dropPipe(texts[j]);
+    }
+  }
+
+  /* 商店分类是「img.icon + a」两个兄弟节点；包成一层，图标才能和卡片同排。 */
+  function markShopCats(root) {
+    var shop = root.querySelector("#clothingShop-div");
+    if (!shop) { return; }
+    var imgs = shop.querySelectorAll("img.icon");
+    var pairs = [];
+    for (var i = 0; i < imgs.length; i++) {
+      if (imgs[i].parentNode !== shop) { continue; }
+      if (imgs[i].parentNode && imgs[i].parentNode.classList.contains("ml-shop-cat")) { continue; }
+      var next = imgs[i].nextElementSibling;
+      if (!next || next.tagName !== "A") { continue; }
+      if (!next.classList || !next.classList.contains("macro-link")) { continue; }
+      pairs.push({ img: imgs[i], link: next });
+    }
+    if (!pairs.length) { return; }
+    var list = doc.createElement("div");
+    list.className = "ml-shop-cat-list";
+    list.setAttribute("data-ml-shop-cat-list", "1");
+    pairs[0].img.parentNode.insertBefore(list, pairs[0].img);
+    for (var j = 0; j < pairs.length; j++) {
+      var wrap = doc.createElement("div");
+      wrap.className = "ml-shop-cat";
+      wrap.setAttribute("data-ml-shop-cat", "1");
+      pairs[j].img.parentNode.insertBefore(wrap, pairs[j].img);
+      wrap.appendChild(pairs[j].img);
+      wrap.appendChild(pairs[j].link);
+      var sib = wrap.nextSibling;
+      while (sib) {
+        if (sib.nodeType === 3 && !(sib.textContent || "").trim()) {
+          sib = sib.nextSibling;
+          continue;
+        }
+        if (sib.nodeType === 1 && sib.tagName === "BR") {
+          var gone = sib;
+          sib = sib.nextSibling;
+          gone.parentNode.removeChild(gone);
+          continue;
+        }
+        break;
+      }
+      list.appendChild(wrap);
+    }
+  }
+
+  /* 商品名后的「| Owned: 1」是分隔符，卡片化后去掉竖线。 */
+  function tidyShopText(root) {
+    var names = root.querySelectorAll(".clothing-name");
+    for (var i = 0; i < names.length; i++) {
+      var walker = doc.createTreeWalker(names[i], 4, null);
+      while (walker.nextNode()) {
+        var node = walker.currentNode;
+        node.nodeValue = (node.nodeValue || "").replace(/\s*\|\s*(?=Owned)/i, " ");
+        node.nodeValue = (node.nodeValue || "").replace(/\|/g, "");
+      }
+    }
+  }
+
+  /* 商品详情容器在空态会留下一个白描边气泡，先标成空态隐藏。 */
+  function markEmptyDetails(root) {
+    var details = root.querySelectorAll(".clothing-details");
+    for (var i = 0; i < details.length; i++) {
+      var empty = !(details[i].textContent || "").trim() && details[i].children.length === 0;
+      if (empty) { details[i].setAttribute("data-ml-empty", "1"); }
+      else { details[i].removeAttribute("data-ml-empty"); }
+    }
+  }
+
+  /* 商店列表右上三颗绝对定位小按钮会压住版本号，收进一条工具栏。 */
+  function markShopTools(root) {
+    var list = root.querySelector("#clothes-list");
+    if (!list || list.querySelector(".ml-shop-tools")) { return; }
+    var tools = list.querySelectorAll(".filters-button, .clothingshop-options-button, .shop-legend-button");
+    if (!tools.length) { return; }
+    var bar = doc.createElement("div");
+    bar.className = "ml-shop-tools";
+    var ref = list.querySelector(".button-back-to-shop");
+    if (ref && ref.parentNode === list) { list.insertBefore(bar, ref.nextSibling); }
+    else { list.appendChild(bar); }
+    var labels = { "filters-button": "Filters", "clothingshop-options-button": "Options", "shop-legend-button": "Legend" };
+    for (var i = 0; i < tools.length; i++) {
+      var cls = tools[i].className || "";
+      var key = Object.keys(labels).filter(function (k) { return cls.indexOf(k) !== -1; })[0];
+      tools[i].setAttribute("data-ml-tool", labels[key] || "");
+      tools[i].classList.add("ml-shop-tool");
+      tools[i].textContent = "";
+      var span = doc.createElement("span");
+      span.className = "ml-shop-tool-label";
+      span.textContent = labels[key] || "";
+      tools[i].appendChild(span);
+      bar.appendChild(tools[i]);
+    }
+  }
+
   function markPassages() {
     var passages = doc.getElementById("passages");
     if (!passages) { return; }
@@ -140,6 +263,11 @@
     for (var i = 0; i < links.length; i++) {
       links[i].setAttribute("data-ml-option", "1");
     }
+    tidySeparators(passages);
+    markShopCats(passages);
+    markShopTools(passages);
+    tidyShopText(passages);
+    markEmptyDetails(passages);
   }
 
   function overlayKey(overlay) {
@@ -342,11 +470,14 @@
   function onClick(e) {
     var t = e && e.target;
     if (!t) { return; }
-    /* 只对可能改变弹层/侧栏的点击做一次合并重扫；不在滚动或输入时跑。 */
+    /* 只对可能改变弹层/侧栏/正文的点击做一次合并重扫；不在滚动或输入时跑。 */
     var inBar = !!(t.closest && (t.closest("#overlayButtons") || t.closest("#menu") || t.closest("#customOverlay")));
-    if (inBar) {
+    /* 只在会异步换 DOM 的内层页点选后补扫；普通正文推进由 passageend 负责。 */
+    var inInner = !!(t.closest && t.closest("#clothingShop-div, #clothes-list, #wardrobe"));
+    if (inBar || inInner) {
       schedule();
       setTimeout(schedule, 0);
+      setTimeout(schedule, 150);
       if (t.closest && t.closest("#overlayButtons")) { armFeatsIntro(); }
     }
   }

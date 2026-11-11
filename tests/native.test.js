@@ -60,6 +60,25 @@ test("正文选项：只标记 macro-link，行内链接与 data-passage 原样�
   assert.equal(inline.getAttribute("data-passage"), "Inline");
 });
 
+test("内层页：裸竖线清理，商店分类图标归入同一张卡", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const passages = w.document.getElementById("passages");
+  passages.innerHTML =
+    '<div class="wardrobe-action"><a class="link-internal macro-link">(2) Strip all</a></div>|' +
+    '<div class="wardrobe-action"><a class="link-internal macro-link">(3) Wear random</a></div>' +
+    '<div id="listoutfits"><label class="no-numberify"><a class="link-internal macro-link">Create new set</a></label>|' +
+    '<label>Wear</label>|<label>Delete</label></div>' +
+    '<div id="clothingShop-div"><img class="icon" src="x.png"><a class="link-internal macro-link">(4) View Tops</a></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(passages.textContent.indexOf("|"), -1, "裸竖线应被清掉");
+  const cat = passages.querySelector("#clothingShop-div .ml-shop-cat");
+  assert.ok(cat, "图标与链接应包进分类卡");
+  assert.equal(cat.querySelector("img.icon") !== null, true);
+  assert.equal(cat.querySelector("a.macro-link") !== null, true);
+});
+
 test("OPTIONS 弹层：入口幂等注入，点击打开灯台面板", async () => {
   const { w } = createEnv();
   await tick(w);
