@@ -12,7 +12,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.0.0";
+  var VERSION = "1.1.0";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
   var THEMES = ["auto", "amber", "jade", "graphite"];
@@ -55,6 +55,7 @@
       "tab.now": "此刻", "tab.vitals": "身心", "tab.worn": "着装",
       "tab.system": "系统", "tab.settings": "设置",
       "now.progress": "今日已过", "now.money": "金钱", "now.scene": "场景", "now.phase": "时段",
+      "now.quick": "身心速览",
       "now.clockHint": "本地日程", "now.noTime": "读不到时间",
       "phase.night": "深夜", "phase.dawn": "清晨", "phase.day": "白昼", "phase.dusk": "黄昏",
       "phase.unknown": "未知",
@@ -74,14 +75,15 @@
       "motion.system": "跟随系统", "motion.off": "已关闭",
       "mode.auto": "自动 / 跟随宿主", "mode.manual": "手动主题",
       "settings.title": "设置", "settings.theme": "主题", "settings.scale": "字号",
-      "settings.density": "密度", "settings.motion": "动效", "settings.lang": "语言",
+      "settings.glass": "通透度", "settings.density": "密度", "settings.motion": "动效", "settings.lang": "语言",
       "settings.position": "悬浮球位置",
+      "settings.glassHint": "0 更沉稳 / 100 更通透；只改表面与模糊，不改文字和按钮",
       "settings.motionHint": "关闭后不播任何过渡与动画，操作仍完整",
       "theme.auto": "自动", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
       "density.cozy": "舒适", "density.compact": "紧凑",
       "lang.auto": "自动", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "左下", "pos.right": "右下",
-      "reset.scale": "字号回 100%", "reset.density": "密度回舒适",
+      "reset.scale": "字号回 100%", "reset.glass": "通透度回 60", "reset.density": "密度回舒适",
       "reset.theme": "主题回自动", "reset.pos": "复位位置",
       "misc.close": "关闭", "misc.untitled": "未知场景", "misc.degraded": "读取降级",
       "toast.storage": "设置只在本次生效（存储不可用）",
@@ -94,6 +96,7 @@
       "tab.now": "Now", "tab.vitals": "Vitals", "tab.worn": "Worn",
       "tab.system": "System", "tab.settings": "Settings",
       "now.progress": "Day elapsed", "now.money": "Money", "now.scene": "Scene", "now.phase": "Phase",
+      "now.quick": "Vitals",
       "now.clockHint": "Local schedule", "now.noTime": "Time unavailable",
       "phase.night": "Night", "phase.dawn": "Dawn", "phase.day": "Day", "phase.dusk": "Dusk",
       "phase.unknown": "Unknown",
@@ -113,14 +116,15 @@
       "motion.system": "Follow system", "motion.off": "Off",
       "mode.auto": "Auto / follow host", "mode.manual": "Manual theme",
       "settings.title": "Settings", "settings.theme": "Theme", "settings.scale": "Text size",
-      "settings.density": "Density", "settings.motion": "Motion", "settings.lang": "Language",
+      "settings.glass": "Clarity", "settings.density": "Density", "settings.motion": "Motion", "settings.lang": "Language",
       "settings.position": "Orb position",
+      "settings.glassHint": "0 calmer / 100 clearer; surface and blur only, text and buttons unchanged",
       "settings.motionHint": "When off, no transitions play; every action still works",
       "theme.auto": "Auto", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
       "density.cozy": "Cozy", "density.compact": "Compact",
       "lang.auto": "Auto", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "Bottom left", "pos.right": "Bottom right",
-      "reset.scale": "Text back to 100%", "reset.density": "Density back to cozy",
+      "reset.scale": "Text back to 100%", "reset.glass": "Clarity back to 60", "reset.density": "Density back to cozy",
       "reset.theme": "Theme back to auto", "reset.pos": "Reset position",
       "misc.close": "Close", "misc.untitled": "Unknown scene", "misc.degraded": "Degraded",
       "toast.storage": "Settings apply to this session only (storage unavailable)",
@@ -131,8 +135,8 @@
 
   var SLOT_LABELS = {
     zh: {
-      over_head: "帽饰", head: "头部", face: "面部", neck: "颈部",
-      over_upper: "外上装", upper: "上装", under_upper: "内上装",
+      over_head: "头饰", head: "头部", face: "面部", neck: "颈部",
+      over_upper: "外套", upper: "上衣", under_upper: "内搭",
       hands: "手部", handheld: "手持",
       over_lower: "外下装", lower: "下装", under_lower: "内下装",
       legs: "腿部", feet: "足部"
@@ -150,6 +154,7 @@
     v: 1,
     theme: "auto",
     scale: 100,
+    glass: 60,
     density: "cozy",
     motion: true,
     lang: "auto",
@@ -168,7 +173,8 @@
   /* 设置修复：逐字段，不整包丢弃；返回 repaired 供诊断与一次性提示。 */
   function sanitizeSettings(raw) {
     var out = {
-      v: 1, theme: DEFAULTS.theme, scale: DEFAULTS.scale, density: DEFAULTS.density,
+      v: 1, theme: DEFAULTS.theme, scale: DEFAULTS.scale, glass: DEFAULTS.glass,
+      density: DEFAULTS.density,
       motion: DEFAULTS.motion, lang: DEFAULTS.lang, tab: DEFAULTS.tab,
       side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen
     };
@@ -185,6 +191,15 @@
         var snapped = Math.round(clamp(s, 80, 140) / 5) * 5;
         if (snapped !== s) { repaired = true; }
         out.scale = snapped;
+      }
+    }
+    if (raw.glass !== undefined) {
+      var gl = num(raw.glass);
+      if (gl === null) { repaired = true; }
+      else {
+        var gs = Math.round(clamp(gl, 0, 100) / 5) * 5;
+        if (gs !== gl) { repaired = true; }
+        out.glass = gs;
       }
     }
     if (raw.density !== undefined) {
@@ -383,6 +398,7 @@
       lang: info.lang || null,
       settingsRepaired: info.repaired === true,
       stateReadable: info.stateReadable === true,
+      renderMs: typeof info.renderMs === "number" ? info.renderMs : null,
       at: info.at || null
     };
   }

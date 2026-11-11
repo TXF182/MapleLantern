@@ -8,7 +8,7 @@ const JSDOM_PATH = "C:/Users/27352/Doubao/chats/2026-10-13/new-chat-2/MapleBirch
 const { JSDOM } = require(JSDOM_PATH);
 
 const CORE = fs.readFileSync(path.join(__dirname, "..", "src", "core.js"), "utf8");
-const INDEX = fs.readFileSync(path.join(__dirname, "..", "src", "index.js"), "utf8");
+const INDEX = fs.readFileSync(path.join(__dirname, "..", "src", "render.js"), "utf8");
 
 const HTML = "<!doctype html><html><head><meta charset='utf-8'></head><body>" +
   "<div id='ui-bar'><a>状态</a></div><div id='story'><div id='passages'>走廊尽头</div></div></body></html>";

@@ -141,3 +141,65 @@ moli serve -p 9333 --layout --image
 python -m http.server 8766 --bind 127.0.0.1 -d .
 node tools\lantern-probe.js --port 9333
 ```
+
+---
+
+# v1.1.0 验证报告（2026-11-11）
+
+## A. 改动点补丁清单
+
+| # | 文件 / 功能 | 状态 |
+|---|---|---|
+| 1 | `core.js` VERSION `1.0.0 → 1.1.0`；`DEFAULTS.glass=60`；`sanitizeSettings` glass 分支；三处文案；`buildDiagnostics.renderMs` | ✓ |
+| 2 | `render.js`（原 `index.js`）通透度变量与 `data-glass`；`rangeControl()` 复用；`passageend` rAF 单飞；`renderActive()` 计时 | ✓ |
+| 3 | `style.css` 玻璃三变量、`contain`、`84dvh`、`data-glass="0"` 关模糊 | ✓ |
+| 4 | `boot.json` 版本 1.1.0，脚本列表 `core.js` + `render.js` | ✓ |
+| 5 | 渲染层改名 `render.js`，消除与 DoLGameUI / StoneFreeHost 的 `index.js` 撞名 | ✓ |
+| 6 | 测试 42 项（core 19 / dom 15 / contract 13，含 glass 与性能合同） | ✓ |
+| 7 | `tools/game-smoke.js` 增 `[5] passage`、`renderMs` 断言、宿主四包导入 | ✓ |
+| 8 | `tools/passage-probe.js` 独立复现剧情链路 | ✓ |
+| 9 | README / 设计规格 §18 / 本报告 | ✓ |
+
+## B. 验证层清单
+
+| 层 | 结果 |
+|---|---|
+| `node --check src/core.js` / `src/render.js` / `tools/game-smoke.js` | 0 语法错误 |
+| `node --test tests\*.test.js` | **42 / 42 PASS** |
+| moli `8 case × 5 页签` | **249 PASS / 0 FAIL**，40 张截图；`320-scale140-en/settings` 23 个按钮 ≥44px |
+| `check_ui_mod.py` | **13 PASS / 1 WARN / 0 FAIL**（WARN = 未声明 StoneFreeHost，有意可选接入） |
+| 打包 | 30,219 B / 5 条目 / SHA256 `5701871a54c463885e58075f122b79a1bf16e3269c8f97033ef07999a4d75b08`；正斜杠、固定 mtime |
+| 纯净档冒烟（Edge 隔离 profile + `file://`） | **11 项 PASS**，0 未捕获异常 |
+| 宿主档冒烟（Dynamicest 3.3 + StoneFreeHost 0.1.5 + DoLGameUI 4.2.0 + 本包） | **15 项 PASS** |
+| 性能 | 剧情切换后 `renderMs = 0.2–0.4`（纯净档 / 宿主档一致），断言上限 16 ms |
+| 剧情链路 | `Start → Start2`；面板场景 `Start → Start2`；时间 `23:45 → 07:00` |
+
+## C. 玩家路径走查
+
+| 入口 / 路径 | 结果 |
+|---|---|
+| 首次启动年龄弹窗 → 关闭 → 打开面板 | 通过（`#ui-dialog` 正常拦截与恢复） |
+| 右下悬浮球点击 | 通过（orb 56×56，开合正常） |
+| 五页签逐一点击 | 通过（`now / vitals / worn / system / settings` 均渲染） |
+| 设置页主题、字号、通透度、密度、动效、语言 | 通过（通透度默认 60；键盘 5% 步进；0/100 端点 CSS 变量正确） |
+| 游戏 `Start Game` 触发 passage | 通过（面板场景跟随 `Start2`） |
+| 宿主四包同装后再走同一路径 | 通过（面板仍 380×504，主题跟随宿主） |
+| 移动端 390 / 320 / 844×390 | 通过（视口模拟，非真机） |
+
+## D. 残留风险
+
+- 未验证 Android / iOS 真机、macOS、与 CE 同开、玩家真实存档下的长时间 passage 连续切换。
+- 身心页仍 5 项；`pain` / `hygiene` / `oxygen` 未纳入。
+- 「系统」页保留模组诊断信息（版本 / 宿主观测 / 存储状态），便于排障。
+- 32 位系统字体缓存与 GPU 差异可能让 `backdrop-filter` 观感不同，但数值合同已锁定。
+
+## E. 复跑命令（v1.1.0）
+
+```powershell
+cd MapleLantern
+node --test tests\*.test.js
+pwsh -NoProfile -File .\pack.ps1
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py .\dist\MapleLantern-1.1.0.mod.zip
+node tools\game-smoke.js
+$env:HOST='1'; node tools\game-smoke.js
+```

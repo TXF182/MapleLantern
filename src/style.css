@@ -27,6 +27,9 @@
   --ml-panel-radius: 18px;
   --ml-day-pct: 0%;
   --ml-shadow: 0 24px 64px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .35);
+  --ml-surface-alpha: .92;
+  --ml-blur: 20px;
+  --ml-edge: .09;
   --ml-safe-b: env(safe-area-inset-bottom, 0px);
   --ml-safe-l: env(safe-area-inset-left, 0px);
   --ml-safe-r: env(safe-area-inset-right, 0px);
@@ -182,11 +185,12 @@
   flex-direction: column;
   pointer-events: auto;
   z-index: 2;
-  background: rgba(11, 13, 16, .95);
+  background: rgba(11, 13, 16, var(--ml-surface-alpha));
   background-image: linear-gradient(180deg, rgba(38, 31, 20, .45) 0%, rgba(11, 13, 16, 0) 34%);
-  border: 1px solid var(--ml-line);
+  border: 1px solid rgba(255, 255, 255, var(--ml-edge));
   border-radius: var(--ml-panel-radius);
-  box-shadow: var(--ml-shadow);
+  box-shadow: var(--ml-shadow), inset 0 1px 0 rgba(255, 255, 255, calc(var(--ml-edge) * .55));
+  contain: layout style;
   overflow: hidden;
   opacity: 0;
   transform: translateY(10px) scale(.98);
@@ -198,9 +202,13 @@
 
 @supports ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
   #ml-root .ml-panel {
-    background-color: rgba(11, 13, 16, .92);
-    -webkit-backdrop-filter: blur(20px) saturate(1.1);
-    backdrop-filter: blur(20px) saturate(1.1);
+    background-color: rgba(11, 13, 16, var(--ml-surface-alpha));
+    -webkit-backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
+    backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
+  }
+  #ml-root[data-glass="0"] .ml-panel {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 }
 
@@ -324,6 +332,8 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  contain: layout paint style;
   padding: 14px 16px 16px;
   scrollbar-width: thin;
   scrollbar-color: rgba(227, 178, 95, .34) transparent;
@@ -420,6 +430,52 @@
 #ml-root .ml-hint { font-size: calc(10.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-faint); }
 
 #ml-root .ml-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* 身心速览：此刻页的三格摘要，只补留白，不替代“身心”页 */
+#ml-root .ml-quick {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ml-line);
+  border-radius: var(--ml-radius);
+  background: var(--ml-bg-soft);
+}
+#ml-root .ml-quick-h {
+  font-size: calc(10.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-faint);
+  letter-spacing: .1em;
+  margin-bottom: 8px;
+}
+#ml-root .ml-quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+#ml-root .ml-quick-i { min-width: 0; }
+#ml-root .ml-quick-top { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+#ml-root .ml-quick-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ml-muted); flex: none; }
+#ml-root .ml-quick-dot.is-jade { background: var(--ml-jade); }
+#ml-root .ml-quick-dot.is-amber { background: var(--ml-accent); }
+#ml-root .ml-quick-dot.is-danger { background: var(--ml-danger); }
+#ml-root .ml-quick-dot.is-rose { background: var(--ml-rose); }
+#ml-root .ml-quick-dot.is-cool { background: #8CA0BE; }
+#ml-root .ml-quick-k {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#ml-root .ml-quick-v {
+  font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-text);
+  font-variant-numeric: tabular-nums;
+}
+#ml-root .ml-quick-track {
+  display: block;
+  position: relative;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--ml-track);
+  overflow: hidden;
+}
 #ml-root .ml-stat {
   background: var(--ml-bg-soft);
   border: 1px solid var(--ml-line);
@@ -434,6 +490,9 @@
   grid-column: 1 / -1;
   background: linear-gradient(135deg, var(--ml-accent-soft), rgba(255, 255, 255, 0) 62%), var(--ml-bg-soft);
   border-color: rgba(227, 178, 95, .22);
+}
+@supports (color: color-mix(in srgb, #fff 10%, transparent)) {
+  #ml-root .ml-stat.is-accent { border-color: color-mix(in srgb, var(--ml-accent) 24%, transparent); }
 }
 #ml-root .ml-stat-k { font-size: calc(10.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-faint); letter-spacing: .1em; }
 #ml-root .ml-stat-v {
@@ -670,6 +729,7 @@
   width: auto;
   height: auto;
   max-height: 84vh;
+  max-height: 84dvh;
   border-radius: 18px 18px 0 0;
   border-bottom: 0;
   transform: translateY(100%);

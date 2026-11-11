@@ -182,7 +182,7 @@
     document.dispatchEvent(new Event("passageend"));
   });
 
-  /* 量测用：?scale=140&lang=en&theme=jade 预置设置（必须在 index.js 之前写入） */
+  /* 量测用：?scale=140&lang=en&theme=jade 预置设置（必须在 render.js 之前写入） */
   try {
     var seed = { v: 1 };
     if (qs.get("scale")) { seed.scale = parseInt(qs.get("scale"), 10); }
@@ -199,7 +199,7 @@
 </script>
 
 <script src="../src/core.js"></script>
-<script src="../src/index.js"></script>
+<script src="../src/render.js"></script>
 
 <script>
 /* 量测用：?open=1 在首帧前打开面板，避免 moli 的“加载时布局快照”与后续 DOM 变更对不上 */

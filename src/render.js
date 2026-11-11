@@ -24,6 +24,7 @@
     storageOK: true,
     host: null,
     lastFocus: null,
+    lastRenderMs: 0,
     closeTimer: 0,
     drag: null,
     orbDrag: null,
@@ -175,7 +176,16 @@
     els.root.setAttribute("data-density", state.settings.density);
     els.root.setAttribute("data-motion", state.settings.motion ? "on" : "off");
     els.root.style.setProperty("--ml-scale", String(state.settings.scale / 100));
+    var glass = Math.max(0, Math.min(100, Number(state.settings.glass)));
+    if (!isFinite(glass)) { glass = 60; }
+    var alpha = glass <= 60 ? 1 - glass * 0.001333 : .92 - (glass - 60) * .005;
+    var blur = glass <= 0 ? 0 : (glass <= 60 ? glass / 3 : 20 + (glass - 60) * .3);
+    els.root.style.setProperty("--ml-surface-alpha", String(Math.max(.72, Math.min(1, alpha)).toFixed(3)));
+    els.root.style.setProperty("--ml-blur", String(Math.round(blur)) + "px");
+    els.root.style.setProperty("--ml-edge", String(.06 + glass * .0005));
+    els.root.setAttribute("data-glass", glass <= 0 ? "0" : "1");
     els.root.style.removeProperty("--ml-accent");
+    els.root.style.removeProperty("--ml-accent-soft");
     els.root.style.removeProperty("--ml-radius");
     els.root.style.removeProperty("--ml-card-radius");
 
@@ -183,6 +193,10 @@
     if (state.settings.theme === "auto" && tokens) {
       if (typeof tokens.ocean === "string" && tokens.ocean.indexOf("--") === 0) {
         els.root.style.setProperty("--ml-accent", "var(" + tokens.ocean + ", #E3B25F)");
+        if (window.CSS && typeof window.CSS.supports === "function" &&
+            window.CSS.supports("color", "color-mix(in srgb, #fff 10%, transparent)")) {
+          els.root.style.setProperty("--ml-accent-soft", "color-mix(in srgb, var(" + tokens.ocean + ") 16%, transparent)");
+        }
       }
       if (typeof tokens.radius === "string" && tokens.radius.indexOf("--") === 0) {
         els.root.style.setProperty("--ml-radius", "var(" + tokens.radius + ", 12px)");
@@ -429,6 +443,7 @@
 
   function renderActive() {
     if (!els.body) { return; }
+    var t0 = (window.performance && typeof window.performance.now === "function") ? window.performance.now() : 0;
     var model = readModel();
     var modelSafe = model || {};
     state.modelDegraded = !!modelSafe.degraded;
@@ -445,6 +460,7 @@
     if (els.miniClock) { els.miniClock.textContent = clock ? C.formatClock(clock.hour, clock.minute) : ""; }
     updateOrb(clock);
     renderFooterStatus();
+    if (t0) { state.lastRenderMs = Math.round((window.performance.now() - t0) * 100) / 100; }
   }
 
   function updateOrb(clock) {
@@ -510,6 +526,35 @@
     cards.appendChild(sceneCard);
     cards.appendChild(statCard(s["now.phase"], clock ? s["phase." + clock.phase] : s["phase.unknown"], ""));
     pane.appendChild(cards);
+
+    /* 身心速览：只抽三项，填满此刻页留白，同时避免与“身心”页重复全量信息 */
+    var quickKeys = ["willpower", "stress", "trauma"];
+    var quickVitals = (model.vitals || []).filter(function (v) { return quickKeys.indexOf(v.key) >= 0; });
+    if (quickVitals.length) {
+      var quick = el("div", "ml-quick");
+      var quickHead = el("div", "ml-quick-h");
+      quickHead.textContent = s["now.quick"];
+      quick.appendChild(quickHead);
+      var quickGrid = el("div", "ml-quick-grid");
+      quickVitals.forEach(function (v) {
+        var cell = el("div", "ml-quick-i");
+        var top = el("div", "ml-quick-top");
+        var dot = el("i", "ml-quick-dot " + barTone(v.key));
+        var name = el("span", "ml-quick-k");
+        name.textContent = s["vital." + v.key];
+        var val = el("span", "ml-quick-v");
+        val.textContent = String(v.value);
+        top.appendChild(dot); top.appendChild(name); top.appendChild(val);
+        var track = el("span", "ml-quick-track");
+        var fill = el("i", "ml-bar-fill " + barTone(v.key));
+        fill.style.width = String(Math.max(0, Math.min(100, v.pct))) + "%";
+        track.appendChild(fill);
+        cell.appendChild(top); cell.appendChild(track);
+        quickGrid.appendChild(cell);
+      });
+      quick.appendChild(quickGrid);
+      pane.appendChild(quick);
+    }
 
     if (model.degraded) {
       var warn = el("p", "ml-note is-warn");
@@ -701,74 +746,87 @@
       { value: "graphite", label: s["theme.graphite"] }
     ], state.settings.theme, function (v) { setSetting("theme", v); })));
 
-    var scaleWrap = el("div", "ml-scale");
-    var slider = el("div", "ml-slider", {
-      role: "slider", tabindex: "0",
-      "aria-valuemin": "80", "aria-valuemax": "140",
-      "aria-valuenow": String(state.settings.scale),
-      "aria-valuetext": state.settings.scale + "%",
-      "aria-label": s["settings.scale"]
-    });
-    var track = el("div", "ml-track");
-    var fill = el("div", "ml-fill");
-    var thumb = el("div", "ml-thumb");
-    track.appendChild(fill);
-    track.appendChild(thumb);
-    slider.appendChild(track);
-    var out = el("output", "ml-range-out");
-    out.textContent = state.settings.scale + "%";
+    function rangeControl(key, min, max, step, label, format) {
+      var wrap = el("div", "ml-scale");
+      var slider = el("div", "ml-slider", {
+        role: "slider", tabindex: "0", "data-key": key,
+        "aria-valuemin": String(min), "aria-valuemax": String(max),
+        "aria-valuenow": String(state.settings[key]),
+        "aria-valuetext": format(state.settings[key]),
+        "aria-label": label
+      });
+      var track = el("div", "ml-track");
+      var fill = el("div", "ml-fill");
+      var thumb = el("div", "ml-thumb");
+      track.appendChild(fill);
+      track.appendChild(thumb);
+      slider.appendChild(track);
+      var out = el("output", "ml-range-out");
+      out.textContent = format(state.settings[key]);
 
-    function paintScale() {
-      var v = state.settings.scale;
-      var pct = (v - 80) / 60 * 100;
-      fill.style.width = pct + "%";
-      thumb.style.left = pct + "%";
-      slider.setAttribute("aria-valuenow", String(v));
-      slider.setAttribute("aria-valuetext", v + "%");
-      out.textContent = v + "%";
-    }
+      function paint() {
+        var v = state.settings[key];
+        var pct = (v - min) / (max - min) * 100;
+        fill.style.width = pct + "%";
+        thumb.style.left = pct + "%";
+        slider.setAttribute("aria-valuenow", String(v));
+        slider.setAttribute("aria-valuetext", format(v));
+        out.textContent = format(v);
+      }
 
-    function setScale(v, persist) {
-      var next = Math.max(80, Math.min(140, Math.round(v / 5) * 5));
-      if (next === state.settings.scale) { paintScale(); return; }
-      state.settings.scale = next;
-      paintScale();
-      applySettings();
-      if (persist) { saveSettings(); }
-    }
+      function setValue(v, persist) {
+        var next = Math.max(min, Math.min(max, Math.round(v / step) * step));
+        if (next === state.settings[key]) { paint(); return; }
+        state.settings[key] = next;
+        paint();
+        applySettings();
+        if (persist) { saveSettings(); }
+      }
 
-    function scaleFromX(clientX) {
-      var r = track.getBoundingClientRect();
-      var p = r.width ? (clientX - r.left) / r.width : 0;
-      return 80 + Math.max(0, Math.min(1, p)) * 60;
-    }
+      function valueFromX(clientX) {
+        var r = track.getBoundingClientRect();
+        var p = r.width ? (clientX - r.left) / r.width : 0;
+        return min + Math.max(0, Math.min(1, p)) * (max - min);
+      }
 
-    slider.addEventListener("pointerdown", function (ev) {
-      ev.preventDefault();
-      slider.focus();
-      setScale(scaleFromX(ev.clientX), false);
-      var move = function (e) { setScale(scaleFromX(e.clientX), false); };
-      var up = function () {
-        doc.removeEventListener("pointermove", move);
-        doc.removeEventListener("pointerup", up);
-        saveSettings();
+      slider.addEventListener("pointerdown", function (ev) {
+        ev.preventDefault();
+        slider.focus();
+        setValue(valueFromX(ev.clientX), false);
+        var move = function (e) { setValue(valueFromX(e.clientX), false); };
+        var up = function () {
+          doc.removeEventListener("pointermove", move);
+          doc.removeEventListener("pointerup", up);
+          saveSettings();
+        };
+        doc.addEventListener("pointermove", move);
+        doc.addEventListener("pointerup", up);
+      });
+
+      slider.addEventListener("keydown", function (ev) {
+        var kstep = ev.shiftKey ? Math.max(step, 10) : step;
+        if (ev.key === "ArrowRight" || ev.key === "ArrowUp") { setValue(state.settings[key] + kstep, true); ev.preventDefault(); }
+        else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") { setValue(state.settings[key] - kstep, true); ev.preventDefault(); }
+        else if (ev.key === "Home") { setValue(min, true); ev.preventDefault(); }
+        else if (ev.key === "End") { setValue(max, true); ev.preventDefault(); }
+      });
+
+      paint();
+      wrap.appendChild(slider);
+      wrap.appendChild(out);
+      pane.appendChild(field(label, wrap));
+
+      return {
+        set: function (v) { setValue(v, true); },
+        refresh: paint
       };
-      doc.addEventListener("pointermove", move);
-      doc.addEventListener("pointerup", up);
-    });
+    }
 
-    slider.addEventListener("keydown", function (ev) {
-      var step = ev.shiftKey ? 10 : 5;
-      if (ev.key === "ArrowRight" || ev.key === "ArrowUp") { setScale(state.settings.scale + step, true); ev.preventDefault(); }
-      else if (ev.key === "ArrowLeft" || ev.key === "ArrowDown") { setScale(state.settings.scale - step, true); ev.preventDefault(); }
-      else if (ev.key === "Home") { setScale(80, true); ev.preventDefault(); }
-      else if (ev.key === "End") { setScale(140, true); ev.preventDefault(); }
-    });
-
-    paintScale();
-    scaleWrap.appendChild(slider);
-    scaleWrap.appendChild(out);
-    pane.appendChild(field(s["settings.scale"], scaleWrap));
+    var scaleCtl = rangeControl("scale", 80, 140, 5, s["settings.scale"], function (v) { return v + "%"; });
+    var glassCtl = rangeControl("glass", 0, 100, 5, s["settings.glass"], function (v) { return v + "%"; });
+    var glassHint = el("p", "ml-note is-faint");
+    glassHint.textContent = s["settings.glassHint"];
+    pane.appendChild(glassHint);
 
     pane.appendChild(field(s["settings.density"], segmented([
       { value: "cozy", label: s["density.cozy"] },
@@ -815,7 +873,8 @@
       b.addEventListener("click", fn);
       return b;
     }
-    resets.appendChild(resetBtn(s["reset.scale"], function () { setSetting("scale", 100); }));
+    resets.appendChild(resetBtn(s["reset.scale"], function () { scaleCtl.set(100); }));
+    resets.appendChild(resetBtn(s["reset.glass"], function () { glassCtl.set(60); }));
     resets.appendChild(resetBtn(s["reset.density"], function () { setSetting("density", "cozy"); }));
     resets.appendChild(resetBtn(s["reset.theme"], function () { setSetting("theme", "auto"); }));
     resets.appendChild(resetBtn(s["reset.pos"], function () {
@@ -1010,7 +1069,9 @@
 
   /* ---------------------------------------------------------------- 事件 */
 
-  function onPassage() {
+  var passagePending = false;
+
+  function applyPassage() {
     if (state.disposed || state.failed) { return; }
     try {
       var clock = C.readModel({
@@ -1020,6 +1081,14 @@
       updateOrb(clock);
       if (state.open) { renderActive(); }
     } catch (e) { fail(e); }
+  }
+
+  function onPassage() {
+    if (state.disposed || state.failed || passagePending) { return; }
+    passagePending = true;
+    var run = function () { passagePending = false; applyPassage(); };
+    if (typeof window.requestAnimationFrame === "function") { window.requestAnimationFrame(run); }
+    else { setTimeout(run, 0); }
   }
 
   function onResize() {
@@ -1073,13 +1142,14 @@
   /* ---------------------------------------------------------------- 挂载 */
 
   function bind() {
+    var boundJq = false;
     try {
-      if (window.jQuery) { window.jQuery(doc).on(":passageend", onPassage); }
-    } catch (e) { /* jQuery 异常不影响原生兜底 */ }
-    doc.addEventListener("passageend", onPassage);
+      if (window.jQuery) { window.jQuery(doc).on(":passageend", onPassage); boundJq = true; }
+    } catch (e) { /* jQuery 异常时走原生兜底 */ }
+    if (!boundJq) { doc.addEventListener("passageend", onPassage); }
     doc.addEventListener("dol-ui-runtime-ready", syncHost);
     doc.addEventListener("keydown", onKeyDown);
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResize, { passive: true });
   }
 
   function mount() {
@@ -1132,6 +1202,7 @@
         breakpoint: state.sheet ? "sheet" : "float", storage: state.storageOK,
         reducedMotion: prefersReduced(), theme: state.settings && state.settings.theme,
         lang: state.lang, repaired: state.repaired, stateReadable: !!getVars(),
+        renderMs: state.lastRenderMs,
         at: new Date().toISOString()
       });
     }

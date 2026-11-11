@@ -18,9 +18,16 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = path.join(ROOT, "dist", "MapleLantern-1.0.0.mod.zip");
+const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.0.mod.zip");
 const SHOTS = path.join(ROOT, "prototype", "shots");
-const PROFILE = path.join(os.tmpdir(), "lantern-edge-profile");
+const HOST_MODE = process.env.HOST === "1";
+const PROFILE = path.join(os.tmpdir(), HOST_MODE ? "lantern-host-profile" : "lantern-edge-profile");
+const DOWNLOADS = path.join(process.env.USERPROFILE || "C:/Users/27352", "Downloads");
+const HOST_PACKS = [
+  path.join(DOWNLOADS, "Dynamicest-v3.3.mod.zip"),
+  path.join(DOWNLOADS, "StoneFreeHost-0.1.5-experimental.mod (1).zip"),
+  path.join(DOWNLOADS, "DoLGameUI-4.2.0.mod.zip")
+];
 
 const EDGES = [
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
@@ -33,6 +40,9 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
 (async () => {
   if (!EDGE) { throw new Error("找不到 msedge.exe"); }
   if (!fs.existsSync(ZIP)) { throw new Error("找不到包: " + ZIP); }
+  if (HOST_MODE) {
+    for (const p of HOST_PACKS) { if (!fs.existsSync(p)) { throw new Error("找不到参照包: " + p); } }
+  }
 
   const ctx = await chromium.launchPersistentContext(PROFILE, {
     executablePath: EDGE,
@@ -54,7 +64,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     await imp.goto(fileUrl(IMPORT), { waitUntil: "load", timeout: 60000 });
     await imp.waitForFunction(() => document.querySelector("#current") &&
       !document.querySelector("#current").textContent.includes("读取中"), null, { timeout: 30000 });
-    await imp.setInputFiles("#files", ZIP);
+    await imp.setInputFiles("#files", HOST_MODE ? HOST_PACKS.concat([ZIP]) : ZIP);
     await imp.click("#btnImport");
     await imp.waitForFunction(() => document.querySelector("#log").textContent.includes("完成。"), null, { timeout: 30000 });
     const importLog = await imp.evaluate(() => document.querySelector("#log").textContent);
@@ -91,7 +101,18 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       sugarCube: window.SugarCube && window.SugarCube.Version,
       state: !!(window.State && window.State.variables),
       api: !!(window.MapleLantern && window.MapleLantern.__mounted),
-      mods: window.modDataZipList ? window.modDataZipList.length : null
+      mods: window.modDataZipList ? window.modDataZipList.length : null,
+      host: (function () {
+        try {
+          var ui = window.DoLGameUI && window.DoLGameUI.ui;
+          if (!ui || ui.apiVersion !== 1 || typeof ui.getCapabilities !== "function") { return null; }
+          var caps = ui.getCapabilities();
+          var theme = ui.getTheme ? ui.getTheme() : null;
+          return { apiVersion: ui.apiVersion, enabled: caps.enabled, layout: caps.layout,
+            glass: caps.glass, backdropFilter: caps.backdropFilter,
+            theme: theme && theme.id, tokens: theme && theme.tokens };
+        } catch (e) { return { error: String(e && e.message || e) }; }
+      })()
     }));
     console.log("[3] 注入状态: " + JSON.stringify(injected));
 
@@ -116,19 +137,47 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
         theme: document.querySelector("#ml-root").getAttribute("data-theme"),
         body: { client: body.clientHeight, scroll: body.scrollHeight },
         tab: document.querySelector('.ml-tab[aria-selected="true"]').getAttribute("data-tab"),
+        accent: getComputedStyle(document.querySelector('.ml-tab[aria-selected="true"]')).color,
+        glass: document.querySelector("#ml-root").style.getPropertyValue("--ml-surface-alpha"),
         diag: window.MapleLantern.diagnostics()
       };
     });
     console.log("[4] 几何: " + JSON.stringify(geo));
 
     fs.mkdirSync(SHOTS, { recursive: true });
-    await page.screenshot({ path: path.join(SHOTS, "game-real-open.png") });
+    const prefix = HOST_MODE ? "host-real" : "game-real";
+    await page.screenshot({ path: path.join(SHOTS, prefix + "-open.png") });
     await page.click('[data-tab="vitals"]');
     await page.waitForTimeout(200);
-    await page.screenshot({ path: path.join(SHOTS, "game-real-vitals.png") });
+    await page.screenshot({ path: path.join(SHOTS, prefix + "-vitals.png") });
     await page.click('[data-tab="settings"]');
     await page.waitForTimeout(200);
-    await page.screenshot({ path: path.join(SHOTS, "game-real-settings.png") });
+    await page.screenshot({ path: path.join(SHOTS, prefix + "-settings.png") });
+
+    /* 真实 passage 切换：走游戏自己的“Start Game”，验证 :passageend → 面板场景跟随 */
+    await page.click('[data-tab="now"]');
+    const beforePassage = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll(".ml-stat"));
+      const c = cards.find((x) => /场景|Scene/.test(x.textContent));
+      return { passage: window.State && window.State.passage, scene: c ? c.querySelector(".ml-stat-v").textContent : null };
+    });
+    const started = await page.evaluate(() => {
+      const nodes = Array.from(document.querySelectorAll("#passages a, #passages button"));
+      const target = nodes.find((a) => /Start Game|开始游戏/i.test(a.textContent || ""));
+      if (!target) { return false; }
+      target.click();
+      return true;
+    });
+    await page.waitForFunction((p) => window.State && window.State.passage !== p, beforePassage.passage, { timeout: 15000 }).catch(() => {});
+    await page.waitForTimeout(600);
+    const afterPassage = await page.evaluate(() => {
+      const cards = Array.from(document.querySelectorAll(".ml-stat"));
+      const c = cards.find((x) => /场景|Scene/.test(x.textContent));
+      return { passage: window.State && window.State.passage, scene: c ? c.querySelector(".ml-stat-v").textContent : null,
+        diag: window.MapleLantern.diagnostics() };
+    });
+    await page.screenshot({ path: path.join(SHOTS, prefix + "-passage.png") });
+    console.log("[5] passage: " + JSON.stringify({ started, before: beforePassage, after: afterPassage }));
 
     const checks = [
       ["游戏版本 0.5.12.13", injected.version === "0.5.12.13"],
@@ -139,8 +188,18 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["层叠 89900", geo.z === "89900"],
       ["桌面浮卡（非抽屉）", geo.sheet === "0"],
       ["默认页签 now", geo.tab === "now"],
+      ["剧情切换后场景跟随", started && beforePassage.passage !== afterPassage.passage && afterPassage.scene === afterPassage.passage],
+      ["单次刷新 ≤ 16ms", typeof afterPassage.diag.renderMs === "number" && afterPassage.diag.renderMs > 0 && afterPassage.diag.renderMs <= 16],
       ["无未捕获异常", pageErrors.length === 0]
     ];
+    if (HOST_MODE) {
+      checks.push(
+        ["宿主 DoLGameUI API v1", !!(injected.host && injected.host.apiVersion === 1)],
+        ["宿主主题 token 已读", !!(injected.host && injected.host.tokens && injected.host.tokens.ocean)],
+        ["宿主下仍为 380×504", geo.panel.w === 380 && geo.panel.h === 504],
+        ["宿主下页面无异常", pageErrors.length === 0]
+      );
+    }
     let ok = true;
     for (const [name, pass] of checks) {
       console.log((pass ? "  PASS " : "  FAIL ") + name);

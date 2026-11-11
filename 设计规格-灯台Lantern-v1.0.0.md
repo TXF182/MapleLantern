@@ -380,3 +380,42 @@ open ──:passageend──▶ open(数据刷新，不关闭)
 2. 首次启动年龄弹窗 `#ui-dialog`（z=100100）按设计压住面板；这不是缺陷，但走查必须先关弹窗再点页签，`tools/game-smoke.js` 已按真实路径处理。
 
 **仍然未验证**：DoLGameUI 真机跟随、Android/iOS/macOS、CE 同开、玩家真实存档下的 passage 切换。
+
+---
+
+## 18. v1.1.0 增补（2026-11-11，性能与精美）
+
+### 18.1 通透度（对齐 DoLGameUI 4.2.0 口径）
+
+- 新设置 `glass`：0–100，5% 步进，默认 **60**；非法值修复，缺省补 60。存储键不变，旧档升级后自动获得 60。
+- 只改三件事：**表面遮蔽**（`--ml-surface-alpha`）、**模糊**（`--ml-blur`）、**边缘层次**（`--ml-edge`），并挂 `data-glass`。
+- **不改文字与按钮透明度**；恢复语义分项（「通透度回 60」只重置这一项）。
+- 公式：
+  - `alpha = glass<=60 ? 1-glass*0.001333 : .92-(glass-60)*.005`，夹 `.72~1`
+  - `blur = 0 | glass/3 | 20+(glass-60)*.3`
+  - `edge = .06+glass*.0005`
+- `glass=0` 时 `backdrop-filter: none`，保留数值；再提高时数值原样恢复。
+
+### 18.2 脚本命名（宿主档最严重的一处静默失效）
+
+- 渲染层由 `index.js` 改名 `render.js`。原因：`index.js` 与 DoLGameUI 4.2.0、StoneFreeHost 0.1.5 的脚本同名，四包同装时本包渲染层完全不执行（`core.js` 已执行、`window.MapleLantern` 不存在、`pageerror` 为零）。
+- `boot.json` 顺序固定 `["core.js","render.js"]`；**不要改回 `index.js`**。
+
+### 18.3 性能
+
+- `:passageend` → 单飞标记 `passagePending` → 一次 `requestAnimationFrame` 合帧；无 rAF 时 `setTimeout(run,0)` 兜底。
+- 只重绘当前页签；滑块拖动只推 CSS 变量，不整页重建。
+- `renderActive()` 用 `performance.now()` 计时，写入 `state.lastRenderMs`，诊断字段 `renderMs` 可回读。
+- 实机：剧情切换后单次刷新 **0.2–0.4 ms**（纯净档 / 宿主档同口径），冒烟断言上限 16 ms。
+- CSS：面板 `contain: layout style`，内容区 `contain: layout paint style` + `-webkit-overflow-scrolling: touch`；抽屉 `84vh` 后追加 `84dvh`。
+
+### 18.4 宿主真机（Windows + Edge 隔离 profile）
+
+- 四包同装：Dynamicest 3.3 + StoneFreeHost 0.1.5 + DoLGameUI 4.2.0 + MapleLantern 1.1.0。
+- 15 项 PASS：API v1、8 个 token 名、`layout=desktop`、`visualTier=Fancy`、面板仍 380×504、页面无异常。
+- 宿主强调色 `rgb(201,201,205)` 真实转发；球与页签跟随宿主。
+- `Start → Start2`：面板场景同步、时间 `23:45 → 07:00`，证明 `:passageend → rAF → 重绘` 链路成立。
+
+### 18.5 仍未验证
+
+- Android / iOS 真机；macOS；与 CE 同开；玩家真实存档下的长时间 passage 连续切换。

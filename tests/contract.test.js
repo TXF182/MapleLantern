@@ -7,7 +7,7 @@ const path = require("path");
 
 const SRC = path.join(__dirname, "..", "src");
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
-const index = fs.readFileSync(path.join(SRC, "index.js"), "utf8");
+const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
@@ -16,12 +16,12 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.0.0");
+  assert.equal(boot.version, "1.1.0");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
-  assert.deepEqual(boot.scriptFileList, ["core.js", "index.js"], "core 必须先于 index");
+  assert.deepEqual(boot.scriptFileList, ["core.js", "render.js"], "core 必须先于 index");
   assert.deepEqual(boot.styleFileList, ["style.css"]);
   for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
@@ -87,7 +87,20 @@ test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
   }
 });
 
-test("index.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
+test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage 单飞", () => {
+  assert.match(css, /--ml-surface-alpha:/);
+  assert.match(css, /--ml-blur:/);
+  assert.match(css, /backdrop-filter: blur\(var\(--ml-blur\)\)/);
+  assert.match(css, /\[data-glass="0"\][\s\S]*?backdrop-filter: none/);
+  assert.match(css, /84dvh/);
+  assert.match(css, /contain: layout paint style/);
+  assert.match(css, /contain: layout style/);
+  assert.match(index, /passagePending/);
+  assert.match(index, /requestAnimationFrame\(run\)/);
+  assert.match(core, /glass: 60/);
+});
+
+test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
   assert.match(index, /apiVersion !== 1/);
   assert.ok(!/setInterval/.test(index), "不允许常驻轮询");
   for (const ev of ["passageend", "resize", "keydown", "pointerdown"]) {
@@ -112,12 +125,12 @@ test("层叠：z-index 89900 低于 SugarCube 浮层（100000）", () => {
 test("原型：先 CSS 后脚本，core 先于 index", () => {
   const link = html.indexOf("../src/style.css");
   const c = html.indexOf("../src/core.js");
-  const i = html.indexOf("../src/index.js");
+  const i = html.indexOf("../src/render.js");
   assert.ok(link > 0 && c > link && i > c, "加载顺序必须是 css -> core -> index");
 });
 
 test("体积预算：UI 包源码应远小于 1MB", () => {
-  for (const f of ["core.js", "index.js", "style.css", "boot.json"]) {
+  for (const f of ["core.js", "render.js", "style.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
     assert.ok(size < 200 * 1024, f + " 过大: " + size);
   }

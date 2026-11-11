@@ -112,6 +112,36 @@ test("只读红线：打开、切页、改设置、取诊断全程零写入 Stat
   assert.equal(getWrites(), 0, "出现了 State.variables 写入");
 });
 
+test("设置：通透度滑块默认 60，键盘可调并写入 --ml-surface-alpha / 存储", () => {
+  const { w } = createEnv();
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const glass = w.document.querySelector('.ml-slider[data-key="glass"]');
+  assert.ok(glass, "缺少通透度滑块");
+  assert.equal(glass.getAttribute("aria-valuenow"), "60");
+  assert.equal(glass.getAttribute("aria-valuemin"), "0");
+  assert.equal(glass.getAttribute("aria-valuemax"), "100");
+  glass.dispatchEvent(new w.KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true }));
+  assert.equal(glass.getAttribute("aria-valuenow"), "55");
+  const root = w.document.getElementById("ml-root");
+  assert.match(root.style.getPropertyValue("--ml-surface-alpha"), /\.92|\.93/);
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(saved.glass, 55);
+});
+
+test("设置：通透度 0 关掉玻璃模糊，100 时表面更透", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, glass: 0 } });
+  const root = w.document.getElementById("ml-root");
+  assert.equal(root.getAttribute("data-glass"), "0");
+  assert.equal(root.style.getPropertyValue("--ml-blur"), "0px");
+  assert.equal(root.style.getPropertyValue("--ml-surface-alpha"), "1.000");
+
+  const { w: w100 } = createEnv({ seed: { v: 1, lang: "zh", motion: false, glass: 100 } });
+  const root100 = w100.document.getElementById("ml-root");
+  assert.equal(root100.getAttribute("data-glass"), "1");
+  assert.equal(root100.style.getPropertyValue("--ml-blur"), "32px");
+  assert.equal(root100.style.getPropertyValue("--ml-surface-alpha"), "0.720");
+});
 test("私密槽位：不渲染 butt_plug / genitals 的物品名", () => {
   const { w } = createEnv();
   w.MapleLantern.open();

@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.0.0");
+  assert.equal(C.VERSION, "1.1.0");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "settings"]);
   assert.equal(C.THEMES.length, 4);
@@ -54,6 +54,11 @@ test("设置修复：越界夹紧与非法类型", () => {
   assert.equal(C.sanitizeSettings({ scale: 10 }).value.scale, 80);
   assert.equal(C.sanitizeSettings({ scale: 999 }).value.scale, 140);
   assert.equal(C.sanitizeSettings({ scale: "big" }).repaired, true);
+  assert.equal(C.sanitizeSettings({ glass: 10 }).value.glass, 10);
+  assert.equal(C.sanitizeSettings({ glass: 999 }).value.glass, 100);
+  assert.equal(C.sanitizeSettings({ glass: 63 }).value.glass, 65);
+  assert.equal(C.sanitizeSettings({ glass: "clear" }).repaired, true);
+  assert.equal(C.sanitizeSettings({}).value.glass, 60);
   assert.equal(C.sanitizeSettings({ y: -3 }).value.y, 0.12);
   assert.equal(C.sanitizeSettings({ y: "x" }).repaired, true);
   assert.equal(C.sanitizeSettings(null).empty, true);
@@ -160,7 +165,7 @@ test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () =>
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.0.0");
+  assert.equal(d.version, "1.1.0");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);
