@@ -263,6 +263,30 @@ html[data-ml-native="on"] #storyCaptionContent {
   box-sizing: border-box;
 }
 
+/* 侧栏入口保持正文流内排列；内容超出时由 #storyCaptionContent 滚动。 */
+
+/* 有立绘时，原版把侧栏正文的容器放在 192px 高的立绘下方；早前把
+   #storyCaptionDiv 改成 relative/top:auto，等于把它抬到立绘上，顶栏四格
+   才会压住人物。这里恢复「立绘一块、顶栏一块、正文一块」的上下顺序。 */
+html[data-ml-native="on"] body.has-images #storyCaptionDiv {
+  position: absolute !important;
+  top: 192px !important;
+  left: 24px !important;
+  width: 280px !important;
+  height: calc(100% - 192px - 24px) !important;
+  margin: 0 !important;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+html[data-ml-native="on"] body.has-images #stats {
+  position: relative !important;
+  top: auto !important;
+  z-index: auto !important;
+  flex: 0 0 auto;
+  margin: 0 !important;
+}
+
 html[data-ml-native="on"] #statmeters {
   position: relative;
   z-index: 2;
