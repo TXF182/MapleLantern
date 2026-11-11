@@ -161,7 +161,7 @@ html[data-ml-native="on"] #stats > .content > .first-row {
 
 html[data-ml-native="on"] #stats .centered-elements {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1.15fr) minmax(0, .72fr) minmax(0, .78fr);
+  grid-template-columns: 32px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr);
   gap: 4px;
   align-items: stretch;
 }
@@ -172,7 +172,7 @@ html[data-ml-native="on"] #stats .centered-elements > div {
   justify-content: center;
   min-width: 0;
   min-height: 56px;
-  padding: 7px 8px;
+  padding: 7px 6px;
   box-sizing: border-box;
   overflow: hidden;
   border: 1px solid var(--mln-border);
@@ -200,6 +200,7 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] {
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] {
   color: var(--mln-muted);
+  font-size: 10.5px;
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] .true {
@@ -2643,7 +2644,7 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
 
 @media (max-width: 420px) {
   html[data-ml-native="on"] #stats .centered-elements {
-    grid-template-columns: 36px minmax(0, 1.35fr) minmax(0, .85fr) minmax(0, .9fr);
+    grid-template-columns: 36px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr);
     gap: 5px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div {
