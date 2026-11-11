@@ -53,7 +53,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 |---|---|---|
 | `#stats .centered-elements` 四块 | `data-ml-chip=toggle/money/time/day` | 四格：开合 / 金钱 / 时间 / 星期；金额整数补 `.00`，数字用等宽数字 |
 | `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent/total/readout` | **一张状态大卡**：7 行「标签 + 长条 + 右侧 当前/上限」，上限读 `State.variables.*max`，缺失才回退常量；整卡随侧栏滚动 |
-| `#passages a.link-internal.macro-link` | `data-ml-option="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage |
+| `#passages a.link-internal.macro-link` | `data-ml-option="1"`；有前置 `img.icon` 时加 `data-ml-option-group="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage；「图标 + 选项」收进同一张 `ml-option-group` 卡，图标 30px 在左、文字在右，并摘掉组前空行；无图标选项保持整行卡 |
 | `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；`sidebarButtonSplit` 拆平为 `display:contents`，清掉原版占格 `<br>`，8 个入口四行对齐，`JOURNAL` / `OPTIONS` 不再退省略号 |
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
 | `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
@@ -102,7 +102,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**61 / 61 PASS**（新增「正文空行折叠」；状态卡补 `data-ml-total/readout` 断言）
+- `node --test tests\*.test.js`：**62 / 62 PASS**（新增「图标 + 选项打包」；状态卡补 `data-ml-total/readout` 断言）
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）

@@ -76,6 +76,25 @@ test("正文选项：只标记 macro-link，行内链接与 data-passage 原样�
   assert.equal(inline.getAttribute("data-passage"), "Inline");
 });
 
+test("图标 + 选项：同一张卡内图标在左、文字在右，并去掉组前空行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<br><img class="icon" src="wardrobe.png"><br><a class="link-internal macro-link" data-passage="A">(3) Wardrobe</a>' +
+    '<br><img class="icon" src="mirror.png"><br><a class="link-internal macro-link" data-passage="B">(4) Mirror</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const groups = p.querySelectorAll(".ml-option-group");
+  assert.equal(groups.length, 2, "两组图标选项都应打包");
+  assert.equal(groups[0].querySelector("img.icon") !== null, true);
+  assert.equal(groups[0].querySelector("a.macro-link") !== null, true);
+  assert.equal(groups[0].querySelectorAll("img").length + groups[0].querySelectorAll("a").length, 2);
+  assert.equal(p.querySelectorAll("br").length, 0, "组前空行应被清掉");
+  assert.equal(p.querySelector('.ml-option-group a[data-passage="A"]') !== null, true);
+  assert.equal(p.querySelector('.ml-option-group a[data-passage="B"]') !== null, true);
+});
+
 test("内层页：裸竖线清理，商店分类图标归入同一张卡", async () => {
   const { w } = createEnv();
   await tick(w);

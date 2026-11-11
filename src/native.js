@@ -338,6 +338,55 @@
     }
   }
 
+  /* 图标与选项在原版里是两个直接兄弟节点，中间只隔 <br>；包成一组后
+     图标才能进入同一张卡左侧，而不是独占一行把选项推远。 */
+  function packIconOptions(root) {
+    var passages = root.querySelectorAll("#passages .passage");
+    for (var i = 0; i < passages.length; i++) {
+      var passage = passages[i];
+      var links = passage.querySelectorAll("a.link-internal.macro-link, a.macro-link");
+      for (var j = 0; j < links.length; j++) {
+        var link = links[j];
+        if (link.parentNode !== passage) { continue; }
+        var icon = link.previousElementSibling;
+        if (!icon || icon.tagName !== "IMG" || !icon.classList.contains("icon")) { continue; }
+        if (icon.parentNode !== passage) { continue; }
+        var wrap = doc.createElement("div");
+        wrap.className = "ml-option-group";
+        wrap.setAttribute("data-ml-option-group", "1");
+        passage.insertBefore(wrap, icon);
+        wrap.appendChild(icon);
+        wrap.appendChild(link);
+        /* 图标前的空行会把整组再推远一行，直接摘掉。 */
+        var prev = wrap.previousSibling;
+        while (prev) {
+          if (prev.nodeType === 3 && !(prev.nodeValue || "").trim()) {
+            prev = prev.previousSibling;
+            continue;
+          }
+          if (prev.nodeType === 1 && prev.tagName === "BR") {
+            var gone = prev;
+            prev = prev.previousSibling;
+            gone.parentNode.removeChild(gone);
+            continue;
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  function unpackOptions() {
+    var groups = doc.querySelectorAll("[data-ml-option-group]");
+    for (var i = 0; i < groups.length; i++) {
+      var group = groups[i];
+      var parent = group.parentNode;
+      if (!parent) { continue; }
+      while (group.firstChild) { parent.insertBefore(group.firstChild, group); }
+      parent.removeChild(group);
+    }
+  }
+
   function markPassages() {
     var passages = doc.getElementById("passages");
     if (!passages) { return; }
@@ -352,6 +401,7 @@
     tidyShopText(passages);
     markEmptyDetails(passages);
     collapseBreaks(passages);
+    packIconOptions(passages);
   }
 
   function overlayKey(overlay) {
@@ -549,6 +599,7 @@
 
   function clearMarks() {
     restoreFeatsIntro();
+    unpackOptions();
     var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay]");
     for (var i = 0; i < marked.length; i++) {
       marked[i].removeAttribute("data-ml-chip");
