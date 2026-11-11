@@ -52,6 +52,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | 原版位置 | 标记 | 呈现 |
 |---|---|---|
 | `#stats .centered-elements` 四块 | `data-ml-chip=toggle/money/time/day` | 四格：开合 / 金钱 / 时间 / 星期；金额整数补 `.00`，数字用等宽数字 |
+| `#mobileStats` 左轨 | 无标记，CSS | 32px 宽度不变；28×36 胶囊，每格 2px 左侧状态色条，字号 12.5 / 字重 700 / 文字描边提升暗底可读性；时间块 60px 高并带金棕强调 |
 | `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent/total/readout` | **一张状态大卡**：7 行「标签 + 长条 + 右侧 当前/上限」，上限读 `State.variables.*max`，缺失才回退常量；整卡随侧栏滚动 |
 | `#passages a.link-internal.macro-link` | `data-ml-option="1"`；有前置 `img.icon` 时加 `data-ml-option-group="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage；「图标 + 选项」收进同一张 `ml-option-group` 卡，图标 30px 在左、文字在右，并摘掉组前空行；无图标选项保持整行卡 |
 | `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；`sidebarButtonSplit` 拆平为 `display:contents`，清掉原版占格 `<br>`，8 个入口四行对齐，`JOURNAL` / `OPTIONS` 不再退省略号 |
@@ -102,7 +103,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**62 / 62 PASS**（新增「图标 + 选项打包」；状态卡补 `data-ml-total/readout` 断言）
+- `node --test tests\*.test.js`：**63 / 63 PASS**（新增「图标 + 选项打包」「左轨 32px / 色条 / 字号」；状态卡补 `data-ml-total/readout` 断言）
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）

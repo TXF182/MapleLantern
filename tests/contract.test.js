@@ -105,6 +105,13 @@ test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage �
   assert.match(index, /setSetting\("theme", v, false\)/);
 });
 
+test("native.css：左轨保持 32px，字号提升且每格有左侧色条", () => {
+  assert.match(nativeCss, /#mobileStats\s*\{[^}]*width:\s*32px[^}]*box-sizing:\s*border-box/s);
+  assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*border-left:\s*2px solid currentColor/s);
+  assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*font-size:\s*12\.5px/s);
+  assert.match(nativeCss, /#mobileStats \.stat\.time\s*\{[^}]*min-height:\s*60px/s);
+});
+
 test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
   assert.match(index, /apiVersion !== 1/);
   assert.ok(!/setInterval/.test(index), "不允许常驻轮询");
