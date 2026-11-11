@@ -664,6 +664,8 @@ html[data-ml-native="on"] #customOverlay:not([data-overlay="modloader"]) {
   right: 0 !important;
   height: auto !important;
   margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
   width: min(920px, calc(100vw - 48px));
   max-width: calc(100vw - 48px);
   box-sizing: border-box;
@@ -680,8 +682,10 @@ html[data-ml-native="on"] #customOverlay:not([data-overlay="modloader"]) {
 }
 
 html[data-ml-native="on"] #customOverlayTitle {
-  min-height: 50px;
-  padding: 10px 52px 10px 14px;
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 52px;
+  padding: 6px 52px 6px 12px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--mln-border);
   background: var(--mln-bg) !important;
@@ -702,7 +706,9 @@ html[data-ml-native="on"] #customOverlayContent {
   border-radius: 0 0 var(--mln-radius-sm) var(--mln-radius-sm);
   background: var(--mln-surface);
   color: var(--mln-text);
-  height: calc(100% - 68px);
+  flex: 1 1 auto;
+  min-height: 0;
+  height: auto;
   overflow-y: auto;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -737,7 +743,9 @@ html[data-ml-native="on"] #overlayTabs {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin: 0 0 10px;
+  width: 100%;
+  margin: 0;
+  overflow: visible;
   border: 0;
   background: transparent !important;
   box-shadow: none !important;
@@ -752,6 +760,7 @@ html[data-ml-native="on"] #overlayTabs .tab {
 }
 
 html[data-ml-native="on"] #overlayTabs button {
+  flex: 0 0 auto;
   min-height: 40px;
   padding: 7px 12px;
   border: 1px solid var(--mln-border);
@@ -760,6 +769,7 @@ html[data-ml-native="on"] #overlayTabs button {
   color: var(--mln-muted);
   font-family: var(--mln-font);
   font-size: 12px;
+  white-space: nowrap;
 }
 
 html[data-ml-native="on"] #overlayTabs button:hover,
@@ -1035,6 +1045,49 @@ html[data-ml-native="on"] #customOverlayContent .settingsToggleItem label {
   align-items: center;
   gap: 6px;
   cursor: pointer;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) {
+  display: block;
+  font-size: 0;
+  line-height: 1.45;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > span.gold {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > #optionsThemeDefault-dateFormat {
+  display: none;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label {
+  display: inline-flex;
+  width: 32%;
+  box-sizing: border-box;
+  min-height: 30px;
+  margin: 0 .5% 3px 0;
+  padding: 2px 3px;
+  border: 1px solid var(--mln-border);
+  border-radius: 8px;
+  background: var(--mln-surface-2);
+  justify-content: center;
+  gap: 4px;
+  vertical-align: top;
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.en-GB,
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.en-US {
+  width: 34%;
+}
+
+html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.zh-CN {
+  width: 30%;
 }
 
 html[data-ml-native="on"] #customOverlayContent select,

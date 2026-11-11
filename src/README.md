@@ -56,6 +56,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#passages a.link-internal.macro-link` | `data-ml-option="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage |
 | `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；半宽档按实测把字号收到 9.5px，`JOURNAL` / `OPTIONS` 不再退省略号 |
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
+| `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
 | `#ui-bar` 320px 极窄档 | 无标记，`@media (max-width:340px)` | 抽屉宽 248px、收起位移 -216px，箭头回到屏内；金钱/时间/星期不截断 |
 
