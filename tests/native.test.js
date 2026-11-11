@@ -141,6 +141,29 @@ test("FEATS 弹层：顶部说明包成说明卡，筛选控件留在卡外", as
   assert.equal(body.querySelectorAll("[data-ml-feats-intro]").length, 1, "说明卡重复生成");
 });
 
+test("Statistics 折叠体：标签与值拆成两栏行，重复刷新不重复拆", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const body = w.document.getElementById("customOverlayContent");
+  const overlay = w.document.getElementById("customOverlay");
+  body.innerHTML = '<div class="foldout"><div class="foldoutBody">Vaginal virginity: <span class="gold">Present</span><br>Total: 0<br><br>You haven\'t gone on any dates!</div></div>';
+  overlay.setAttribute("data-overlay", "statistics");
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const fold = body.querySelector(".foldoutBody");
+  assert.equal(fold.getAttribute("data-ml-stat-rows"), "1");
+  const rows = fold.querySelectorAll(".ml-stat-row");
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].querySelector(".ml-stat-label").textContent.trim(), "Vaginal virginity");
+  assert.equal(rows[0].querySelector(".ml-stat-value").textContent.trim(), "Present");
+  assert.equal(rows[1].querySelector(".ml-stat-label").textContent.trim(), "Total");
+  assert.equal(rows[1].querySelector(".ml-stat-value").textContent.trim(), "0");
+  assert.match(fold.querySelector(".ml-stat-note").textContent, /haven't gone/);
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(fold.querySelectorAll(".ml-stat-row").length, 2);
+});
+
 test("只读：原生层全程不写 State.variables", async () => {
   const { w, getWrites } = createEnv();
   await tick(w);

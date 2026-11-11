@@ -352,6 +352,69 @@
     wrap.parentNode.removeChild(wrap);
   }
 
+  /* Statistics 的折叠体是「标签: 值 <br>」纯文本流，拆成两栏行便于扫读。 */
+  function alignStatRows(root) {
+    var bodies = root.querySelectorAll("#customOverlayContent .foldoutBody");
+    for (var b = 0; b < bodies.length; b++) {
+      var body = bodies[b];
+      if (body.getAttribute("data-ml-stat-rows") === "1") { continue; }
+      var nodes = Array.prototype.slice.call(body.childNodes);
+      var lines = [];
+      var line = [];
+      for (var n = 0; n < nodes.length; n++) {
+        var node = nodes[n];
+        if (node.nodeType === 1 && node.tagName === "BR") {
+          if (line.length) { lines.push(line); line = []; }
+          continue;
+        }
+        line.push(node);
+      }
+      if (line.length) { lines.push(line); }
+
+      var rows = doc.createElement("div");
+      rows.className = "ml-stat-rows";
+      for (var l = 0; l < lines.length; l++) {
+        var parts = lines[l];
+        var textNode = null;
+        var colon = -1;
+        for (var p = 0; p < parts.length; p++) {
+          if (parts[p].nodeType === 3) {
+            var idx = (parts[p].nodeValue || "").indexOf(":");
+            if (idx > 0) { textNode = parts[p]; colon = idx; break; }
+          }
+        }
+        var row = doc.createElement("div");
+        if (!textNode) {
+          if (!parts.some(function (x) { return (x.textContent || "").trim(); })) { continue; }
+          row.className = "ml-stat-note";
+          for (var q = 0; q < parts.length; q++) { row.appendChild(parts[q]); }
+          rows.appendChild(row);
+          continue;
+        }
+        var label = doc.createElement("span");
+        label.className = "ml-stat-label";
+        label.textContent = textNode.nodeValue.slice(0, colon).trim();
+        var value = doc.createElement("span");
+        value.className = "ml-stat-value";
+        for (var r = 0; r < parts.length; r++) {
+          if (parts[r] === textNode) {
+            var rest = textNode.nodeValue.slice(colon + 1).replace(/^\s+/, "");
+            if (rest) { value.appendChild(doc.createTextNode(rest)); }
+          } else {
+            value.appendChild(parts[r]);
+          }
+        }
+        row.className = "ml-stat-row";
+        row.appendChild(label);
+        row.appendChild(value);
+        rows.appendChild(row);
+      }
+      while (body.firstChild) { body.removeChild(body.firstChild); }
+      body.appendChild(rows);
+      body.setAttribute("data-ml-stat-rows", "1");
+    }
+  }
+
   function markOverlay() {
     var overlay = doc.getElementById("customOverlay");
     if (!overlay) { return; }
@@ -359,6 +422,7 @@
     overlay.setAttribute("data-ml-overlay", key);
     if (key === "options") { addEntry(overlay); }
     if (key === "gameFeats") { armFeatsIntro(); }
+    if (key === "statistics") { alignStatRows(overlay); }
   }
 
   function markDialog() {

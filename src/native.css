@@ -2321,6 +2321,68 @@ html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOv
   font-size: 11.5px;
 }
 
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody[data-ml-stat-rows="1"] {
+  padding: 4px 12px 8px !important;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-rows {
+  display: block;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--mln-border);
+  animation: mln-stat-row-in 160ms ease-out both;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row:nth-child(n+2) {
+  animation-delay: 18ms;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row:nth-child(n+3) {
+  animation-delay: 36ms;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row:nth-child(n+4) {
+  animation-delay: 54ms;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row:nth-child(n+5) {
+  animation-delay: 72ms;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row:last-child {
+  border-bottom: 0;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-label {
+  min-width: 0;
+  color: var(--mln-muted);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-value {
+  max-width: none;
+  color: var(--mln-text);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: right;
+  white-space: nowrap;
+}
+
+html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-note {
+  padding: 4px 0;
+  color: var(--mln-muted);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
 /* ---------------------------------------------------------------- 入口 */
 
 html[data-ml-native="on"] .ml-native-entry-wrap {
@@ -2385,13 +2447,19 @@ html[data-ml-native="on"] #passages::-webkit-scrollbar-thumb {
   to { opacity: 1; transform: scale(1); }
 }
 
+@keyframes mln-stat-row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 html[data-ml-native="on"] #statmeters .meter > div {
   transition: width 180ms ease;
 }
 
 html[data-ml-native="on"][data-ml-motion="off"] #passages .passage,
 html[data-ml-native="on"][data-ml-motion="off"] #customOverlay:not([data-overlay="modloader"]),
-html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog {
+html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog,
+html[data-ml-native="on"][data-ml-motion="off"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row {
   animation: none !important;
 }
 
@@ -2408,7 +2476,8 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
 @media (prefers-reduced-motion: reduce) {
   html[data-ml-native="on"] #passages .passage,
   html[data-ml-native="on"] #customOverlay:not([data-overlay="modloader"]),
-  html[data-ml-native="on"] #ui-dialog {
+  html[data-ml-native="on"] #ui-dialog,
+  html[data-ml-native="on"] #customOverlay[data-ml-overlay="statistics"] #customOverlayContent .foldoutBody .ml-stat-row {
     animation: none !important;
   }
   html[data-ml-native="on"] #passages .passage a.link-internal.macro-link,
