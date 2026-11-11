@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>灯台 · 静态原型（模拟 DoL 外壳）</title>
+<link rel="stylesheet" href="../src/style.css">
+<style>
+  /* 仅原型外壳用：复刻 DoL 的真实层级与宽度，用于量测，不进入发布包 */
+  html { font: 16px/1 Helmet, Freesans, sans-serif; height: 100%; }
+  body {
+    margin: 0; padding: 0; height: 100%;
+    color: #eee; background: #111;
+    overflow: hidden;
+  }
+  :root {
+    --000:#111; --100:#1a1a1a; --200:#333; --700:#999; --800:#ccc; --850:#222; --900:#111;
+    --gold:#d4a73c; --danger:#c62b2b; --link:#5888dd;
+  }
+  #ui-bar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 17.5em;
+    z-index: 50; background: #0d0d0d; border-right: 1px solid #2a2a2a;
+    padding: 12px; box-sizing: border-box;
+  }
+  #ui-bar h1 { font-size: 15px; letter-spacing: .08em; color: var(--gold); margin: 0 0 12px; font-weight: 400; }
+  #ui-bar .nav-item { font-size: 13px; color: #9a9388; padding: 8px 6px; border-bottom: 1px solid #1e1e1e; }
+  #mobileStats {
+    position: fixed; left: 0; top: 50px; width: 2em; z-index: 299;
+    background: #0d0d0d; writing-mode: vertical-rl; font-size: 11px; color: #777; padding: 6px 0;
+  }
+  #story { position: absolute; inset: 0; z-index: 10; margin-left: 17.5em; overflow: auto; }
+  #passages { max-width: 54em; margin: 2em auto; padding: 0 1em; font-size: 16px; line-height: 1.55; color: #ddd; }
+  #passages p { margin: 0 0 1em; }
+  #ui-overlay { position: fixed; inset: 0; z-index: 100000; display: none; background: rgba(0,0,0,.7); }
+  #ui-dialog { position: fixed; inset: 15% 20%; z-index: 100100; display: none; background: #15171b; }
+
+  #demo-hud {
+    position: fixed; left: 18.6em; top: 12px; z-index: 30;
+    display: flex; gap: 6px; align-items: center;
+    font: 12px/1 system-ui, sans-serif; color: #8d8d8d;
+    background: rgba(20,22,26,.85); border: 1px solid #2a2f38; border-radius: 8px; padding: 6px 8px;
+  }
+  #demo-hud button {
+    font: inherit; color: #ddd; background: #1d2026; border: 1px solid #333; border-radius: 6px;
+    padding: 5px 8px; cursor: pointer;
+  }
+  #demo-hud[hidden] { display: none; }
+  @media (max-width: 900px) {
+    #ui-bar { display: none; }
+    #story { margin-left: 0; }
+    #mobileStats { display: block; }
+    #demo-hud { left: 3em; }
+  }
+  @media (min-width: 901px) { #mobileStats { display: none; } }
+</style>
+</head>
+<body>
+
+<aside id="ui-bar" aria-label="游戏侧栏">
+  <h1>Degrees of Lewdity</h1>
+  <div class="nav-item">状态</div>
+  <div class="nav-item">社交</div>
+  <div class="nav-item">存档</div>
+  <div class="nav-item">选项</div>
+  <div class="nav-item">统计数据</div>
+</aside>
+
+<div id="mobileStats" aria-hidden="true">疲倦 · 压力 · 创伤</div>
+
+<main id="story">
+  <div id="passages">
+    <p>走廊尽头的灯亮着一盏。你听见楼下有人在收拾餐具，声音隔着地板传上来，模糊而遥远。</p>
+    <p>窗外的天色还没有完全亮起来。</p>
+    <p><a href="#">走进教室</a>　<a href="#">留在原地</a></p>
+  </div>
+</main>
+
+<div id="ui-overlay"></div>
+<div id="ui-dialog"></div>
+
+<div id="demo-hud">
+  <span>演示时钟</span>
+  <button type="button" data-hour="1">01:10 深夜</button>
+  <button type="button" data-hour="7">07:20 清晨</button>
+  <button type="button" data-hour="13">13:40 白昼</button>
+  <button type="button" data-hour="19">19:30 黄昏</button>
+  <button type="button" data-hour="23">23:50 深夜</button>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ 假游戏环境 */
+(function () {
+  "use strict";
+  var qs = new URLSearchParams(location.search);
+  var hud = document.getElementById("demo-hud");
+  if (qs.get("hud") === "0") { hud.hidden = true; }
+
+  var demo = { hour: 8, minute: 20, month: 3, monthDay: 14, weekDay: 1, days: 12 };
+
+  function phase(h) {
+    if (h < 6) { return "night"; }
+    if (h < 9) { return "dawn"; }
+    if (h < 18) { return "day"; }
+    if (h < 21) { return "dusk"; }
+    return "night";
+  }
+
+  window.__DEMO = demo;
+
+  window.Time = {
+    get hour() { return demo.hour; },
+    get minute() { return demo.minute; },
+    get dayState() { return phase(demo.hour); },
+    get month() { return demo.month; },
+    get monthDay() { return demo.monthDay; },
+    get weekDay() { return demo.weekDay; },
+    get days() { return demo.days; },
+    get year() { return 2025; },
+    get secondsSinceMidnight() { return demo.hour * 3600 + demo.minute * 60; }
+  };
+
+  var V = {
+    willpower: 72, willpowermax: 100,
+    stress: 58, stressmax: 100,
+    trauma: 14, traumamax: 100,
+    arousal: 23, arousalmax: 100,
+    tiredness: 640,
+    money: 1234,
+    worn: {
+      over_head: { name: "knit cap" },
+      head: null,
+      face: { name: "glasses" },
+      neck: { name: "checkered scarf" },
+      over_upper: null,
+      upper: { name: "school shirt" },
+      under_upper: { name: "undershirt" },
+      hands: null,
+      handheld: { name: "school bag" },
+      over_lower: null,
+      lower: { name: "pleated skirt" },
+      under_lower: { name: "panties" },
+      legs: { name: "knee socks" },
+      feet: { name: "sneakers" }
+    }
+  };
+
+  window.Constants = { tiredness: { max: 2000, min: 0 } };
+  window.StartConfig = { version: "0.5.12.13" };
+  window.SugarCube = {
+    Version: { major: 2, minor: 36, patch: 1 },
+    State: { variables: V, passage: "School Hallway" }
+  };
+
+  /* 宿主模拟：?host=1 时挂两条全局按钮规则 + tokens，用于验证反制与字号链 */
+  if (qs.get("host") === "1") {
+    var sol = document.documentElement;
+    sol.setAttribute("data-dgu-buttons-scaled", "");
+    sol.setAttribute("data-dgu-font-scaled", "");
+    sol.style.setProperty("--dgu-button-scale", "1.5");
+    sol.style.setProperty("--dgu-font-scale", "1.35");
+    sol.style.setProperty("--dgu-accent", "#7FB2FF");
+    sol.style.setProperty("--dgu-radius", "14px");
+    window.DoLGameUI = {
+      ui: {
+        apiVersion: 1,
+        getCapabilities: function () {
+          return { enabled: true, layout: "desktop", visualTier: "Balanced", glass: true, motion: true, surfaces: true, backdropFilter: true };
+        },
+        getTheme: function () {
+          return { id: "soft-wet", enabled: true, tokens: { neutral: "--dgu-surface", card: "--dgu-card", ocean: "--dgu-accent", mist: "--dgu-secondary", text: "--dgu-text", danger: "--dgu-danger", radius: "--dgu-radius", cardRadius: "--dgu-card-radius" } };
+        }
+      }
+    };
+  }
+
+  hud.addEventListener("click", function (e) {
+    var btn = e.target.closest("button[data-hour]");
+    if (!btn) { return; }
+    demo.hour = parseInt(btn.getAttribute("data-hour"), 10);
+    if (demo.hour === 1 || demo.hour === 23) { demo.minute = 10; }
+    else { demo.minute = 20; }
+    document.dispatchEvent(new Event("passageend"));
+  });
+
+  /* 量测用：?scale=140&lang=en&theme=jade 预置设置（必须在 index.js 之前写入） */
+  try {
+    var seed = { v: 1 };
+    if (qs.get("scale")) { seed.scale = parseInt(qs.get("scale"), 10); }
+    if (qs.get("lang")) { seed.lang = qs.get("lang"); }
+    if (qs.get("theme")) { seed.theme = qs.get("theme"); }
+    if (qs.get("tab")) { seed.tab = qs.get("tab"); }
+    if (Object.keys(seed).length > 1) {
+      localStorage.setItem("MapleLantern.settings.v1", JSON.stringify(seed));
+    } else {
+      localStorage.removeItem("MapleLantern.settings.v1");
+    }
+  } catch (e) { /* 原型环境存储不可用不影响量测 */ }
+})();
+</script>
+
+<script src="../src/core.js"></script>
+<script src="../src/index.js"></script>
+
+<script>
+/* 量测用：?open=1 在首帧前打开面板，避免 moli 的“加载时布局快照”与后续 DOM 变更对不上 */
+document.addEventListener("DOMContentLoaded", function () {
+  var qp = new URLSearchParams(location.search);
+  if (qp.get("open") && window.MapleLantern) {
+    window.MapleLantern.open();
+  }
+});
+window.addEventListener("load", function () {
+  setTimeout(function () {
+    if (window.MapleLantern && document.getElementById("ml-orb")) {
+      document.documentElement.setAttribute("data-prototype", "ready");
+    }
+  }, 80);
+});
+</script>
+</body>
+</html>

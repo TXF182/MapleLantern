@@ -1,0 +1,5 @@
+dist/
+prototype/shots/
+node_modules/
+*.log
+.selfcheck/

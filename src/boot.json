@@ -1,0 +1,14 @@
+{
+  "name": "MapleLantern",
+  "version": "1.0.0",
+  "nickName": "灯台 Lantern",
+  "scriptFileList": ["core.js", "index.js"],
+  "styleFileList": ["style.css"],
+  "tweeFileList": [],
+  "imgFileList": [],
+  "additionFile": ["README.md"],
+  "dependenceInfo": [
+    { "modName": "ModLoader", "version": ">=2.100.0" },
+    { "modName": "GameVersion", "version": "=0.5.12.13" }
+  ]
+}
