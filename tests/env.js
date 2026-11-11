@@ -8,10 +8,31 @@ const JSDOM_PATH = "C:/Users/27352/Doubao/chats/2026-10-13/new-chat-2/MapleBirch
 const { JSDOM } = require(JSDOM_PATH);
 
 const CORE = fs.readFileSync(path.join(__dirname, "..", "src", "core.js"), "utf8");
+const NATIVE = fs.readFileSync(path.join(__dirname, "..", "src", "native.js"), "utf8");
 const INDEX = fs.readFileSync(path.join(__dirname, "..", "src", "render.js"), "utf8");
 
 const HTML = "<!doctype html><html><head><meta charset='utf-8'></head><body>" +
-  "<div id='ui-bar'><a>状态</a></div><div id='story'><div id='passages'>走廊尽头</div></div></body></html>";
+  "<div id='ui-bar'><a>状态</a></div><div id='story'><div id='passages'><div class='passage'>走廊尽头" +
+  "<a class='link-internal macro-link' data-passage='Garden'>(1) 花园 (0:01)</a>" +
+  "<a class='link-internal' data-passage='Inline'>行内</a></div></div></div>" +
+  "<div id='stats'><div class='content'><div class='first-row'><div class='centered-elements'>" +
+  "<div><img src='sidebar-open.png'></div>" +
+  "<div><span class='true'>£9,998.99</span></div>" +
+  "<div><span class='clockContainer'>07:48</span></div>" +
+  "<div><img src='sidebar-day.png'><span>Sun</span></div>" +
+  "</div></div></div></div>" +
+  "<div id='statmeters'>" +
+  "<div id='paincaption' title='Pain: 0.00'><div>疼痛：</div><span>你感觉良好。</span><div class='meter'><div class='greenbar' style='width:0%'></div></div></div>" +
+  "<div id='arousalcaption' title='Arousal: 24.53'><div>性奋：</div><span>情欲在你的体内积累。</span><div class='meter'><div class='tealbar' style='width:24.53%'></div></div></div>" +
+  "<div id='tirednesscaption' title='Fatigue: 4.50'><div>疲劳：</div><span>你的精力充沛。</span><div class='meter'><div class='bluebar' style='width:4.5%'></div></div></div>" +
+  "<div id='stresscaption' title='Stress: 0.00'><div>压力：</div><span>你心如止水。</span><div class='meter'><div class='purplebar' style='width:0%'></div></div></div>" +
+  "<div id='traumacaption' title='Trauma: 39.80'><div>创伤：</div><span>你有些紧张。</span><div class='meter'><div class='pinkbar' style='width:39.8%'></div></div></div>" +
+  "<div id='controlcaption' title='Control: 0.00'><div>自控：</div><span>你感到不安。</span><div class='meter'><div class='redbar' style='width:0%'></div></div></div>" +
+  "<div id='allurecaption' title='Allure: 0.00'><div>诱惑：</div><span>偶尔会有人偷偷看你几眼。</span><div class='meter'><div class='tealbar' style='width:0%'></div></div></div>" +
+  "</div>" +
+  "<div id='mobileStats'><div class='weatherIcon'><img src='weather.png'></div><div class='stat time'><span>07</span><span class='vertical'>:</span><span>48</span></div><div class='stat green'>P</div></div>" +
+  "<div id='customOverlayContainer' class='customOverlayContainer hidden'><div id='customOverlay' class='customOverlay hidden' data-overlay='options'><div id='customOverlayTitle'>Options</div><div id='customOverlayContent'><p>选项</p></div></div></div>" +
+  "</body></html>";
 
 function baseVars() {
   return {
@@ -73,6 +94,7 @@ function createEnv(opts) {
 
   const w = dom.window;
   w.eval(CORE);
+  w.eval(NATIVE);
   w.eval(INDEX);
   if (!w.document.getElementById("ml-root") && w.document.readyState === "loading") {
     w.document.dispatchEvent(new w.Event("DOMContentLoaded"));

@@ -12,10 +12,10 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.1.1";
+  var VERSION = "1.1.2";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
-  var THEMES = ["auto", "amber", "jade", "graphite"];
+  var THEMES = ["auto", "amber", "jade", "graphite", "star"];
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
 
@@ -45,6 +45,12 @@
       text: "#E7E8EA", muted: "#9A9DA4", faint: "#6B6E75",
       accent: "#C9CDD4", accentInk: "#101216", line: "rgba(255,255,255,.10)",
       jade: "#8FD3C4", rose: "#CE7C84", danger: "#C65449"
+    },
+    star: {
+      bg: "#070A14", bgSoft: "#0D1222", bgRaise: "#151B31",
+      text: "#E5EAF8", muted: "#909BBA", faint: "#626E8E",
+      accent: "#8FA6FF", accentInk: "#080C1A", line: "rgba(143,166,255,.14)",
+      jade: "#6FE0D2", rose: "#D98CCB", danger: "#E06B6B"
     }
   };
 
@@ -70,16 +76,23 @@
       "sys.version": "模组版本", "sys.game": "游戏版本", "sys.host": "主 UI",
       "sys.layout": "视口", "sys.storage": "设置存储", "sys.motion": "动效",
       "sys.mode": "外观来源", "sys.sugar": "SugarCube",
-      "host.none": "未检测到（自有外观）", "host.on": "已连接 v{ver}",
+      "host.none": "独立外观", "host.on": "已连接 v{ver}",
       "storage.ok": "可用", "storage.no": "不可用（本次生效）",
       "motion.system": "跟随系统", "motion.off": "已关闭",
       "mode.auto": "自动 / 跟随宿主", "mode.manual": "手动主题",
       "settings.title": "设置", "settings.theme": "主题", "settings.scale": "字号",
       "settings.glass": "通透度", "settings.density": "密度", "settings.motion": "动效", "settings.lang": "语言",
       "settings.position": "悬浮球位置",
+      "settings.native": "原生卡片",
+      "settings.panel": "悬浮灯台",
+      "settings.nativeHint": "把原版侧栏、状态、正文选项和弹层统一换成卡片；关闭后恢复原版外观",
+      "settings.panelHint": "关闭后不常驻悬浮球；仍可从选项里的「灯台」入口打开",
       "settings.glassHint": "0 更沉稳 / 100 更通透；只改表面与模糊，不改文字和按钮",
       "settings.motionHint": "关闭后不播任何过渡与动画，操作仍完整",
+      "native.entry": "灯台",
+      "native.entryHint": "打开灯台面板",
       "theme.auto": "自动", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
+      "theme.star": "星空",
       "density.cozy": "舒适", "density.compact": "紧凑",
       "lang.auto": "自动", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "左下", "pos.right": "右下",
@@ -111,16 +124,23 @@
       "sys.version": "Mod version", "sys.game": "Game version", "sys.host": "Main UI",
       "sys.layout": "Viewport", "sys.storage": "Settings storage", "sys.motion": "Motion",
       "sys.mode": "Appearance source", "sys.sugar": "SugarCube",
-      "host.none": "Not detected (own look)", "host.on": "Connected v{ver}",
+      "host.none": "Standalone look", "host.on": "Connected v{ver}",
       "storage.ok": "Available", "storage.no": "Unavailable (session only)",
       "motion.system": "Follow system", "motion.off": "Off",
       "mode.auto": "Auto / follow host", "mode.manual": "Manual theme",
       "settings.title": "Settings", "settings.theme": "Theme", "settings.scale": "Text size",
       "settings.glass": "Clarity", "settings.density": "Density", "settings.motion": "Motion", "settings.lang": "Language",
       "settings.position": "Orb position",
+      "settings.native": "Native cards",
+      "settings.panel": "Floating Lantern",
+      "settings.nativeHint": "Cards for the vanilla sidebar, status, passage options and overlays; off restores the original look",
+      "settings.panelHint": "When off, no persistent orb; open it from the Lantern entry in Options",
       "settings.glassHint": "0 calmer / 100 clearer; surface and blur only, text and buttons unchanged",
       "settings.motionHint": "When off, no transitions play; every action still works",
+      "native.entry": "Lantern",
+      "native.entryHint": "Open the Lantern panel",
       "theme.auto": "Auto", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
+      "theme.star": "Starfield",
       "density.cozy": "Cozy", "density.compact": "Compact",
       "lang.auto": "Auto", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "Bottom left", "pos.right": "Bottom right",
@@ -161,7 +181,9 @@
     tab: "now",
     side: "right",
     y: 0.78,
-    seen: false
+    seen: false,
+    native: true,
+    panel: false
   });
 
   function isObj(x) { return !!x && typeof x === "object"; }
@@ -176,7 +198,8 @@
       v: 1, theme: DEFAULTS.theme, scale: DEFAULTS.scale, glass: DEFAULTS.glass,
       density: DEFAULTS.density,
       motion: DEFAULTS.motion, lang: DEFAULTS.lang, tab: DEFAULTS.tab,
-      side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen
+      side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen,
+      native: DEFAULTS.native, panel: DEFAULTS.panel
     };
     var repaired = false;
     if (!isObj(raw)) { return { value: out, repaired: true, migrated: false, empty: true }; }
@@ -224,6 +247,14 @@
       else { out.y = clamp(Math.round(y * 1000) / 1000, 0.12, 0.92); }
     }
     if (raw.seen !== undefined) { out.seen = raw.seen === true; }
+    if (raw.native !== undefined) {
+      out.native = raw.native !== false;
+      if (typeof raw.native !== "boolean") { repaired = true; }
+    }
+    if (raw.panel !== undefined) {
+      out.panel = raw.panel === true;
+      if (typeof raw.panel !== "boolean") { repaired = true; }
+    }
 
     return { value: out, repaired: repaired, migrated: raw.v !== 1, empty: false };
   }
@@ -269,10 +300,13 @@
   function formatMoney(value) {
     var v = num(value);
     if (v === null) { return "—"; }
-    var n = Math.floor(v);
-    var sign = n < 0 ? "-" : "";
-    var abs = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    return sign + "£" + abs;
+    /* DoL 内部金额单位是便士：999899 -> £9,998.99；不能按整数英镑显示。 */
+    var pence = Math.round(v);
+    var sign = pence < 0 ? "-" : "";
+    var abs = Math.abs(pence);
+    var pounds = Math.floor(abs / 100);
+    var cents = abs % 100;
+    return sign + "£" + pounds.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "." + pad2(cents);
   }
 
   function phaseKey(state) {

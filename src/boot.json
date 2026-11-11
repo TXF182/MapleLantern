@@ -1,14 +1,29 @@
 {
   "name": "MapleLantern",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "nickName": "灯台 Lantern",
-  "scriptFileList": ["core.js", "render.js"],
-  "styleFileList": ["style.css"],
+  "scriptFileList": [
+    "core.js",
+    "native.js",
+    "render.js"
+  ],
+  "styleFileList": [
+    "style.css",
+    "native.css"
+  ],
   "tweeFileList": [],
   "imgFileList": [],
-  "additionFile": ["README.md"],
+  "additionFile": [
+    "README.md"
+  ],
   "dependenceInfo": [
-    { "modName": "ModLoader", "version": ">=2.100.0" },
-    { "modName": "GameVersion", "version": "=0.5.12.13" }
+    {
+      "modName": "ModLoader",
+      "version": ">=2.100.0"
+    },
+    {
+      "modName": "GameVersion",
+      "version": "=0.5.12.13"
+    }
   ]
 }

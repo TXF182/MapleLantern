@@ -1,17 +1,17 @@
-# 灯台 · Lantern（MapleLantern 1.1.1）
+# 灯台 · Lantern（MapleLantern 1.1.2）
 
-Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI 模组。
+Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
-- 右下悬浮球（时间环 + 时段火苗），点击或 `Alt+L` 打开五页签面板。
-- 此刻 / 身心 / 着装 / 系统 / 设置 五个页签。
-- 「此刻」页在时间、金钱、场景之后附一行**身心速览**（意志 / 压力 / 创伤三格），完整五项仍在「身心」页。
-- 自动跟随 DoLGameUI 4.x 的强调色与圆角（检测到才跟随，没有就用自己的外观）。
+- **默认直接替换原版呈现**：顶栏金钱/时间/星期改四格卡片，七行状态数值改七张状态卡，正文选项改整行卡片，侧栏按钮、弹层、对话框统一卡片语言。只改呈现，不碰业务数值与存档。
+- 原生卡片开关默认**开**；悬浮灯台默认**关**，入口在 `OPTIONS` 弹层顶部「灯台」行，也可用 `Alt+L` 唤起。
+- 此刻 / 身心 / 着装 / 系统 / 设置 五个页签；「此刻」页保留时间、金钱、场景与身心速览。
+- 自动跟随 DoLGameUI 4.x 的强调色与圆角；检测到可用主 UI 时原生替换层**自动让位**，避免两套外观打架。
 - **不写存档、不改数值、不接管任何第三方业务。**
 
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.1.mod.zip`。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.2.mod.zip`。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -20,8 +20,9 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 
 | 入口 | 行为 |
 |---|---|
-| 右下悬浮球 | 单击开合；拖动超过 6px 视为移动，不触发开合 |
-| `Alt+L` | 开合面板（输入框内不抢键） |
+| `OPTIONS` 弹层顶部「灯台」行 | **默认形态**下打开悬浮灯台面板；不改变游戏设置 |
+| 右下悬浮球 | 仅在设置里打开「悬浮灯台」后显示；单击开合；拖动超过 6px 视为移动，不触发开合 |
+| `Alt+L` | 开合灯台面板（输入框内不抢键） |
 | `Esc` / 外部点击 / 抽屉下滑 >64px | 关闭 |
 
 移动端（`≤560px` 或高度 `≤520px`）自动改为底部抽屉，打开时悬浮球让位，关闭后焦点交还游戏正文。
@@ -30,7 +31,9 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 
 | 项 | 范围 | 默认 |
 |---|---|---|
-| 主题 | 自动 / 琥珀 / 青瓷 / 石墨 | 自动 |
+| 原生卡片 | 开 / 关 | **开** |
+| 悬浮灯台 | 开 / 关 | **关** |
+| 主题 | 自动 / 琥珀 / 青瓷 / 石墨 / 星空 | 自动 |
 | 字号 | 80–140%，5% 步进 | 100% |
 | 通透度 | 0–100，5% 步进 | 60 |
 | 密度 | 舒适 / 紧凑 | 舒适 |
@@ -41,6 +44,24 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 设置存 `localStorage["MapleLantern.settings.v1"]`；逐字段修复，坏一个字段不会整包丢弃。
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
+
+## 原生 UI 替换层（1.1.2）
+
+只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
+
+| 原版位置 | 标记 | 呈现 |
+|---|---|---|
+| `#stats .centered-elements` 四块 | `data-ml-chip=toggle/money/time/day` | 四格：开合 / 金钱 / 时间 / 星期；金额整数补 `.00`，数字用等宽数字 |
+| `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent` | 七张状态卡：标题 + 状态句 + 进度条 + 右上「当前值 / 百分比」 |
+| `#passages a.link-internal.macro-link` | `data-ml-option="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage |
+| `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；半宽档按实测把字号收到 9.5px，`JOURNAL` / `OPTIONS` 不再退省略号 |
+| `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
+| `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
+| `#ui-bar` 320px 极窄档 | 无标记，`@media (max-width:340px)` | 抽屉宽 248px、收起位移 -216px，箭头回到屏内；金钱/时间/星期不截断 |
+
+- 让位：`window.DoLGameUI.ui.apiVersion === 1 && getCapabilities().enabled` 时不挂 `data-ml-native`，并清掉全部标记/入口，恢复原版。
+- 零轮询：无 `setInterval`、无 MutationObserver；只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` 的点击捕获和设置切换时重扫，单飞 rAF。
+- 动效：仅 `transition` / 入场 `opacity + translateY`，尊重 `prefers-reduced-motion`、宿主 `data-dol-midnight:not([data-dgu-visualMotion])` 与本包 `data-ml-motion="off"`。
 
 ## 性能
 
@@ -62,7 +83,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 
 ## 兼容与降级
 
-- **未装 DoLGameUI**：用自带四主题，功能完整；`html[data-dgu-*]` 反制规则零匹配。
+- **未装 DoLGameUI**：用自带五主题（琥珀 / 青瓷 / 石墨 / 星空），功能完整；`html[data-dgu-*]` 反制规则零匹配。
 - **装了 DoLGameUI**：只转发 `--dgu-accent` / `--dgu-radius` / `--dgu-card-radius`，并逐类封回被全局按钮规则改写的 padding / min-height。
 - **读不到存档字段**：面板仍可打开，显示「读取降级」，不抛错。
 - **存储不可用**：设置只在本次会话生效，并提示一次。
@@ -77,19 +98,20 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**46 / 46 PASS**
+- `node --test tests\*.test.js`：**58 / 58 PASS**
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
+- 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
 - Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、orb 56×56、z 89900、0 未捕获异常，**14 项 PASS**
 - Edge 隔离 profile 宿主档（Dynamicest 3.3 + StoneFreeHost 0.1.5 + DoLGameUI 4.2.0 + 本包）：**18 项 PASS**，API v1 与 8 个 token 名读取，主题色跟随宿主
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`，单次刷新 0.2–0.4 ms
-- 包内 5 个条目，确定性命中（固定 mtime、正斜杠）；SHA256 见 `dist\SHA256.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；SHA256 见 `dist\SHA256.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.1.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.2.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

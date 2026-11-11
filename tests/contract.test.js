@@ -8,6 +8,8 @@ const path = require("path");
 const SRC = path.join(__dirname, "..", "src");
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
 const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
+const native = fs.readFileSync(path.join(SRC, "native.js"), "utf8");
+const nativeCss = fs.readFileSync(path.join(SRC, "native.css"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
@@ -16,13 +18,13 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.1");
+  assert.equal(boot.version, "1.1.2");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
-  assert.deepEqual(boot.scriptFileList, ["core.js", "render.js"], "core 必须先于 index");
-  assert.deepEqual(boot.styleFileList, ["style.css"]);
+  assert.deepEqual(boot.scriptFileList, ["core.js", "native.js", "render.js"], "core 必须先于 native/render");
+  assert.deepEqual(boot.styleFileList, ["style.css", "native.css"]);
   for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
@@ -133,9 +135,42 @@ test("原型：先 CSS 后脚本，core 先于 render", () => {
 });
 
 test("体积预算：UI 包源码应远小于 1MB", () => {
-  for (const f of ["core.js", "render.js", "style.css", "boot.json"]) {
+  for (const f of ["core.js", "native.js", "render.js", "style.css", "native.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
     assert.ok(size < 200 * 1024, f + " 过大: " + size);
   }
-  assert.ok(core.length > 1000 && index.length > 1000);
+  assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
+});
+
+
+test("native.css：所有规则都以原生开启属性为前导，且不动 #ml-root", () => {
+  const selectors = strip(nativeCss).match(/[^{}]+(?=\{)/g) || [];
+  for (const raw of selectors) {
+    const sel = raw.trim();
+    if (!sel || sel.startsWith("@") || /^\d+%$/.test(sel) || /^(from|to)$/.test(sel)) { continue; }
+    assert.ok(sel.startsWith('html[data-ml-native="on"]'), "未作用域的原生选择器: " + sel);
+    assert.ok(!sel.includes("#ml-root"), "原生层不应命中浮卡: " + sel);
+  }
+  assert.match(nativeCss, /#statmeters > div\[id\$="caption"\]::after/);
+  assert.match(nativeCss, /content: attr\(data-ml-current\) " · " attr\(data-ml-percent\)/);
+  assert.match(nativeCss, /a\.link-internal\.macro-link/);
+  assert.match(nativeCss, /\.settingsToggleItem/);
+  assert.match(nativeCss, /appearance: none !important/);
+  assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("native.js：只读标记、无轮询、宿主让位与幂等入口", () => {
+  assert.match(native, /data-ml-native/);
+  assert.match(native, /data-ml-stat-card/);
+  assert.match(native, /data-ml-value/);
+  assert.match(native, /data-ml-entry/);
+  assert.match(native, /fitSidebarLabels/);
+  assert.match(native, /data-ml-label/);
+  assert.match(native, /apiVersion !== 1/);
+  assert.ok(!/setInterval/.test(native), "原生层不允许常驻轮询");
+  assert.match(native, /requestAnimationFrame/);
+  assert.match(native, /passageend/);
+  assert.ok(native.includes('data-ml-entry="panel"'));
+  assert.ok(native.includes("querySelector"));
+  assert.ok(!/State\.variables\s*[.\[]\s*[A-Za-z_$][\w$]*\s*[+\-*/]?=([^=]|$)/g.test(native));
 });

@@ -251,3 +251,25 @@ test("快捷键：Alt+L 开合，输入框内不抢键", () => {
   ev(input);
   assert.equal(w.document.getElementById("ml-panel").getAttribute("data-open"), "0");
 });
+
+test("设置页：原生卡片与悬浮灯台两个总开关", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const nativeSw = w.document.querySelector('button.ml-switch[aria-label="原生卡片"]');
+  const panelSw = w.document.querySelector('button.ml-switch[aria-label="悬浮灯台"]');
+  assert.ok(nativeSw && panelSw, "设置页应有两个新开关");
+  assert.equal(nativeSw.getAttribute("aria-checked"), "true");
+  assert.equal(panelSw.getAttribute("aria-checked"), "false");
+
+  nativeSw.click();
+  assert.equal(nativeSw.getAttribute("aria-checked"), "false");
+  await new Promise((r) => setTimeout(r, 50));
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
+
+  panelSw.click();
+  assert.equal(panelSw.getAttribute("aria-checked"), "true");
+  assert.equal(w.document.getElementById("ml-orb").hidden, false, "开启悬浮灯台后球可见");
+  await new Promise((r) => setTimeout(r, 40));
+  assert.equal(w.document.querySelector("#stats [data-ml-chip]"), null, "关闭原生卡片后不残留标记");
+});

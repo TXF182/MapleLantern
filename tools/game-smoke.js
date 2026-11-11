@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.1.mod.zip");
+const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.2.mod.zip");
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const HOST_MODE = process.env.HOST === "1";
 const PROFILE = path.join(os.tmpdir(), HOST_MODE ? "lantern-host-profile" : "lantern-edge-profile");
@@ -124,12 +124,18 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     await page.waitForTimeout(600);
 
     const geo = await page.evaluate(() => {
-      const orb = document.querySelector("#ml-orb").getBoundingClientRect();
+      const orbNode = document.querySelector("#ml-orb");
+      const orb = orbNode.getBoundingClientRect();
+      const stats = document.querySelector("#stats .centered-elements");
+      const statCards = Array.from(document.querySelectorAll("#statmeters > div[id$=\"caption\"]"));
+      const opt = document.querySelector("#passages a.link-internal.macro-link");
+      const native = document.documentElement.getAttribute("data-ml-native");
+      const statsCards = stats ? Array.from(stats.children).map((n) => ({ chip: n.getAttribute("data-ml-chip"), h: Math.round(n.getBoundingClientRect().height), w: Math.round(n.getBoundingClientRect().width) })) : [];
       const panel = document.querySelector("#ml-panel").getBoundingClientRect();
       const root = getComputedStyle(document.querySelector("#ml-root"));
       const body = document.querySelector("#ml-pane-host");
       return {
-        orb: { x: Math.round(orb.x), y: Math.round(orb.y), w: Math.round(orb.width), h: Math.round(orb.height) },
+        orb: { x: Math.round(orb.x), y: Math.round(orb.y), w: Math.round(orb.width), h: Math.round(orb.height), hidden: !!orbNode.hidden },
         panel: { x: Math.round(panel.x), y: Math.round(panel.y), w: Math.round(panel.width), h: Math.round(panel.height) },
         z: root.zIndex,
         sheet: document.querySelector("#ml-root").getAttribute("data-sheet"),
@@ -139,7 +145,11 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
         tab: document.querySelector('.ml-tab[aria-selected="true"]').getAttribute("data-tab"),
         accent: getComputedStyle(document.querySelector('.ml-tab[aria-selected="true"]')).color,
         glass: document.querySelector("#ml-root").style.getPropertyValue("--ml-surface-alpha"),
-        diag: window.MapleLantern.diagnostics()
+        diag: window.MapleLantern.diagnostics(),
+        native: native,
+        statsCards: statsCards,
+        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), h: Math.round(n.getBoundingClientRect().height) })),
+        option: opt ? { display: getComputedStyle(opt).display, w: Math.round(opt.getBoundingClientRect().width), h: Math.round(opt.getBoundingClientRect().height) } : null
       };
     });
     console.log("[4] 几何: " + JSON.stringify(geo));
@@ -200,8 +210,15 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     const afterPassage = await page.evaluate(() => {
       const cards = Array.from(document.querySelectorAll(".ml-stat"));
       const c = cards.find((x) => /场景|Scene/.test(x.textContent));
+      const stats = document.querySelector("#stats .centered-elements");
+      const statCards = Array.from(document.querySelectorAll("#statmeters > div[id$=\"caption\"]"));
+      const opt = document.querySelector("#passages a.link-internal.macro-link");
       return { passage: window.State && window.State.passage, scene: c ? c.querySelector(".ml-stat-v").textContent : null,
-        diag: window.MapleLantern.diagnostics() };
+        diag: window.MapleLantern.diagnostics(),
+        native: document.documentElement.getAttribute("data-ml-native"),
+        statsCards: stats ? Array.from(stats.children).map((n) => ({ chip: n.getAttribute("data-ml-chip"), h: Math.round(n.getBoundingClientRect().height), w: Math.round(n.getBoundingClientRect().width) })) : [],
+        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), h: Math.round(n.getBoundingClientRect().height) })),
+        option: opt ? { display: getComputedStyle(opt).display, w: Math.round(opt.getBoundingClientRect().width), h: Math.round(opt.getBoundingClientRect().height) } : null };
     });
     await page.screenshot({ path: path.join(SHOTS, prefix + "-passage.png") });
     console.log("[5] passage: " + JSON.stringify({ started, before: beforePassage, after: afterPassage }));
@@ -211,7 +228,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["SugarCube State 可用", injected.state === true],
       ["MapleLantern 已挂载", injected.api === true],
       ["面板 380×504", geo.panel.w === 380 && geo.panel.h === 504],
-      ["悬浮球 56×56", geo.orb.w === 56 && geo.orb.h === 56],
+      ["默认悬浮球隐藏", geo.orb.hidden === true],
       ["层叠 89900", geo.z === "89900"],
       ["桌面浮卡（非抽屉）", geo.sheet === "0"],
       ["默认页签 now", geo.tab === "now"],
@@ -220,10 +237,15 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["设置页焦点保持", settingsProbe.focusStayed === true],
       ["模糊可用时保持 backdrop-filter", settingsProbe.blurAttr === "on" && !/none/i.test(settingsProbe.filter)],
       ["单次刷新 ≤ 16ms", typeof afterPassage.diag.renderMs === "number" && afterPassage.diag.renderMs > 0 && afterPassage.diag.renderMs <= 16],
+      ["原生层默认开启", HOST_MODE ? true : afterPassage.native === "on"],
+      ["金钱/时间/星期四格齐", HOST_MODE ? afterPassage.statsCards.length === 4 : (afterPassage.statsCards.length === 4 && afterPassage.statsCards.every((c) => c.chip && c.h >= 44))],
+      ["状态卡七张且有数值", HOST_MODE ? afterPassage.statCards.length === 7 : (afterPassage.statCards.length === 7 && afterPassage.statCards.every((c) => c.key && c.value && c.h >= 44))],
+      ["正文选项为整行卡片", HOST_MODE ? !!afterPassage.option : (!!afterPassage.option && afterPassage.option.display === "flex" && afterPassage.option.w > 240 && afterPassage.option.h >= 44)],
       ["无未捕获异常", pageErrors.length === 0]
     ];
     if (HOST_MODE) {
       checks.push(
+        ["宿主下原生层让位", geo.native === "off"],
         ["宿主 DoLGameUI API v1", !!(injected.host && injected.host.apiVersion === 1)],
         ["宿主主题 token 已读", !!(injected.host && injected.host.tokens && injected.host.tokens.ocean)],
         ["宿主下仍为 380×504", geo.panel.w === 380 && geo.panel.h === 504],

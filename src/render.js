@@ -166,9 +166,18 @@
     if (key === "lang") { state.lang = C.pickLang(value, navigator.language || "zh"); }
     applySettings();
     saveSettings();
+    syncNative();
     if (rerender === false) { return; }
     renderChrome();
     renderActive();
+  }
+
+  function syncNative() {
+    try {
+      if (window.MapleLanternNative && typeof window.MapleLanternNative.refresh === "function") {
+        window.MapleLanternNative.refresh();
+      }
+    } catch (e) { /* 原生层不可用时不影响浮卡 */ }
   }
 
   function applySettings() {
@@ -176,6 +185,12 @@
     els.root.setAttribute("data-theme", state.settings.theme);
     els.root.setAttribute("data-density", state.settings.density);
     els.root.setAttribute("data-motion", state.settings.motion ? "on" : "off");
+    els.root.setAttribute("data-panel", state.settings.panel ? "on" : "off");
+    if (els.orb) { els.orb.hidden = !state.settings.panel; }
+    try {
+      doc.documentElement.setAttribute("data-ml-motion", state.settings.motion ? "on" : "off");
+      doc.documentElement.setAttribute("data-ml-lang", state.lang);
+    } catch (e) { /* documentElement 不可写时忽略 */ }
     els.root.style.setProperty("--ml-scale", String(state.settings.scale / 100));
     var glass = Math.max(0, Math.min(100, Number(state.settings.glass)));
     if (!isFinite(glass)) { glass = 60; }
@@ -745,11 +760,15 @@
       return group;
     }
 
+    switchControl("native", s["settings.native"], s["settings.nativeHint"]);
+    switchControl("panel", s["settings.panel"], s["settings.panelHint"]);
+
     pane.appendChild(field(s["settings.theme"], segmented([
       { value: "auto", label: s["theme.auto"] },
       { value: "amber", label: s["theme.amber"] },
       { value: "jade", label: s["theme.jade"] },
-      { value: "graphite", label: s["theme.graphite"] }
+      { value: "graphite", label: s["theme.graphite"] },
+      { value: "star", label: s["theme.star"] }
     ], state.settings.theme, function (v) { setSetting("theme", v, false); })));
 
     function rangeControl(key, min, max, step, label, format) {
@@ -839,20 +858,31 @@
       { value: "compact", label: s["density.compact"] }
     ], state.settings.density, function (v) { setSetting("density", v, false); })));
 
-    var switchWrap = el("div", "ml-switch-wrap");
-    var sw = el("button", "ml-switch", { type: "button", role: "switch", "aria-checked": state.settings.motion ? "true" : "false", "aria-label": s["settings.motion"] });
-    var knob = el("span", "ml-knob", { "aria-hidden": "true" });
-    sw.appendChild(knob);
-    sw.addEventListener("click", function () {
-      var next = state.settings.motion ? false : true;
-      sw.setAttribute("aria-checked", next ? "true" : "false");
-      setSetting("motion", next, false);
-    });
-    switchWrap.appendChild(sw);
-    pane.appendChild(field(s["settings.motion"], switchWrap));
-    var hint = el("p", "ml-note is-faint");
-    hint.textContent = s["settings.motionHint"];
-    pane.appendChild(hint);
+    function switchControl(key, label, hintText) {
+      var wrap = el("div", "ml-switch-wrap");
+      var sw = el("button", "ml-switch", {
+        type: "button", role: "switch",
+        "aria-checked": state.settings[key] ? "true" : "false",
+        "aria-label": label
+      });
+      var knob = el("span", "ml-knob", { "aria-hidden": "true" });
+      sw.appendChild(knob);
+      sw.addEventListener("click", function () {
+        var next = !state.settings[key];
+        sw.setAttribute("aria-checked", next ? "true" : "false");
+        setSetting(key, next, false);
+      });
+      wrap.appendChild(sw);
+      pane.appendChild(field(label, wrap));
+      if (hintText) {
+        var hintNode = el("p", "ml-note is-faint");
+        hintNode.textContent = hintText;
+        pane.appendChild(hintNode);
+      }
+      return sw;
+    }
+
+    switchControl("motion", s["settings.motion"], s["settings.motionHint"]);
 
     pane.appendChild(field(s["settings.lang"], segmented([
       { value: "auto", label: s["lang.auto"] },
@@ -1171,6 +1201,7 @@
     applyLayout();
     applyPassage();
     bind();
+    syncNative();
     state.mounted = true;
 
     if (state.repaired) { toast(text("toast.repaired")); }
@@ -1201,7 +1232,7 @@
       state.storageOK = true;
       state.settings = Object.assign({}, D);
       state.lang = C.pickLang(D.lang, navigator.language || "zh");
-      applySettings(); renderChrome(); renderActive(); placeOrb();
+      applySettings(); renderChrome(); renderActive(); placeOrb(); syncNative();
     },
     diagnostics: function () {
       return C.buildDiagnostics({
