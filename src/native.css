@@ -23,6 +23,28 @@ html[data-ml-native="on"] {
   --mln-font: system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif;
 }
 
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
+  --mln-bg: #05070F;
+  --mln-surface: #0B1020;
+  --mln-surface-2: #101830;
+  --mln-surface-3: #16213D;
+  --mln-border: #223354;
+  --mln-border-strong: #35527D;
+  --mln-text: #E6F7FF;
+  --mln-muted: #8AA4BE;
+  --mln-faint: #5D7692;
+  --mln-accent: #00E5FF;
+  --mln-jade: #58FFD6;
+  --mln-rose: #FF3D9A;
+  --mln-danger: #FF4F70;
+  --mln-radius: 8px;
+  --mln-radius-sm: 6px;
+  --mln-mono: "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --mln-glow: rgba(0, 229, 255, .22);
+  --mln-hot: rgba(255, 61, 154, .28);
+  --mln-grid: rgba(0, 229, 255, .045);
+}
+
 html[data-ml-native="on"][data-ml-theme="jade"] {
   --mln-bg: #0A1110;
   --mln-surface: #101B18;
@@ -157,11 +179,16 @@ html[data-ml-native="on"] #stats {
 html[data-ml-native="on"] #stats > .content,
 html[data-ml-native="on"] #stats > .content > .first-row {
   display: block;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  overflow: hidden;
 }
 
-html[data-ml-native="on"] #stats .centered-elements {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr);
+html[data-ml-native="on"] #stats#stats .centered-elements {
+  display: grid !important;
+  grid-auto-flow: row !important;
+  grid-template-columns: 32px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr) !important;
   gap: 4px;
   align-items: stretch;
 }
@@ -209,9 +236,14 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] 
   font-weight: 650;
   font-variant-numeric: tabular-nums;
   letter-spacing: -.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.12;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+  max-height: none;
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] {
@@ -273,10 +305,10 @@ html[data-ml-native="on"] #storyCaptionContent {
    才会压住人物。这里恢复「立绘一块、顶栏一块、正文一块」的上下顺序。 */
 html[data-ml-native="on"] body.has-images #storyCaptionDiv {
   position: absolute !important;
-  top: 192px !important;
+  top: var(--ml-caption-top, 192px) !important;
   left: 24px !important;
   width: 280px !important;
-  height: calc(100% - 192px - 24px) !important;
+  height: calc(100% - var(--ml-caption-top, 192px) - 24px) !important;
   margin: 0 !important;
   flex: 0 0 auto;
   overflow: hidden;
@@ -596,17 +628,26 @@ html[data-ml-native="on"] #mobileStats .stat.time .vertical {
   opacity: .62;
 }
 
-html[data-ml-native="on"] #mobileStats .stat::after {
+html[data-ml-native="on"] #mobileStats .stat::before {
   content: "";
-  width: 4px;
-  height: 4px;
-  margin-top: 2px;
-  border-radius: 50%;
-  background: currentColor;
+  order: 2;
+  width: 24px;
+  height: 5px;
+  margin-top: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg,
+    currentColor 0 var(--ml-rail-pct, 0%),
+    rgb(255 255 255 / 28%) var(--ml-rail-pct, 0%) 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%), inset 0 1px 2px rgb(0 0 0 / 45%);
   opacity: 1;
-  box-shadow: 0 0 7px currentColor;
 }
 
+html[data-ml-native="on"] #mobileStats .stat::after {
+  display: none;
+  content: none;
+}
+
+html[data-ml-native="on"] #mobileStats .stat.time::before,
 html[data-ml-native="on"] #mobileStats .stat.time::after {
   display: none;
 }
@@ -1068,8 +1109,10 @@ html[data-ml-native="on"] #passages .passage .ml-shop-tool::after {
 }
 
 html[data-ml-native="on"] #passages .passage .ml-shop-tool-label {
-  color: var(--mln-muted);
-  font-size: 10px;
+  color: var(--mln-text);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
   line-height: 1;
   text-align: center;
   pointer-events: none;
@@ -2155,13 +2198,16 @@ html[data-ml-native="on"] #customOverlayContent #saves-list-container .savesList
   gap: 0;
   width: 100% !important;
   min-height: 0 !important;
+  max-height: none !important;
   height: auto !important;
+  flex: 0 0 auto !important;
   margin: 0 0 7px;
   padding: 9px 10px;
   border: 1px solid var(--mln-border);
   border-radius: var(--mln-radius-sm);
   background: var(--mln-surface);
   box-sizing: border-box;
+  overflow: visible;
 }
 
 html[data-ml-native="on"] #customOverlayContent #saves-list-container .saveGroup {
@@ -2243,19 +2289,51 @@ html[data-ml-native="on"] #customOverlayContent #saves-list-container .saveButto
 }
 
 html[data-ml-native="on"] #customOverlayContent #saveList .saveButton button,
+html[data-ml-native="on"] #customOverlayContent #saveList .saveButton input,
+html[data-ml-native="on"] #customOverlayContent #saves-list-container .saveButton input,
+html[data-ml-native="on"] #customOverlayContent .saveButton button,
+html[data-ml-native="on"] #customOverlayContent .saveButton input,
 html[data-ml-native="on"] #customOverlayContent #saveList .deleteButton {
   min-height: 32px;
   padding: 4px 9px;
   border: 1px solid var(--mln-border);
   border-radius: 8px;
-  background: var(--mln-surface-2);
+  background: var(--mln-surface-2) !important;
   color: var(--mln-text);
   font-size: 11px;
   font-weight: 550;
   line-height: 1.2;
 }
 
+html[data-ml-native="on"] #customOverlayContent .saveMenuButton {
+  border: 1px solid var(--mln-border);
+  border-radius: 8px;
+  background: var(--mln-surface-2) !important;
+  color: var(--mln-text) !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent .saveMenuButton:hover {
+  border-color: var(--mln-border-strong);
+  background: var(--mln-surface-3) !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent .saves-clear {
+  border-color: var(--mln-danger) !important;
+  background: linear-gradient(180deg, rgb(255 79 112 / 18%), transparent), var(--mln-surface) !important;
+  color: #FFE9EE !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent .saves-clear:hover {
+  border-color: var(--mln-danger) !important;
+  background: linear-gradient(180deg, rgb(255 79 112 / 30%), transparent), var(--mln-surface-2) !important;
+  color: #FFF4F6 !important;
+}
+
 html[data-ml-native="on"] #customOverlayContent #saveList .saveButton button:disabled,
+html[data-ml-native="on"] #customOverlayContent #saveList .saveButton input:disabled,
+html[data-ml-native="on"] #customOverlayContent #saves-list-container .saveButton input:disabled,
+html[data-ml-native="on"] #customOverlayContent .saveButton button:disabled,
+html[data-ml-native="on"] #customOverlayContent .saveButton input:disabled,
 html[data-ml-native="on"] #customOverlayContent #saveList .deleteButton:disabled {
   opacity: .42;
 }
@@ -2265,8 +2343,40 @@ html[data-ml-native="on"] #customOverlayContent #saves-list-container .deleteBut
   right: 9px;
   top: 8px;
   bottom: auto;
+  height: auto !important;
   min-width: 52px;
   margin: 0;
+}
+
+/* 空槽只留「槽位号 + 保存/读取 + 删除」一行；详情行的两个 &nbsp; 不再撑高卡片。 */
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] {
+  margin-bottom: 5px;
+  padding: 6px 10px;
+}
+
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .saveGroup {
+  grid-template-rows: auto;
+  align-items: center;
+}
+
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .saveId {
+  grid-row: 1;
+  align-self: center;
+}
+
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .saveName,
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .saveDetails {
+  display: none !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .saveButton {
+  grid-row: 1;
+  align-self: center;
+  margin-top: 0;
+}
+
+html[data-ml-native="on"] #customOverlayContent :is(#saves-list-container,#savesListContainer) .savesListRow[data-ml-save-empty="1"] .deleteButton.right {
+  top: 6px;
 }
 
 html[data-ml-native="on"] #customOverlayContent #saveList .buttons {
@@ -2669,8 +2779,8 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
 }
 
 @media (max-width: 420px) {
-  html[data-ml-native="on"] #stats .centered-elements {
-    grid-template-columns: 36px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr);
+  html[data-ml-native="on"] #stats#stats .centered-elements {
+    grid-template-columns: 36px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr) !important;
     gap: 5px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div {
@@ -2689,3 +2799,385 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
     padding: 10px;
   }
 }
+
+/* ---------------------------------------------------------------- 赛博朋克主题装饰 */
+/* 只叠加颜色、描边与静态网格；不改任何布局尺寸、业务与存档逻辑。 */
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-bar#ui-bar {
+  background:
+    radial-gradient(120% 62% at 50% 0%, rgb(0 229 255 / 10%), transparent 62%),
+    linear-gradient(180deg, rgb(255 61 154 / 6%), transparent 28%),
+    repeating-linear-gradient(0deg, transparent 0 23px, var(--mln-grid) 23px 24px),
+    #05070F !important;
+  border-right: 1px solid rgb(0 229 255 / 28%) !important;
+  box-shadow: inset -1px 0 0 rgb(255 61 154 / 18%), 14px 0 40px rgb(0 0 0 / 36%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div {
+  border-color: rgb(0 229 255 / 24%) !important;
+  background:
+    linear-gradient(135deg, rgb(0 229 255 / 6%), transparent 48%),
+    linear-gradient(315deg, rgb(255 61 154 / 4%), transparent 42%),
+    #0A1120 !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%), 0 0 12px rgb(0 229 255 / 6%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="toggle"] {
+  background: #09101E !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="money"] {
+  border-color: rgb(0 229 255 / 52%) !important;
+  background: linear-gradient(135deg, rgb(0 229 255 / 14%), rgb(255 61 154 / 7%) 72%, #0A1120) !important;
+  box-shadow: 0 0 16px rgb(0 229 255 / 12%), inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="money"] .true {
+  color: #7DF9FF !important;
+  font-family: var(--mln-mono);
+  font-size: 10.5px !important;
+  letter-spacing: -.03em !important;
+  white-space: nowrap !important;
+  text-shadow: 0 0 8px rgb(0 229 255 / 48%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="time"] {
+  border-color: rgb(255 61 154 / 34%) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="time"] .clockContainer {
+  color: #FFD9EC !important;
+  font-family: var(--mln-mono);
+  text-shadow: 0 0 8px rgb(255 61 154 / 34%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #stats .centered-elements > div[data-ml-chip="day"] {
+  color: #AFC9E2 !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters {
+  border-color: rgb(0 229 255 / 32%) !important;
+  background:
+    linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 34%),
+    #080D19 !important;
+  box-shadow: 0 0 0 1px rgb(255 61 154 / 8%), 0 10px 30px rgb(0 0 0 / 40%), inset 0 1px 0 rgb(255 255 255 / 4%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters > div[id$="caption"] {
+  border-bottom-color: rgb(0 229 255 / 14%) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters > div[id$="caption"]:hover {
+  background: rgb(0 229 255 / 5%) !important;
+  box-shadow: inset 0 0 0 1px rgb(0 229 255 / 12%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters > div[id$="caption"]::after {
+  color: #7DF9FF !important;
+  font-family: var(--mln-mono);
+  text-shadow: 0 0 7px rgb(0 229 255 / 34%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters > div[id$="caption"] > div:first-child {
+  color: #C9F4FF !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .meter {
+  background: #142036 !important;
+  box-shadow: inset 0 0 0 1px rgb(0 229 255 / 10%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .meter > div {
+  box-shadow: 0 0 8px currentColor;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .greenbar {
+  color: #00E5FF;
+  background: linear-gradient(90deg, #00A8D6, #00E5FF) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .tealbar {
+  color: #58FFD6;
+  background: linear-gradient(90deg, #13C9B0, #58FFD6) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .bluebar {
+  color: #5AA9FF;
+  background: linear-gradient(90deg, #2C5BFF, #5AA9FF) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .purplebar {
+  color: #B46BFF;
+  background: linear-gradient(90deg, #7A2CFF, #B46BFF) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .pinkbar {
+  color: #FF3D9A;
+  background: linear-gradient(90deg, #C41468, #FF3D9A) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .redbar {
+  color: #FF4F70;
+  background: linear-gradient(90deg, #B1173A, #FF4F70) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats {
+  border-right-color: rgb(0 229 255 / 32%) !important;
+  background:
+    linear-gradient(180deg, rgb(0 229 255 / 7%), transparent 46%),
+    repeating-linear-gradient(0deg, transparent 0 23px, var(--mln-grid) 23px 24px),
+    #05070F !important;
+  box-shadow: 6px 0 20px rgb(0 0 0 / 34%), inset -1px 0 0 rgb(0 229 255 / 16%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat {
+  border-color: rgb(0 229 255 / 26%);
+  background: linear-gradient(180deg, rgb(0 229 255 / 6%), transparent 58%), #08101E;
+  font-family: var(--mln-mono);
+  text-shadow: 0 0 6px currentColor;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%), 0 0 8px rgb(0 229 255 / 5%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat::before {
+  height: 5px;
+  background: linear-gradient(90deg, currentColor 0 var(--ml-rail-pct, 0%), rgb(0 229 255 / 22%) var(--ml-rail-pct, 0%) 100%);
+  box-shadow: 0 0 7px currentColor, inset 0 0 0 1px rgb(0 229 255 / 24%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.green { color: #00E5FF; border-color: rgb(0 229 255 / 45%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.teal { color: #58FFD6; border-color: rgb(88 255 214 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.blue { color: #6FAEFF; border-color: rgb(111 174 255 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.lblue { color: #9BE9FF; border-color: rgb(155 233 255 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.pink { color: #FF7AC0; border-color: rgb(255 122 192 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.purple { color: #C08CFF; border-color: rgb(192 140 255 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.red { color: #FF6B88; border-color: rgb(255 107 136 / 42%); }
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.orange { color: #FFB36B; border-color: rgb(255 179 107 / 42%); }
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #mobileStats .stat.time {
+  color: #FFD6EC;
+  border-color: rgb(255 61 154 / 42%);
+  background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent), #09101E;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayButtons#overlayButtons button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #menu#menu button {
+  border-color: rgb(0 229 255 / 24%);
+  background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 70%), #0A1120;
+  box-shadow: inset 0 0 0 1px rgb(255 61 154 / 4%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayButtons button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #menu button:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent 70%), #111A2D !important;
+  box-shadow: 0 0 14px rgb(255 61 154 / 14%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage .ml-option-group {
+  position: relative;
+  overflow: hidden;
+  border-color: rgb(0 229 255 / 26%);
+  background: linear-gradient(90deg, rgb(0 229 255 / 7%), transparent 46%), #0A1120;
+  box-shadow: inset 0 0 0 1px rgb(255 61 154 / 4%), 0 0 12px rgb(0 229 255 / 5%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage .ml-option-group::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #00E5FF, #FF3D9A);
+  opacity: .8;
+  pointer-events: none;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage .ml-option-group:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(90deg, rgb(255 61 154 / 9%), transparent 52%), #10182A !important;
+  box-shadow: 0 0 16px rgb(255 61 154 / 12%), inset 0 0 0 1px rgb(0 229 255 / 8%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage a.link-internal.macro-link {
+  border-color: rgb(0 229 255 / 24%);
+  border-left: 2px solid #00E5FF;
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgb(0 229 255 / 6%), transparent 46%), #0A1120;
+  box-shadow: 0 0 10px rgb(0 229 255 / 4%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage a.link-internal.macro-link:hover {
+  border-color: #FF3D9A;
+  background: linear-gradient(90deg, rgb(255 61 154 / 9%), transparent 52%), #10182A;
+  box-shadow: 0 0 16px rgb(255 61 154 / 12%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage a.link-internal:not(.macro-link) {
+  text-decoration-color: rgb(0 229 255 / 48%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlay:not([data-overlay="modloader"]) {
+  border-color: rgb(0 229 255 / 44%) !important;
+  background:
+    radial-gradient(120% 70% at 100% 0, rgb(255 61 154 / 10%), transparent 54%),
+    linear-gradient(180deg, rgb(0 229 255 / 6%), transparent 30%),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(0 229 255 / 3.5%) 31px 32px),
+    #05070F !important;
+  box-shadow: 0 0 0 1px rgb(255 61 154 / 14%), 0 24px 70px rgb(0 0 0 / 52%), 0 0 34px rgb(0 229 255 / 10%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayTitle {
+  border-bottom-color: rgb(0 229 255 / 24%) !important;
+  background:
+    linear-gradient(90deg, rgb(0 229 255 / 12%), rgb(255 61 154 / 6%) 54%, transparent),
+    #070C18 !important;
+  color: #9FEFFF !important;
+  letter-spacing: .08em;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent {
+  border-color: rgb(0 229 255 / 20%) !important;
+  background:
+    linear-gradient(180deg, rgb(0 229 255 / 4%), transparent 34%),
+    #080D19 !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayTabs button {
+  border-radius: 6px;
+  border-color: rgb(0 229 255 / 22%);
+  background: #0A1120;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayTabs button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayTabs button[aria-selected="true"] {
+  border-color: #00E5FF !important;
+  background: linear-gradient(180deg, rgb(0 229 255 / 16%), rgb(255 61 154 / 7%)), #10182A !important;
+  color: #E9FFFF !important;
+  box-shadow: 0 0 14px rgb(0 229 255 / 16%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages button {
+  border-color: rgb(0 229 255 / 24%);
+  background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 72%), #0A1120;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages button:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent 72%), #111A2D !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .savesListRow {
+  border-color: rgb(0 229 255 / 22%);
+  background: linear-gradient(135deg, rgb(0 229 255 / 5%), transparent 52%), #0A1120;
+  box-shadow: inset 0 0 0 1px rgb(255 61 154 / 4%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveId {
+  color: #7DF9FF;
+  font-family: var(--mln-mono);
+  text-shadow: 0 0 7px rgb(0 229 255 / 34%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .deleteButton {
+  border-color: rgb(0 229 255 / 28%);
+  background: #10182A;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton input {
+  border: 1px solid rgb(0 229 255 / 42%);
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgb(0 229 255 / 16%), rgb(255 61 154 / 5%)), #0A1524;
+  color: #E9FFFF;
+  box-shadow: 0 0 10px rgb(0 229 255 / 12%);
+  text-shadow: 0 0 8px rgb(0 229 255 / 30%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton input:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton input:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton input:hover {
+  border-color: #FF3D9A;
+  background: linear-gradient(180deg, rgb(255 61 154 / 20%), rgb(0 229 255 / 6%)), #151A31;
+  box-shadow: 0 0 12px rgb(255 61 154 / 18%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton input,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton input {
+  border: 1px solid rgb(0 229 255 / 42%) !important;
+  border-radius: 6px;
+  background: linear-gradient(180deg, rgb(0 229 255 / 16%), rgb(255 61 154 / 5%)), #0A1524 !important;
+  color: #E9FFFF !important;
+  box-shadow: 0 0 10px rgb(0 229 255 / 12%);
+  text-shadow: 0 0 8px rgb(0 229 255 / 30%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saves-list-container .saveButton input:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent #saveList .saveButton input:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveButton input:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(180deg, rgb(255 61 154 / 20%), rgb(0 229 255 / 6%)), #151A31 !important;
+  box-shadow: 0 0 12px rgb(255 61 154 / 18%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveMenuButton {
+  border-color: rgb(0 229 255 / 36%) !important;
+  background: linear-gradient(180deg, rgb(0 229 255 / 10%), transparent 72%), #0A1524 !important;
+  color: #E9FFFF !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saveMenuButton:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(180deg, rgb(255 61 154 / 16%), rgb(0 229 255 / 6%)), #151A31 !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saves-clear {
+  border-color: #FF4F70 !important;
+  background: linear-gradient(180deg, rgb(255 79 112 / 22%), transparent), #2A0B14 !important;
+  color: #FFE9EE !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent .saves-clear:hover {
+  border-color: #FF4F70 !important;
+  background: linear-gradient(180deg, rgb(255 79 112 / 34%), transparent), #3A1020 !important;
+  color: #FFF4F6 !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog {
+  border-color: rgb(0 229 255 / 42%);
+  background: #05070F;
+  box-shadow: 0 0 0 1px rgb(255 61 154 / 14%), 0 24px 70px rgb(0 0 0 / 52%), 0 0 30px rgb(0 229 255 / 10%);
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-titlebar {
+  border-bottom-color: rgb(0 229 255 / 24%);
+  background: linear-gradient(90deg, rgb(0 229 255 / 12%), rgb(255 61 154 / 6%) 54%, transparent), #070C18;
+  color: #9FEFFF;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-title {
+  color: #E6F7FF;
+  letter-spacing: .04em;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body {
+  background: #080D19;
+}
+

@@ -18,6 +18,13 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.equal(root.getAttribute("data-sheet"), "0");
   assert.equal(root.getAttribute("data-side"), "right");
   assert.match(w.document.getElementById("ml-orb").getAttribute("aria-label"), /灯台/);
+  assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "灯台分类");
+});
+
+test("文案：切到英文时页签分类与关闭按钮的无障碍标签同步换语", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "en", motion: false } });
+  assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "Lantern sections");
+  assert.equal(w.document.querySelector("#ml-panel .ml-close").getAttribute("aria-label"), "Close");
 });
 
 test("启动：面板关闭时不预渲染内容，首次打开才构建", () => {
@@ -135,7 +142,7 @@ test("宿主视觉档位：Smooth / Balanced 收窄模糊，Fancy 保留完整",
 test("损坏的设置：逐字段修复并提示一次，不阻断挂载", () => {
   const { w } = createEnv({ seed: "{not json" });
   assert.ok(w.document.getElementById("ml-root"));
-  assert.equal(w.document.querySelector("#ml-root").getAttribute("data-theme"), "auto");
+  assert.equal(w.document.querySelector("#ml-root").getAttribute("data-theme"), "cyberpunk");
   const toast = w.document.querySelector(".ml-toast");
   assert.equal(toast.hidden, false);
   assert.match(toast.textContent, /修复|repaired/i);
@@ -195,8 +202,8 @@ test("私密槽位：不渲染 butt_plug / genitals 的物品名", () => {
   assert.match(text, /Shirt/);
 });
 
-test("宿主接入：能力检测通过时转发 accent/radius，不规则宿主不抛错", () => {
-  const { w } = createEnv({ host: true });
+test("宿主接入：auto 时转发 accent/radius，不规则宿主不抛错", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, theme: "auto" }, host: true });
   const root = w.document.getElementById("ml-root");
   assert.match(root.style.getPropertyValue("--ml-accent"), /var\(--dgu-accent/);
   assert.match(root.style.getPropertyValue("--ml-radius"), /var\(--dgu-radius/);

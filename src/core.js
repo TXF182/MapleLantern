@@ -12,10 +12,10 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.1.2";
+  var VERSION = "1.1.3";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
-  var THEMES = ["auto", "amber", "jade", "graphite", "star"];
+  var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star"];
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
 
@@ -28,6 +28,12 @@
 
   /* 主题色板：用于对比度计算与「非 auto」时的字面色。 */
   var PALETTES = {
+    cyberpunk: {
+      bg: "#05070F", bgSoft: "#0B1020", bgRaise: "#101830",
+      text: "#E6F7FF", muted: "#8AA4BE", faint: "#5D7692",
+      accent: "#00E5FF", accentInk: "#021014", line: "rgba(0,229,255,.18)",
+      jade: "#58FFD6", rose: "#FF3D9A", danger: "#FF4F70"
+    },
     amber: {
       bg: "#0B0D10", bgSoft: "#12151A", bgRaise: "#1A1E25",
       text: "#E9E3D6", muted: "#9A9388", faint: "#6E685F",
@@ -91,7 +97,8 @@
       "settings.motionHint": "关闭后不播任何过渡与动画，操作仍完整",
       "native.entry": "灯台",
       "native.entryHint": "打开灯台面板",
-      "theme.auto": "自动", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
+      "shop.filters": "筛选", "shop.options": "选项", "shop.legend": "图例",
+      "theme.auto": "自动", "theme.cyberpunk": "赛博朋克", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
       "theme.star": "星空",
       "density.cozy": "舒适", "density.compact": "紧凑",
       "lang.auto": "自动", "lang.zh": "中文", "lang.en": "English",
@@ -101,7 +108,7 @@
       "misc.close": "关闭", "misc.untitled": "未知场景", "misc.degraded": "读取降级",
       "toast.storage": "设置只在本次生效（存储不可用）",
       "toast.repaired": "检测到旧设置，已逐项修复",
-      "a11y.panel": "灯台信息面板"
+      "a11y.panel": "灯台信息面板", "a11y.tabs": "灯台分类"
     },
     en: {
       "app.name": "Lantern", "app.sub": "MAPLELANTERN", "app.readonly": "Read-only · never writes saves",
@@ -139,7 +146,8 @@
       "settings.motionHint": "When off, no transitions play; every action still works",
       "native.entry": "Lantern",
       "native.entryHint": "Open the Lantern panel",
-      "theme.auto": "Auto", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
+      "shop.filters": "Filters", "shop.options": "Options", "shop.legend": "Legend",
+      "theme.auto": "Auto", "theme.cyberpunk": "Cyberpunk", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
       "theme.star": "Starfield",
       "density.cozy": "Cozy", "density.compact": "Compact",
       "lang.auto": "Auto", "lang.zh": "中文", "lang.en": "English",
@@ -149,7 +157,7 @@
       "misc.close": "Close", "misc.untitled": "Unknown scene", "misc.degraded": "Degraded",
       "toast.storage": "Settings apply to this session only (storage unavailable)",
       "toast.repaired": "Older settings found and repaired field by field",
-      "a11y.panel": "Lantern information panel"
+      "a11y.panel": "Lantern information panel", "a11y.tabs": "Lantern sections"
     }
   };
 
@@ -172,7 +180,7 @@
 
   var DEFAULTS = Object.freeze({
     v: 1,
-    theme: "auto",
+    theme: "cyberpunk",
     scale: 100,
     glass: 60,
     density: "cozy",
@@ -414,7 +422,7 @@
     return (hi + 0.05) / (lo + 0.05);
   }
 
-  function paletteFor(theme) { return PALETTES[theme] || PALETTES.amber; }
+  function paletteFor(theme) { return PALETTES[theme] || PALETTES.cyberpunk; }
 
   function buildDiagnostics(info) {
     info = isObj(info) ? info : {};

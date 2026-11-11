@@ -36,10 +36,10 @@ const HTML = "<!doctype html><html><head><meta charset='utf-8'></head><body>" +
 
 function baseVars() {
   return {
-    willpower: 40, willpowermax: 100,
-    stress: 20, stressmax: 100,
-    trauma: 10, traumamax: 100,
-    arousal: 30, arousalmax: 100,
+    willpower: 40, willpowermax: 1000,
+    stress: 20, stressmax: 10000,
+    trauma: 10, traumamax: 5000,
+    arousal: 30, arousalmax: 10000,
     tiredness: 600,
     money: 1234,
     worn: { upper: { name: "Shirt" }, lower: { name: "Skirt" }, butt_plug: { name: "SECRET-PLUG" }, genitals: { name: "SECRET-GENITAL" } }

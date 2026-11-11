@@ -386,6 +386,7 @@
     if (els.nameNode) { els.nameNode.textContent = s["app.name"]; }
     if (els.subNode) { els.subNode.textContent = s["app.sub"]; }
     els.closeBtn.setAttribute("aria-label", s["misc.close"]);
+    els.tabs.setAttribute("aria-label", s["a11y.tabs"]);
     els.footNote.textContent = s["app.readonly"];
     els.footVer.textContent = "v" + C.VERSION;
 
@@ -765,6 +766,7 @@
 
     pane.appendChild(field(s["settings.theme"], segmented([
       { value: "auto", label: s["theme.auto"] },
+      { value: "cyberpunk", label: s["theme.cyberpunk"] },
       { value: "amber", label: s["theme.amber"] },
       { value: "jade", label: s["theme.jade"] },
       { value: "graphite", label: s["theme.graphite"] },

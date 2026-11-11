@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.2）
+# 灯台 · Lantern（MapleLantern 1.1.3）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -6,12 +6,13 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 原生卡片开关默认**开**；悬浮灯台默认**关**，入口在 `OPTIONS` 弹层顶部「灯台」行，也可用 `Alt+L` 唤起。
 - 此刻 / 身心 / 着装 / 系统 / 设置 五个页签；「此刻」页保留时间、金钱、场景与身心速览。
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；检测到可用主 UI 时原生替换层**自动让位**，避免两套外观打架。
+- **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **不写存档、不改数值、不接管任何第三方业务。**
 
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.2.mod.zip`。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.3.mod.zip`。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -33,7 +34,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 |---|---|---|
 | 原生卡片 | 开 / 关 | **开** |
 | 悬浮灯台 | 开 / 关 | **关** |
-| 主题 | 自动 / 琥珀 / 青瓷 / 石墨 / 星空 | 自动 |
+| 主题 | 自动 / 赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空 | 赛博朋克 |
 | 字号 | 80–140%，5% 步进 | 100% |
 | 通透度 | 0–100，5% 步进 | 60 |
 | 密度 | 舒适 / 紧凑 | 舒适 |
@@ -45,14 +46,14 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.2）
+## 原生 UI 替换层（1.1.3）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
 | 原版位置 | 标记 | 呈现 |
 |---|---|---|
 | `#stats .centered-elements` 四块 | `data-ml-chip=toggle/money/time/day` | 四格：开合 / 金钱 / 时间 / 星期；金额整数补 `.00`，数字用等宽数字 |
-| `#mobileStats` 左轨 | 无标记，CSS | 32px 宽度不变；28×36 胶囊，每格 2px 左侧状态色条，字号 12.5 / 字重 700 / 文字描边提升暗底可读性；时间块 60px 高并带金棕强调 |
+| `#mobileStats` 左轨 | 无标记，CSS | 32px 宽度不变；28×36 胶囊，每格 2px 左侧状态色条，标签下方再加 24×5 数值条（深青轨道 + 当前值填充），字号 12.5 / 字重 700 / 文字描边提升暗底可读性；时间块 60px 高并带金棕强调 |
 | `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent/total/readout` | **一张状态大卡**：7 行「标签 + 长条 + 右侧 当前/上限」，上限读 `State.variables.*max`，缺失才回退常量；整卡随侧栏滚动 |
 | `#passages a.link-internal.macro-link` | `data-ml-option="1"`；有前置 `img.icon` 时加 `data-ml-option-group="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage；「图标 + 选项」收进同一张 `ml-option-group` 卡，图标 30px 在左、文字在右，并摘掉组前空行；无图标选项保持整行卡 |
 | `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；`sidebarButtonSplit` 拆平为 `display:contents`，清掉原版占格 `<br>`，8 个入口四行对齐，`JOURNAL` / `OPTIONS` 不再退省略号 |
@@ -62,7 +63,8 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#ui-bar` 320px 极窄档 | 无标记，`@media (max-width:340px)` | 抽屉宽 248px、收起位移 -216px，箭头回到屏内；金钱/时间/星期不截断 |
 | 衣柜内层（`Wardrobe`） | `data-ml-option` + `tidySeparators` | warmth 50px 条压成 16px 圆角条，温度说明独立卡；`Close wardrobe` / `Strip all` 等动作两列，裸 `\|` 全清；`#listoutfits` 双列、四张 outfit 卡左对齐等宽 |
 | 商店目录（`Clothing Shop`） | `markShopCats` | 15 组「图标 + 文字」收进两列胶囊卡，去掉原版 `<br><br>` 撑出的断行；warmth / 说明卡与衣柜同材质 |
-| 商店列表（`View All` 等） | `markShopCats` + `markEmptyDetails` + `tidyShopText` | `Back to shop` 取消原版绝对定位与气泡描边，回到正常流；分类图标去斜切、44×44 方卡；商品行成网格卡：48×48 图标 + 名称 + 右上价签胶囊 + 三行 stats-ball；空 `.clothing-details` 隐去 |
+| 商店列表（`View All` 等） | `markShopCats` + `markEmptyDetails` + `tidyShopText` + `markShopTools` | `Back to shop` 取消原版绝对定位与气泡描边，回到正常流；分类图标去斜切、44×44 方卡；商品行成网格卡：48×48 图标 + 名称 + 右上价签胶囊 + 三行 stats-ball；空 `.clothing-details` 隐去；中文环境把原版硬编码 `Filters` / `Opt.` / `Legend` 换成「筛选 / 选项 / 图例」，已本地化的原文保持不动 |
+| `SAVES` 弹层 | `markSaveRows` | 去掉 `&nbsp;` 后判定空槽：隐藏名称/详情，槽位号与保存/读取/删除同排，行高 46px；非空行保留两行详情。底部 `saveMenuButton` 与行内保存/读取按钮跨主题统一，`全部删除` 保留红色危险语义 |
 
 - 让位：`window.DoLGameUI.ui.apiVersion === 1 && getCapabilities().enabled` 时不挂 `data-ml-native`，并清掉全部标记/入口，恢复原版。
 - 零轮询：无 `setInterval`、无 MutationObserver；只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` / `#passages` 的点击捕获和设置切换时重扫，单飞 rAF，点击后 0 / 150ms 各补扫一次（等游戏异步换 DOM）。
@@ -88,7 +90,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 ## 兼容与降级
 
-- **未装 DoLGameUI**：用自带五主题（琥珀 / 青瓷 / 石墨 / 星空），功能完整；`html[data-dgu-*]` 反制规则零匹配。
+- **未装 DoLGameUI**：用自带六主题（赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空），功能完整；`html[data-dgu-*]` 反制规则零匹配。
 - **装了 DoLGameUI**：只转发 `--dgu-accent` / `--dgu-radius` / `--dgu-card-radius`，并逐类封回被全局按钮规则改写的 padding / min-height。
 - **读不到存档字段**：面板仍可打开，显示「读取降级」，不抛错。
 - **存储不可用**：设置只在本次会话生效，并提示一次。
@@ -103,7 +105,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**63 / 63 PASS**（新增「图标 + 选项打包」「左轨 32px / 色条 / 字号」；状态卡补 `data-ml-total/readout` 断言）
+- `node --test tests\*.test.js`：**67 / 67 PASS**（新增「图标 + 选项打包」「左轨 32px / 色条 / 字号」「顶栏强制 grid / 金额不省略 / 立绘底边锚点」；状态卡补 `data-ml-total/readout` 断言）
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
@@ -116,7 +118,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.2.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.3.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

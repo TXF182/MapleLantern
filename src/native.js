@@ -49,10 +49,24 @@
     doc.documentElement.setAttribute("data-ml-motion", state.settings.motion ? "on" : "off");
     doc.documentElement.setAttribute("data-ml-lang", state.lang);
     var theme = state.settings.theme;
-    doc.documentElement.setAttribute("data-ml-theme", theme === "auto" ? "amber" : theme);
+    doc.documentElement.setAttribute("data-ml-theme", theme === "auto" ? "cyberpunk" : theme);
   }
 
   /* --------------------------------------------------------- #stats 四格 */
+
+  function markCaptionAnchor() {
+    var bar = doc.getElementById("ui-bar");
+    var img = doc.getElementById("img");
+    var caption = doc.getElementById("storyCaptionDiv");
+    if (!bar || !img || !caption || !doc.body || !doc.body.classList.contains("has-images")) {
+      return;
+    }
+    var barTop = bar.getBoundingClientRect().top;
+    var imgBottom = img.getBoundingClientRect().bottom;
+    if (!isFinite(barTop) || !isFinite(imgBottom) || imgBottom <= barTop) { return; }
+    var top = Math.round(imgBottom - barTop);
+    doc.documentElement.style.setProperty("--ml-caption-top", Math.max(0, top) + "px");
+  }
 
   function markStats() {
     var wrap = doc.querySelector("#stats .centered-elements");
@@ -94,11 +108,13 @@
   }
 
   function parseStatValue(card) {
-    var title = (card.getAttribute("title") || "").trim();
-    if (!title) { return ""; }
-    var idx = title.lastIndexOf(":");
-    var value = (idx >= 0 ? title.slice(idx + 1) : title).trim();
-    return /^-?\d+(?:\.\d+)?$/.test(value) ? value : "";
+    var source = (card.getAttribute("title") || "").trim();
+    if (!source) { return ""; }
+    /* 原版英文 title 是 "Pain: 0.00"；中文/本地化版本可能是「疼痛：0.00」。
+       只认冒号后的数字，避免把整段说明当作值。 */
+    var match = source.match(/[:：]\s*(-?\d+(?:\.\d+)?)/);
+    if (!match) { match = source.match(/(-?\d+(?:\.\d+)?)/); }
+    return match ? match[1] : "";
   }
 
   function compactStatNumber(raw) {
@@ -123,7 +139,7 @@
   function readStatMax(key) {
     var fallback = STAT_MAX[key] || 0;
     try {
-      var vars = window.State && window.State.variables;
+      var vars = gameVars();
       if (!vars) { return fallback; }
       if (key === "arousal") { return Number(vars.arousalmax) || fallback; }
       if (key === "stress") { return Number(vars.stressmax) || fallback; }
@@ -132,6 +148,12 @@
       if (key === "willpower") { return Number(vars.willpowermax) || fallback; }
     } catch (e) {}
     return fallback;
+  }
+
+  function gameVars() {
+    var state = window.State ||
+      (window.SugarCube && window.SugarCube.State) || null;
+    return state && state.variables;
   }
 
   function markStatmeters() {
@@ -166,6 +188,38 @@
         card.setAttribute("data-ml-percent", pct === null ? "" : (pct + "%"));
         if (readout) { card.setAttribute("data-ml-readout", readout); }
       }
+    }
+  }
+
+  /* 32px 左轨：原版每格只有字母/圆点；补一条只读百分比小条。
+     顺序即原版 #mobileStats 的固定 7 项；不写变量、不换标签。 */
+  var RAIL_KEYS = ["pain", "arousal", "tiredness", "stress", "trauma", "control", "allure"];
+
+  function markRailMeters() {
+    var rail = doc.getElementById("mobileStats");
+    if (!rail) { return; }
+    var stats = rail.querySelectorAll(".stat");
+    var index = 0;
+    for (var i = 0; i < stats.length; i++) {
+      var node = stats[i];
+      if (node.classList.contains("time")) { continue; }
+      var key = RAIL_KEYS[index] || "";
+      index++;
+      node.removeAttribute("data-ml-rail-key");
+      node.removeAttribute("data-ml-rail-pct");
+      node.style.removeProperty("--ml-rail-pct");
+      if (!key) { continue; }
+      var value = 0;
+      try {
+        var vars = gameVars();
+        value = Number(vars && vars[key]);
+        if (!isFinite(value)) { value = 0; }
+      } catch (e) { value = 0; }
+      var max = readStatMax(key) || STAT_MAX[key] || 0;
+      var pct = max ? Math.max(0, Math.min(100, Math.round(value / max * 100))) : 0;
+      node.setAttribute("data-ml-rail-key", key);
+      node.setAttribute("data-ml-rail-pct", String(pct));
+      node.style.setProperty("--ml-rail-pct", pct + "%");
     }
   }
 
@@ -279,16 +333,25 @@
     var ref = list.querySelector(".button-back-to-shop");
     if (ref && ref.parentNode === list) { list.insertBefore(bar, ref.nextSibling); }
     else { list.appendChild(bar); }
-    var labels = { "filters-button": "Filters", "clothingshop-options-button": "Options", "shop-legend-button": "Legend" };
+    var toolKeys = {
+      "filters-button": "shop.filters",
+      "clothingshop-options-button": "shop.options",
+      "shop-legend-button": "shop.legend"
+    };
     for (var i = 0; i < tools.length; i++) {
       var cls = tools[i].className || "";
-      var key = Object.keys(labels).filter(function (k) { return cls.indexOf(k) !== -1; })[0];
-      tools[i].setAttribute("data-ml-tool", labels[key] || "");
+      var key = Object.keys(toolKeys).filter(function (k) { return cls.indexOf(k) !== -1; })[0];
+      var original = (tools[i].textContent || "").trim();
+      var fallback = key ? (C.strings(state.lang)[toolKeys[key]] || "") : "";
+      var labelText = original || fallback;
+      /* 中文环境下，原版这三个按钮仍写死英文（Filters / Opt. / Legend）；只换这三个已知词，已本地化的原文保持不动。 */
+      if (state.lang === "zh" && /^(filters?|opt\.?|options?|legend)$/i.test(original)) { labelText = fallback; }
+      tools[i].setAttribute("data-ml-tool", key || "");
       tools[i].classList.add("ml-shop-tool");
       tools[i].textContent = "";
       var span = doc.createElement("span");
       span.className = "ml-shop-tool-label";
-      span.textContent = labels[key] || "";
+      span.textContent = labelText;
       tools[i].appendChild(span);
       bar.appendChild(tools[i]);
     }
@@ -338,25 +401,67 @@
     }
   }
 
-  /* 图标与选项在原版里是两个直接兄弟节点，中间只隔 <br>；包成一组后
-     图标才能进入同一张卡左侧，而不是独占一行把选项推远。 */
+  /* 图标与选项在原版里是相邻节点；包成一组后，图标才能进入同一张卡左侧，
+     而不是独占一行把选项推远。除直接兄弟外，兼容「<span>包裹选项」的本地化
+     结构：只在该包裹层仅含这一个链接时搬家，避免误包内层页。 */
   function packIconOptions(root) {
+    function blank(node) {
+      return node && node.nodeType === 3 && !(node.nodeValue || "").trim();
+    }
+    function iconBefore(node) {
+      var prev = node.previousSibling;
+      while (prev && (blank(prev) || (prev.nodeType === 1 && prev.tagName === "BR"))) {
+        prev = prev.previousSibling;
+      }
+      return prev && prev.nodeType === 1 && prev.tagName === "IMG" &&
+        prev.classList.contains("icon") ? prev : null;
+    }
+    function onlyLink(holder, link) {
+      for (var c = holder.firstChild; c; c = c.nextSibling) {
+        if (c === link) { continue; }
+        if (blank(c) || (c.nodeType === 1 && c.tagName === "BR")) { continue; }
+        return false;
+      }
+      return true;
+    }
     var passages = root.querySelectorAll("#passages .passage");
     for (var i = 0; i < passages.length; i++) {
       var passage = passages[i];
       var links = passage.querySelectorAll("a.link-internal.macro-link, a.macro-link");
       for (var j = 0; j < links.length; j++) {
         var link = links[j];
-        if (link.parentNode !== passage) { continue; }
-        var icon = link.previousElementSibling;
-        if (!icon || icon.tagName !== "IMG" || !icon.classList.contains("icon")) { continue; }
-        if (icon.parentNode !== passage) { continue; }
+        var inGroup = false;
+        for (var p = link.parentNode; p && p !== passage; p = p.parentNode) {
+          if (p.getAttribute && p.getAttribute("data-ml-option-group")) { inGroup = true; break; }
+        }
+        if (inGroup) { continue; }
+
+        var holder = link.parentNode;
+        var icon = null;
+        var moveHolder = false;
+        if (holder === passage) {
+          icon = iconBefore(link);
+        } else if (holder && holder.nodeType === 1 && onlyLink(holder, link)) {
+          icon = iconBefore(holder);
+          if (icon) { moveHolder = true; }
+        }
+        if (!icon) { continue; }
+
         var wrap = doc.createElement("div");
         wrap.className = "ml-option-group";
         wrap.setAttribute("data-ml-option-group", "1");
-        passage.insertBefore(wrap, icon);
+        icon.parentNode.insertBefore(wrap, icon);
         wrap.appendChild(icon);
         wrap.appendChild(link);
+        if (moveHolder && holder.parentNode && !(holder.textContent || "").trim()) {
+          holder.parentNode.removeChild(holder);
+        }
+        /* 图标与选项之间原来的换行若因包裹层留下，会变成卡片后的空行。 */
+        var after = wrap.nextSibling;
+        while (after && blank(after)) { after = after.nextSibling; }
+        if (after && after.nodeType === 1 && after.tagName === "BR") {
+          after.parentNode.removeChild(after);
+        }
         /* 图标前的空行会把整组再推远一行，直接摘掉。 */
         var prev = wrap.previousSibling;
         while (prev) {
@@ -549,6 +654,21 @@
     }
   }
 
+  /* 空存档槽在原版里仍保留两个 &nbsp; 详情行和一行按钮，卡片化后会留下
+     一整块空白。只读地标出空槽，由 CSS 压成单行；不碰任何按钮与存档数据。 */
+  function markSaveRows() {
+    var rows = doc.querySelectorAll("#saves-list-container .savesListRow, #savesListContainer .savesListRow");
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var nameNode = row.querySelector(".saveName");
+      var detailNode = row.querySelector(".saveDetails");
+      var name = nameNode ? (nameNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
+      var details = detailNode ? (detailNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
+      if (!name && !details) { row.setAttribute("data-ml-save-empty", "1"); }
+      else { row.removeAttribute("data-ml-save-empty"); }
+    }
+  }
+
   function markOverlay() {
     var overlay = doc.getElementById("customOverlay");
     if (!overlay) { return; }
@@ -600,7 +720,8 @@
   function clearMarks() {
     restoreFeatsIntro();
     unpackOptions();
-    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay]");
+    doc.documentElement.style.removeProperty("--ml-caption-top");
+    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay], [data-ml-save-empty]");
     for (var i = 0; i < marked.length; i++) {
       marked[i].removeAttribute("data-ml-chip");
       marked[i].removeAttribute("data-ml-stat-card");
@@ -614,6 +735,13 @@
       marked[i].removeAttribute("data-ml-statmeters");
       marked[i].removeAttribute("data-ml-dialog");
       marked[i].removeAttribute("data-ml-overlay");
+      marked[i].removeAttribute("data-ml-save-empty");
+    }
+    var railStats = doc.querySelectorAll("#mobileStats .stat");
+    for (var r = 0; r < railStats.length; r++) {
+      railStats[r].removeAttribute("data-ml-rail-key");
+      railStats[r].removeAttribute("data-ml-rail-pct");
+      railStats[r].style.removeProperty("--ml-rail-pct");
     }
     var entries = doc.querySelectorAll('[data-ml-entry="panel"]');
     for (var j = 0; j < entries.length; j++) {
@@ -649,10 +777,13 @@
       return;
     }
     liftOverlay();
+    markCaptionAnchor();
     markStats();
     markStatmeters();
+    markRailMeters();
     markPassages();
     markOverlay();
+    markSaveRows();
     fitSidebarLabels();
     markDialog();
   }

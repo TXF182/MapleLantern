@@ -18,7 +18,7 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.2");
+  assert.equal(boot.version, "1.1.3");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -110,6 +110,31 @@ test("native.css：左轨保持 32px，字号提升且每格有左侧色条", ()
   assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*border-left:\s*2px solid currentColor/s);
   assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*font-size:\s*12\.5px/s);
   assert.match(nativeCss, /#mobileStats \.stat\.time\s*\{[^}]*min-height:\s*60px/s);
+  assert.match(nativeCss, /#mobileStats \.stat::before\s*\{[^}]*linear-gradient\(90deg/s);
+});
+
+test("native.css：顶栏四列强制 grid、金额不省略、侧栏按实际立绘底边起排", () => {
+  assert.match(nativeCss, /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1\.32fr\)/s);
+  assert.match(nativeCss, /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*normal[^}]*text-overflow:\s*clip/s);
+  assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*top:\s*var\(--ml-caption-top, 192px\)/s);
+  assert.match(nativeCss, /#saves-list-container \.savesListRow\s*\{[^}]*max-height:\s*none !important/s);
+  assert.match(nativeCss, /:is\(#saves-list-container,#savesListContainer\) \.savesListRow\[data-ml-save-empty="1"\]\s*\{[^}]*padding:/s);
+  assert.match(nativeCss, /#customOverlayContent \.saveMenuButton\s*\{[^}]*background:\s*var\(--mln-surface-2\) !important/s);
+  assert.match(nativeCss, /#customOverlayContent \.saveMenuButton\s*\{[^}]*background:\s*var\(--mln-surface-2\) !important/s);
+  assert.match(nativeCss, /#customOverlayContent \.saveButton input,[\s\S]{0,400}?background:\s*var\(--mln-surface-2\) !important/s);
+});
+
+test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，旧主题仍保留", () => {
+  assert.match(core, /theme: "cyberpunk"/);
+  assert.match(core, /cyberpunk:\s*\{/);
+  assert.match(index, /value: "cyberpunk", label: s\["theme\.cyberpunk"\]/);
+  assert.match(css, /#ml-root\[data-theme="cyberpunk"\][\s\S]*--ml-accent:\s*#00E5FF/);
+  assert.match(css, /赛博朋克主题装饰/);
+  assert.match(nativeCss, /data-ml-theme="cyberpunk"\]\s*\{[\s\S]*--mln-accent:\s*#00E5FF/);
+  assert.match(nativeCss, /赛博朋克主题装饰/);
+  for (const old of ["amber", "jade", "graphite", "star"]) {
+    assert.ok(core.includes("theme." + old), "旧主题 " + old + " 不应被删除");
+  }
 });
 
 test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
