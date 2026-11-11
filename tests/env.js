@@ -52,10 +52,14 @@ function createEnv(opts) {
         get() { return this.isConnected ? (this.parentNode || w.document.body) : null; }
       });
       if (opts.host) {
+        const caps = Object.assign({
+          enabled: true, layout: "desktop", glass: true, motion: true,
+          visualTier: "Fancy", backdropFilter: true
+        }, opts.hostCaps || {});
         w.DoLGameUI = {
           ui: {
             apiVersion: 1,
-            getCapabilities: () => ({ enabled: true, layout: "desktop", glass: true, motion: true, visualTier: "Fancy", backdropFilter: true }),
+            getCapabilities: () => caps,
             getTheme: () => ({ id: "soft-wet", enabled: true, tokens: { neutral: "--dgu-surface", card: "--dgu-card", ocean: "--dgu-accent", mist: "--dgu-secondary", text: "--dgu-text", danger: "--dgu-danger", radius: "--dgu-radius", cardRadius: "--dgu-card-radius" } })
           },
           wardrobe: { apiVersion: 1 }

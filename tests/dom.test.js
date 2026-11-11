@@ -20,6 +20,13 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.match(w.document.getElementById("ml-orb").getAttribute("aria-label"), /灯台/);
 });
 
+test("启动：面板关闭时不预渲染内容，首次打开才构建", () => {
+  const { w } = createEnv();
+  assert.equal(w.document.querySelector("#ml-panel .ml-pane"), null);
+  w.MapleLantern.open();
+  assert.ok(pane(w), "首次打开应构建当前页签");
+});
+
 test("打开：面板可见、焦点落在当前页签、Esc 关闭并收起", async () => {
   const { w } = createEnv();
   w.MapleLantern.open();
@@ -87,6 +94,42 @@ test("持久化：设置写入 localStorage，刷新后沿用", () => {
   const next = createEnv({ seed: saved });
   next.w.MapleLantern.open();
   assert.equal(next.w.document.querySelector("#ml-root").getAttribute("data-theme"), "jade");
+});
+
+test("设置页稳定：切换主题不重建，剧情推进不冲掉焦点", async () => {
+  const { w } = createEnv();
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const jade = w.document.querySelector('.ml-seg-btn[data-value="jade"]');
+  jade.focus();
+  const beforePane = pane(w);
+  jade.click();
+  assert.equal(jade.getAttribute("aria-checked"), "true");
+  assert.equal(w.document.activeElement, jade);
+  assert.equal(w.document.querySelector("#ml-root").getAttribute("data-theme"), "jade");
+  w.document.dispatchEvent(new w.Event("passageend"));
+  await new Promise((resolve) => setTimeout(resolve, 120));
+  assert.equal(pane(w), beforePane, "剧情推进不应重建设置页");
+  assert.equal(w.document.activeElement, jade, "焦点不应丢失");
+});
+
+test("宿主不支持模糊时关闭 backdrop-filter", () => {
+  const { w: off } = createEnv({ host: true, hostCaps: { backdropFilter: false } });
+  assert.equal(off.document.getElementById("ml-root").getAttribute("data-blur"), "off");
+  const { w: on } = createEnv({ host: true });
+  assert.equal(on.document.getElementById("ml-root").getAttribute("data-blur"), "on");
+  const { w: plain } = createEnv();
+  assert.equal(plain.document.getElementById("ml-root").getAttribute("data-blur"), "on");
+});
+
+test("宿主视觉档位：Smooth / Balanced 收窄模糊，Fancy 保留完整", () => {
+  const seed = { v: 1, lang: "zh", motion: false, glass: 100 };
+  const { w: smooth } = createEnv({ seed, host: true, hostCaps: { visualTier: "Smooth" } });
+  assert.equal(smooth.document.getElementById("ml-root").style.getPropertyValue("--ml-blur"), "10px");
+  const { w: balanced } = createEnv({ seed, host: true, hostCaps: { visualTier: "Balanced" } });
+  assert.equal(balanced.document.getElementById("ml-root").style.getPropertyValue("--ml-blur"), "16px");
+  const { w: fancy } = createEnv({ seed, host: true, hostCaps: { visualTier: "Fancy" } });
+  assert.equal(fancy.document.getElementById("ml-root").style.getPropertyValue("--ml-blur"), "32px");
 });
 
 test("损坏的设置：逐字段修复并提示一次，不阻断挂载", () => {

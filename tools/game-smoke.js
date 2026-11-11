@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.0.mod.zip");
+const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.1.mod.zip");
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const HOST_MODE = process.env.HOST === "1";
 const PROFILE = path.join(os.tmpdir(), HOST_MODE ? "lantern-host-profile" : "lantern-edge-profile");
@@ -144,6 +144,33 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     });
     console.log("[4] 几何: " + JSON.stringify(geo));
 
+    const settingsProbe = await page.evaluate(async () => {
+      const root = document.querySelector("#ml-root");
+      const panel = document.querySelector("#ml-panel");
+      const filter = getComputedStyle(panel).backdropFilter || getComputedStyle(panel).webkitBackdropFilter || "";
+      document.querySelector('[data-tab="settings"]').click();
+      const jade = document.querySelector('.ml-seg-btn[data-value="jade"]');
+      jade.focus();
+      jade.click();
+      const pane = document.querySelector("#ml-panel .ml-pane");
+      window.__mlPane = pane;
+      const focusBefore = document.activeElement === jade;
+      if (window.jQuery) { window.jQuery(document).trigger(":passageend"); }
+      else { document.dispatchEvent(new Event("passageend")); }
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(r, 80))));
+      const result = {
+        samePane: window.__mlPane === document.querySelector("#ml-panel .ml-pane"),
+        focusStayed: focusBefore && document.activeElement === jade,
+        theme: root.getAttribute("data-theme"),
+        blurAttr: root.getAttribute("data-blur"),
+        filter: filter
+      };
+      document.querySelector('.ml-seg-btn[data-value="auto"]').click();
+      document.querySelector('[data-tab="now"]').click();
+      return result;
+    });
+    console.log("[4b] 设置页: " + JSON.stringify(settingsProbe));
+
     fs.mkdirSync(SHOTS, { recursive: true });
     const prefix = HOST_MODE ? "host-real" : "game-real";
     await page.screenshot({ path: path.join(SHOTS, prefix + "-open.png") });
@@ -189,6 +216,9 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["桌面浮卡（非抽屉）", geo.sheet === "0"],
       ["默认页签 now", geo.tab === "now"],
       ["剧情切换后场景跟随", started && beforePassage.passage !== afterPassage.passage && afterPassage.scene === afterPassage.passage],
+      ["设置页不被剧情推进重建", settingsProbe.samePane === true],
+      ["设置页焦点保持", settingsProbe.focusStayed === true],
+      ["模糊可用时保持 backdrop-filter", settingsProbe.blurAttr === "on" && !/none/i.test(settingsProbe.filter)],
       ["单次刷新 ≤ 16ms", typeof afterPassage.diag.renderMs === "number" && afterPassage.diag.renderMs > 0 && afterPassage.diag.renderMs <= 16],
       ["无未捕获异常", pageErrors.length === 0]
     ];

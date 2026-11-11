@@ -159,13 +159,14 @@
     }
   }
 
-  function setSetting(key, value) {
+  function setSetting(key, value, rerender) {
     if (!state.settings) { return; }
     state.settings[key] = value;
     if (key === "tab") { state.tab = value; }
     if (key === "lang") { state.lang = C.pickLang(value, navigator.language || "zh"); }
     applySettings();
     saveSettings();
+    if (rerender === false) { return; }
     renderChrome();
     renderActive();
   }
@@ -180,10 +181,15 @@
     if (!isFinite(glass)) { glass = 60; }
     var alpha = glass <= 60 ? 1 - glass * 0.001333 : .92 - (glass - 60) * .005;
     var blur = glass <= 0 ? 0 : (glass <= 60 ? glass / 3 : 20 + (glass - 60) * .3);
+    var tier = state.host && state.host.visualTier;
+    if (tier === "Smooth") { blur = Math.min(blur, 10); }
+    else if (tier === "Balanced") { blur = Math.min(blur, 16); }
     els.root.style.setProperty("--ml-surface-alpha", String(Math.max(.72, Math.min(1, alpha)).toFixed(3)));
     els.root.style.setProperty("--ml-blur", String(Math.round(blur)) + "px");
     els.root.style.setProperty("--ml-edge", String(.06 + glass * .0005));
     els.root.setAttribute("data-glass", glass <= 0 ? "0" : "1");
+    var caps = state.host && state.host.caps;
+    els.root.setAttribute("data-blur", caps && caps.backdropFilter === false ? "off" : "on");
     els.root.style.removeProperty("--ml-accent");
     els.root.style.removeProperty("--ml-accent-soft");
     els.root.style.removeProperty("--ml-radius");
@@ -744,7 +750,7 @@
       { value: "amber", label: s["theme.amber"] },
       { value: "jade", label: s["theme.jade"] },
       { value: "graphite", label: s["theme.graphite"] }
-    ], state.settings.theme, function (v) { setSetting("theme", v); })));
+    ], state.settings.theme, function (v) { setSetting("theme", v, false); })));
 
     function rangeControl(key, min, max, step, label, format) {
       var wrap = el("div", "ml-scale");
@@ -831,7 +837,7 @@
     pane.appendChild(field(s["settings.density"], segmented([
       { value: "cozy", label: s["density.cozy"] },
       { value: "compact", label: s["density.compact"] }
-    ], state.settings.density, function (v) { setSetting("density", v); })));
+    ], state.settings.density, function (v) { setSetting("density", v, false); })));
 
     var switchWrap = el("div", "ml-switch-wrap");
     var sw = el("button", "ml-switch", { type: "button", role: "switch", "aria-checked": state.settings.motion ? "true" : "false", "aria-label": s["settings.motion"] });
@@ -840,7 +846,7 @@
     sw.addEventListener("click", function () {
       var next = state.settings.motion ? false : true;
       sw.setAttribute("aria-checked", next ? "true" : "false");
-      setSetting("motion", next);
+      setSetting("motion", next, false);
     });
     switchWrap.appendChild(sw);
     pane.appendChild(field(s["settings.motion"], switchWrap));
@@ -1079,7 +1085,9 @@
         passage: getPassage(), lang: state.lang
       }).clock;
       updateOrb(clock);
-      if (state.open) { renderActive(); }
+      if (els.miniClock && clock) { els.miniClock.textContent = C.formatClock(clock.hour, clock.minute); }
+      if (state.open && state.tab !== "settings") { renderActive(); }
+      else { renderFooterStatus(); }
     } catch (e) { fail(e); }
   }
 
@@ -1161,7 +1169,7 @@
     applySettings();
     syncHost();
     applyLayout();
-    renderActive();
+    applyPassage();
     bind();
     state.mounted = true;
 

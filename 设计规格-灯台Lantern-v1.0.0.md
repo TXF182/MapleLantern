@@ -419,3 +419,32 @@ open ──:passageend──▶ open(数据刷新，不关闭)
 ### 18.5 仍未验证
 
 - Android / iOS 真机；macOS；与 CE 同开；玩家真实存档下的长时间 passage 连续切换。
+
+## 19. v1.1.1 增补（2026-11-11 · 启动与交互静默优化）
+
+### 19.1 启动
+
+- `mount()` 不再预渲染隐藏面板内容；面板关闭时只更新悬浮球时钟与底部状态，首次 `open()` 才构建当前页签。
+- 理由：隐藏内容在首次打开时必定重建一次，预渲染是纯浪费；同时降低启动阶段 DOM 构建与节点数。
+- 判据：`tests/dom.test.js` 断言挂载后 `#ml-panel .ml-pane` 为空，`open()` 后存在。
+
+### 19.2 设置页稳定
+
+- 主题 / 密度 / 动效切换改为只写 CSS 属性，不重建设置页（`setSetting(key,value,false)`）；分段控件自身先更新 `aria-checked`，因此视觉与语义不丢。
+- `:passageend` 时若当前页签是设置，只更新顶部时钟与底部状态，不重建内容；滑块数值、焦点与滚动位置保留。
+- 理由：设置页不依赖存档数值；重建设置页会冲掉正在拖动的滑块与键盘焦点。
+- 判据：`tests/dom.test.js` 断言切主题后同一 `.ml-pane` 节点与焦点都保留，`passageend` 后仍保留；`tools/game-smoke.js` 在真实 Edge 下同样断言。
+
+### 19.3 宿主能力适配（性能）
+
+- `caps.backdropFilter === false` → `#ml-root[data-blur="off"]`，CSS 直接 `backdrop-filter: none`，不靠透明度假装模糊。
+- 宿主 `visualTier` 收窄模糊上限：`Smooth` 10px / `Balanced` 16px / `Fancy` 保留公式值（`glass=100` 时 32px）。
+- 理由：20–32px 的实时背景模糊是面板最贵的 GPU 项；低档位宿主不应被本包强行拉满。
+- 判据：`tests/dom.test.js` 覆盖 off / Smooth / Balanced / Fancy 四态；实机纯净档与宿主档读回 `blur(20px) saturate(1.1)`。
+
+### 19.4 本轮产物与证据
+
+- `dist\MapleLantern-1.1.1.mod.zip`，5 条目，SHA256 见 `dist\SHA256.txt`。
+- 单测 **46 / 46 PASS**；moli 8 case × 5 页签 **249 条断言 PASS**；`check_ui_mod.py` **13 PASS / 1 WARN / 0 FAIL**（WARN 仍为“未声明 StoneFreeHost”，有意取舍）。
+- 纯净档 **14 项 PASS**；宿主档 **18 项 PASS**；两边 `renderMs` 均在 0.2–0.4 ms。
+- 设置页实机：`samePane=true`、`focusStayed=true`、`data-blur=on`、`filter=blur(20px) saturate(1.1)`。

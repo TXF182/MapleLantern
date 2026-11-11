@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.0）
+# 灯台 · Lantern（MapleLantern 1.1.1）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI 模组。
 
@@ -11,7 +11,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.0.mod.zip`。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.1.mod.zip`。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -45,7 +45,10 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 ## 性能
 
 - `:passageend` 只做一次 `requestAnimationFrame` 合帧：同一帧内连续事件合并，面板只重绘一次。
+- 面板关闭时不再预渲染内容，首次打开才构建当前页签；启动只更新悬浮球时钟。
 - 只重绘当前页签；设置里的滑块拖动只推 CSS 变量，不整页重建。
+- 主题 / 密度 / 动效切换只改 CSS 属性，不重建设置页；剧情推进时也不重建该页，保留焦点与滚动位置。
+- 宿主 `visualTier` 为 `Smooth` / `Balanced` 时自动把模糊收窄到 10px / 16px；`backdropFilter` 为 false 时直接关闭模糊。
 - 面板 `contain: layout style`、内容区 `contain: layout paint style`，把重排/重绘限制在面板内。
 - 移动端高度优先 `dvh`（`vh` 兜底），避免地址栏伸缩时抽屉跳动。
 - 实机实测：剧情切换后面板单次刷新 **0.2–0.4 ms**（纯净档与宿主档同口径，断言上限 16 ms）。
@@ -74,18 +77,19 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台** UI �
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**42 / 42 PASS**
+- `node --test tests\*.test.js`：**46 / 46 PASS**
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
-- Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、orb 56×56、z 89900、0 未捕获异常，**11 项 PASS**
-- Edge 隔离 profile 宿主档（Dynamicest 3.3 + StoneFreeHost 0.1.5 + DoLGameUI 4.2.0 + 本包）：**15 项 PASS**，API v1 与 8 个 token 名读取，主题色跟随宿主
+- Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、orb 56×56、z 89900、0 未捕获异常，**14 项 PASS**
+- Edge 隔离 profile 宿主档（Dynamicest 3.3 + StoneFreeHost 0.1.5 + DoLGameUI 4.2.0 + 本包）：**18 项 PASS**，API v1 与 8 个 token 名读取，主题色跟随宿主
+- 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`，单次刷新 0.2–0.4 ms
 - 包内 5 个条目，确定性命中（固定 mtime、正斜杠）；SHA256 见 `dist\SHA256.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.0.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.1.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

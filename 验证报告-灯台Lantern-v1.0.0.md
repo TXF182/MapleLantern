@@ -193,13 +193,56 @@ node tools\lantern-probe.js --port 9333
 - 「系统」页保留模组诊断信息（版本 / 宿主观测 / 存储状态），便于排障。
 - 32 位系统字体缓存与 GPU 差异可能让 `backdrop-filter` 观感不同，但数值合同已锁定。
 
-## E. 复跑命令（v1.1.0）
+## E. 复跑命令（v1.1.1）
 
 ```powershell
 cd MapleLantern
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py .\dist\MapleLantern-1.1.0.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py .\dist\MapleLantern-1.1.1.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```
+
+## F. v1.1.1 验证（2026-11-11 · 启动与交互静默优化）
+
+### F.1 改动点补丁清单
+
+| 改动 | 文件 | 状态 |
+|---|---|---|
+| 挂载不再预渲染隐藏面板，首次打开才构建 | `src/render.js` `mount()` | ✓ 已核 |
+| 主题 / 密度 / 动效切换不重建设置页 | `src/render.js` `setSetting()` 三处调用 | ✓ 已核 |
+| 剧情推进时设置页只更新时钟/底栏，不重建 | `src/render.js` `applyPassage()` | ✓ 已核 |
+| 宿主 `backdropFilter=false` 关闭模糊 | `src/render.js` `applySettings()` + `src/style.css` | ✓ 已核 |
+| 宿主 `visualTier` 收窄模糊上限（10/16/32px） | `src/render.js` `applySettings()` | ✓ 已核 |
+| 版本双源 1.1.1 | `src/core.js` / `src/boot.json` | ✓ 已核 |
+| 新增 4 条 DOM 断言 + 3 条合同断言 | `tests/dom.test.js` / `tests/contract.test.js` | ✓ 已核 |
+| 实机冒烟新增设置页稳定性与模糊断言 | `tools/game-smoke.js` | ✓ 已核 |
+
+### F.2 验证层清单
+
+| 层 | 结果 |
+|---|---|
+| 单测 | **46 / 46 PASS**（core 14 / contract 13 / dom 19） |
+| moli 8 case × 5 页签 | **249 条断言 PASS / 0 FAIL**，40 张截图刷新 |
+| 包校验 `check_ui_mod.py` | **13 PASS / 1 WARN / 0 FAIL**（WARN 为有意不声明 StoneFreeHost） |
+| 纯净档实机 | **14 项 PASS**；`renderMs=0.3`；`samePane=true`；`focusStayed=true`；`filter=blur(20px) saturate(1.1)` |
+| 宿主档实机 | **18 项 PASS**；`renderMs=0.2`；API v1、8 token、`visualTier=Fancy`、380×504 |
+| 打包 | **30,626 B / 5 条目 / SHA256 `9e3a7b89a63cfce1378b9e1b635921ba3c45789ad16c0f0d777d3a7c8bde17a5`** |
+
+### F.3 玩家路径走查
+
+| 路径 | 结果 |
+|---|---|
+| 冷启动后点悬浮球首次打开 | 通过（首次才构建当前页签，默认「此刻」正常） |
+| 设置页连点主题键 | 通过（同一 `.ml-pane`、焦点留在键上、主题即时变） |
+| 设置页打开时剧情推进 | 通过（设置页不重建，焦点与滑块保留） |
+| 宿主四包同装后走同一路径 | 通过（14+4 项全 PASS，宿主档设置页同样稳定） |
+| 移动端 390 / 320 / 844×390 | 通过（视口模拟，面板不越界、操作区 ≥44px） |
+
+### F.4 残留风险
+
+- 未验证 Android / iOS 真机、macOS、与 CE 同开、玩家真实存档下的长时间 passage 连续切换。
+- `Smooth` / `Balanced` 的模糊收窄只做了 jsdom 变量断言；未在真实低档位宿主设备上肉眼复核。
+- 「系统」页仍保留模组诊断信息，尚未改成纯游戏状态页。
+- 身心页仍 5 项；`pain` / `hygiene` / `oxygen` 未纳入。

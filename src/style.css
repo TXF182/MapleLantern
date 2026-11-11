@@ -206,7 +206,8 @@
     -webkit-backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
     backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
   }
-  #ml-root[data-glass="0"] .ml-panel {
+  #ml-root[data-glass="0"] .ml-panel,
+  #ml-root[data-blur="off"] .ml-panel {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }

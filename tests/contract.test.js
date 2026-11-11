@@ -16,7 +16,7 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.0");
+  assert.equal(boot.version, "1.1.1");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -98,6 +98,9 @@ test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage �
   assert.match(index, /passagePending/);
   assert.match(index, /requestAnimationFrame\(run\)/);
   assert.match(core, /glass: 60/);
+  assert.match(css, /data-blur="off"/);
+  assert.match(index, /state\.tab !== "settings"/);
+  assert.match(index, /setSetting\("theme", v, false\)/);
 });
 
 test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
@@ -122,11 +125,11 @@ test("层叠：z-index 89900 低于 SugarCube 浮层（100000）", () => {
   assert.ok(89900 < 100000 && 89900 > 10000);
 });
 
-test("原型：先 CSS 后脚本，core 先于 index", () => {
+test("原型：先 CSS 后脚本，core 先于 render", () => {
   const link = html.indexOf("../src/style.css");
   const c = html.indexOf("../src/core.js");
   const i = html.indexOf("../src/render.js");
-  assert.ok(link > 0 && c > link && i > c, "加载顺序必须是 css -> core -> index");
+  assert.ok(link > 0 && c > link && i > c, "加载顺序必须是 css -> core -> render");
 });
 
 test("体积预算：UI 包源码应远小于 1MB", () => {
