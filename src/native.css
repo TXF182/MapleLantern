@@ -145,10 +145,12 @@ html[data-ml-native="on"] #story-caption {
 
 html[data-ml-native="on"] #stats {
   display: block !important;
+  width: 248px !important;
+  max-width: 100% !important;
   height: auto !important;
   min-height: 72px;
   margin: 0 !important;
-  padding: 8px 8px 0;
+  padding: 0 8px !important;
   box-sizing: border-box;
 }
 
@@ -159,8 +161,8 @@ html[data-ml-native="on"] #stats > .content > .first-row {
 
 html[data-ml-native="on"] #stats .centered-elements {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, .85fr) minmax(0, .9fr);
-  gap: 5px;
+  grid-template-columns: 32px minmax(0, 1.15fr) minmax(0, .72fr) minmax(0, .78fr);
+  gap: 4px;
   align-items: stretch;
 }
 
