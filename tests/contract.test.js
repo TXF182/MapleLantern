@@ -152,7 +152,7 @@ test("native.css：所有规则都以原生开启属性为前导，且不动 #ml
     assert.ok(!sel.includes("#ml-root"), "原生层不应命中浮卡: " + sel);
   }
   assert.match(nativeCss, /#statmeters > div\[id\$="caption"\]::after/);
-  assert.match(nativeCss, /content: attr\(data-ml-current\) " · " attr\(data-ml-percent\)/);
+  assert.match(nativeCss, /content: attr\(data-ml-readout\)/);
   assert.match(nativeCss, /a\.link-internal\.macro-link/);
   assert.match(nativeCss, /\.settingsToggleItem/);
   assert.match(nativeCss, /appearance: none !important/);

@@ -2,7 +2,7 @@
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
-- **默认直接替换原版呈现**：顶栏金钱/时间/星期改四格卡片，七行状态数值改七张状态卡，正文选项改整行卡片，侧栏按钮、弹层、对话框统一卡片语言。只改呈现，不碰业务数值与存档。
+- **默认直接替换原版呈现**：顶栏金钱/时间/星期改四格卡片，七行状态数值收进一张状态大卡，正文选项改整行卡片，侧栏按钮、弹层、对话框统一卡片语言。只改呈现，不碰业务数值与存档。
 - 原生卡片开关默认**开**；悬浮灯台默认**关**，入口在 `OPTIONS` 弹层顶部「灯台」行，也可用 `Alt+L` 唤起。
 - 此刻 / 身心 / 着装 / 系统 / 设置 五个页签；「此刻」页保留时间、金钱、场景与身心速览。
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；检测到可用主 UI 时原生替换层**自动让位**，避免两套外观打架。
@@ -52,9 +52,9 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | 原版位置 | 标记 | 呈现 |
 |---|---|---|
 | `#stats .centered-elements` 四块 | `data-ml-chip=toggle/money/time/day` | 四格：开合 / 金钱 / 时间 / 星期；金额整数补 `.00`，数字用等宽数字 |
-| `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent` | 七张状态卡：标题 + 状态句 + 进度条 + 右上「当前值 / 百分比」 |
+| `#statmeters` 七行 | `data-ml-stat-card` + `data-ml-stat-key` + `data-ml-value/current/percent/total/readout` | **一张状态大卡**：7 行「标签 + 长条 + 右侧 当前/上限」，上限读 `State.variables.*max`，缺失才回退常量；整卡随侧栏滚动 |
 | `#passages a.link-internal.macro-link` | `data-ml-option="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage |
-| `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；半宽档按实测把字号收到 9.5px，`JOURNAL` / `OPTIONS` 不再退省略号 |
+| `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；`sidebarButtonSplit` 拆平为 `display:contents`，清掉原版占格 `<br>`，8 个入口四行对齐，`JOURNAL` / `OPTIONS` 不再退省略号 |
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
 | `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡，展开体按「标签 : 值」拆成两栏行并带 160ms 逐行淡入；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
@@ -102,7 +102,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-11，Windows）实测：
 
-- `node --test tests\*.test.js`：**60 / 60 PASS**（新增「内层页：裸竖线清理，商店分类图标归入同一张卡」与「Statistics 折叠体：标签与值拆成两栏行，重复刷新不重复拆」）
+- `node --test tests\*.test.js`：**61 / 61 PASS**（新增「正文空行折叠」；状态卡补 `data-ml-total/readout` 断言）
 - moli 8 case × 5 页签：**249 条断言 PASS / 0 FAIL**，40 张首帧截图
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，`errors: []`；Statistics 11 张折叠卡、Feats 顶部说明卡、320×568 抽屉箭头可点
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）

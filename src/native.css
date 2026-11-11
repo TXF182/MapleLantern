@@ -91,6 +91,7 @@ html[data-ml-native="on"][data-ml-theme="star"] #customOverlay {
 /* ---------------------------------------------------------------- 外壳 */
 
 html[data-ml-native="on"] #ui-bar#ui-bar {
+  z-index: 30 !important;
   background: var(--mln-bg) !important;
   background-image: none !important;
   opacity: 1 !important;
@@ -158,8 +159,8 @@ html[data-ml-native="on"] #stats > .content > .first-row {
 
 html[data-ml-native="on"] #stats .centered-elements {
   display: grid;
-  grid-template-columns: 44px minmax(0, 1.15fr) minmax(0, .9fr) minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: 40px minmax(0, 1.4fr) minmax(0, .85fr) minmax(0, .9fr);
+  gap: 5px;
   align-items: stretch;
 }
 
@@ -201,9 +202,10 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] {
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] .true {
   color: var(--mln-jade);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 650;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -218,16 +220,16 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] {
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] .clockContainer {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: var(--mln-text);
-  font-size: 12px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 html[data-ml-native="on"] #stats .centered-elements img {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   object-fit: contain;
   image-rendering: auto;
 }
@@ -262,44 +264,58 @@ html[data-ml-native="on"] #storyCaptionContent {
 }
 
 html[data-ml-native="on"] #statmeters {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   width: calc(100% - 32px) !important;
   max-width: calc(100% - 32px) !important;
-  margin: 0 !important;
-}
-
-html[data-ml-native="on"] #statmeters > div[id$="caption"] {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  grid-auto-rows: min-content;
-  column-gap: 8px;
-  min-height: 54px;
-  padding: 8px 10px 20px;
+  margin: 4px 0 0 !important;
+  padding: 4px 10px !important;
   box-sizing: border-box;
   border: 1px solid var(--mln-border);
-  border-radius: var(--mln-radius-sm);
+  border-radius: var(--mln-radius);
   background: var(--mln-surface);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+}
+
+/* 一行一张小卡改成「一整张卡 + 七行」：标签 / 通栏进度 / 当前-上限。 */
+html[data-ml-native="on"] #statmeters > div[id$="caption"] {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  grid-auto-rows: min-content;
+  align-items: center;
+  column-gap: 8px;
+  min-height: 0 !important;
+  padding: 7px 68px 7px 0 !important;
+  box-sizing: border-box;
+  border: 0 !important;
+  border-bottom: 1px solid var(--mln-border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: var(--mln-text);
-  font-size: 12px;
-  line-height: 1.4;
-  transition: border-color 120ms ease, background-color 120ms ease;
-  overflow: visible;
+  font-size: 11px;
+  line-height: 1.25;
+  transition: background-color 120ms ease;
+}
+
+html[data-ml-native="on"] #statmeters > div[id$="caption"]:last-child {
+  border-bottom: 0 !important;
 }
 
 html[data-ml-native="on"] #statmeters > div[id$="caption"]:hover {
-  border-color: var(--mln-border-strong);
-  background: var(--mln-surface-2);
+  background: var(--mln-surface-2) !important;
+  box-shadow: inset 0 0 0 1px rgb(227 178 95 / 10%);
 }
 
 html[data-ml-native="on"] #statmeters > div[id$="caption"]::after {
-  content: attr(data-ml-current) " · " attr(data-ml-percent);
-  grid-column: 2;
-  grid-row: 1;
-  align-self: start;
-  justify-self: end;
+  content: attr(data-ml-readout);
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
   color: var(--mln-accent);
   font-size: 10px;
   font-weight: 650;
@@ -315,61 +331,53 @@ html[data-ml-native="on"] #statmeters > div[id$="caption"] > div:first-child {
   grid-column: 1;
   grid-row: 1;
   min-width: 0;
-  padding-right: 0;
+  padding: 0 !important;
   color: var(--mln-text);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
   text-align: left;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
 }
 
-html[data-ml-native="on"] #statmeters > div[id$="caption"] > div:first-child > span {
-  display: block;
-  margin-top: 2px;
-  font-size: 11.5px;
-  font-weight: 500;
-  line-height: 1.35;
-}
-
+/* 原版的「你感觉良好」状态句收进提示，行内只留标签、条和数值。 */
+html[data-ml-native="on"] #statmeters > div[id$="caption"] > div:first-child > span,
 html[data-ml-native="on"] #statmeters > div[id$="caption"] > span {
-  display: block;
-  grid-column: 1 / -1;
-  margin-top: 2px;
-  color: var(--mln-muted);
-  font-size: 11.5px;
-  line-height: 1.35;
-  white-space: normal;
+  display: none !important;
 }
 
 html[data-ml-native="on"] #statmeters .meter {
-  position: absolute !important;
-  left: 10px;
-  right: 10px;
-  bottom: 9px;
+  position: relative !important;
+  grid-column: 2;
+  grid-row: 1;
   display: block !important;
-  width: auto !important;
-  height: 5px !important;
+  width: 100% !important;
+  height: 7px !important;
   margin: 0 !important;
   border-radius: 999px;
   background: var(--mln-border-strong) !important;
   overflow: hidden;
-  z-index: 2;
+  z-index: auto;
 }
 
 html[data-ml-native="on"] #statmeters .meter > div {
-  height: 5px !important;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 7px !important;
+  max-width: 100%;
   min-width: 0;
   border-radius: inherit;
   transition: width 180ms ease;
 }
 
 html[data-ml-native="on"] #statmeters.condensed > div[id$="caption"] {
-  min-height: 42px;
+  padding: 5px 68px 5px 0 !important;
 }
 
+html[data-ml-native="on"] #statmeters.condensed > div[id$="caption"] > div:first-child > span,
 html[data-ml-native="on"] #statmeters.condensed > div[id$="caption"] > span {
-  display: none;
+  display: none !important;
 }
 
 /* ---------------------------------------------------------------- 侧栏按钮 / 菜单 */
@@ -387,6 +395,7 @@ html[data-ml-native="on"] #overlayButtons#overlayButtons {
 
 html[data-ml-native="on"] #overlayButtons#overlayButtons button,
 html[data-ml-native="on"] #menu#menu button {
+  grid-column: span 1 !important;
   width: 100% !important;
   min-height: 44px;
   padding: 8px 6px;
@@ -414,9 +423,14 @@ html[data-ml-native="on"] #overlayButtons#overlayButtons button {
 }
 
 html[data-ml-native="on"] #overlayButtons#overlayButtons .sidebarButtonSplit {
-  display: flex;
-  gap: 4px;
+  display: contents !important;
+  gap: 0;
   min-width: 0;
+}
+
+/* 原版在两组按钮之间塞了一个 <br>；它会在 grid 里占一格，挤歪后两行。 */
+html[data-ml-native="on"] #overlayButtons#overlayButtons > br {
+  display: none !important;
 }
 
 html[data-ml-native="on"] #overlayButtons#overlayButtons .sidebarButtonSplit button {
@@ -469,39 +483,75 @@ html[data-ml-native="on"] #mobileStats .stat {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  min-height: 32px;
+  width: 28px;
+  min-height: 34px;
+  margin: 2px auto;
+  padding: 2px 0;
   box-sizing: border-box;
-  border-bottom: 1px solid rgb(42 49 58 / 70%);
-  color: var(--mln-muted);
-  font-size: 11px;
+  border: 1px solid var(--mln-border);
+  border-radius: 6px;
+  background: var(--mln-surface);
+  color: var(--mln-text);
+  font-size: 12px;
+  font-weight: 650;
   line-height: 1.1;
-  letter-spacing: .02em;
+  letter-spacing: 0;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 4%);
 }
 
-html[data-ml-native="on"] #mobileStats .stat.green {
+html[data-ml-native="on"] #mobileStats .stat.green,
+html[data-ml-native="on"] #mobileStats .stat.teal {
   color: var(--mln-jade);
+  border-color: rgb(95 191 172 / 34%);
+  background: rgb(95 191 172 / 8%);
+}
+
+html[data-ml-native="on"] #mobileStats .stat.blue {
+  color: #8FA6FF;
+  border-color: rgb(143 166 255 / 32%);
+  background: rgb(143 166 255 / 8%);
+}
+
+html[data-ml-native="on"] #mobileStats .stat.lblue {
+  color: #9BD6FF;
+  border-color: rgb(155 214 255 / 32%);
+  background: rgb(155 214 255 / 8%);
+}
+
+html[data-ml-native="on"] #mobileStats .stat.pink,
+html[data-ml-native="on"] #mobileStats .stat.purple {
+  color: #D98CCB;
+  border-color: rgb(217 140 203 / 30%);
+  background: rgb(217 140 203 / 8%);
+}
+
+html[data-ml-native="on"] #mobileStats .stat.red,
+html[data-ml-native="on"] #mobileStats .stat.orange {
+  color: var(--mln-accent);
+  border-color: rgb(227 178 95 / 30%);
+  background: rgb(227 178 95 / 8%);
 }
 
 html[data-ml-native="on"] #mobileStats .stat.time {
-  min-height: 62px;
+  min-height: 58px;
   color: var(--mln-text);
-  font-size: 12px;
+  font-size: 11.5px;
   font-variant-numeric: tabular-nums;
 }
 
 html[data-ml-native="on"] #mobileStats .stat.time .vertical {
-  opacity: .7;
+  opacity: .82;
 }
 
 html[data-ml-native="on"] #mobileStats .stat::after {
   content: "";
-  width: 2px;
-  height: 2px;
+  width: 3px;
+  height: 3px;
   margin-top: 3px;
   border-radius: 50%;
   background: currentColor;
-  opacity: .9;
+  opacity: 1;
+  box-shadow: 0 0 4px currentColor;
 }
 
 html[data-ml-native="on"] #mobileStats .stat.time::after {
@@ -526,6 +576,11 @@ html[data-ml-native="on"] #passages .passage {
   overflow-wrap: break-word;
   text-wrap: pretty;
   animation: mln-passage-in 160ms ease-out both;
+}
+
+/* 原版正文开头的空行由渲染层插入；JS 折叠之外再用 CSS 兜住一次。 */
+html[data-ml-native="on"] #passages .passage > br:first-child {
+  display: none !important;
 }
 
 html[data-ml-native="on"] #passages .passage h1,
@@ -574,11 +629,11 @@ html[data-ml-native="on"] #passages .passage a.link-internal.macro-link,
 html[data-ml-native="on"] #passages .passage a.macro-link {
   display: flex !important;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   width: 100% !important;
-  min-height: 46px;
-  margin: 8px 0 !important;
-  padding: 11px 14px;
+  min-height: 44px;
+  margin: 5px 0 !important;
+  padding: 10px 13px;
   box-sizing: border-box;
   border: 1px solid var(--mln-border);
   border-radius: 10px;
@@ -1579,13 +1634,17 @@ html[data-ml-native="on"] #customOverlayContent .settingsToggleItem label {
 }
 
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 4px;
   font-size: 0;
   line-height: 1.45;
 }
 
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > span.gold {
   display: block;
+  flex: 0 0 100%;
   margin-bottom: 2px;
   font-size: 12px;
 }
@@ -1596,29 +1655,32 @@ html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#options
 
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label {
   display: inline-flex;
-  width: 32%;
+  flex: 1 1 0;
+  width: auto !important;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   min-height: 30px;
-  margin: 0 .5% 3px 0;
-  padding: 2px 3px;
+  margin: 0;
+  padding: 3px 2px;
   border: 1px solid var(--mln-border);
   border-radius: 8px;
   background: var(--mln-surface-2);
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   vertical-align: top;
-  font-size: 10px;
+  font-size: 9.5px;
   line-height: 1.2;
   white-space: nowrap;
 }
 
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.en-GB,
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.en-US {
-  width: 34%;
+  width: auto !important;
 }
 
 html[data-ml-native="on"] #customOverlayContent .settingsToggleItem:has(#optionsThemeDefault-dateFormat) > label.zh-CN {
-  width: 30%;
+  width: auto !important;
 }
 
 html[data-ml-native="on"] #customOverlayContent select,
@@ -2502,7 +2564,7 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
 
 @media (max-width: 420px) {
   html[data-ml-native="on"] #stats .centered-elements {
-    grid-template-columns: 40px minmax(0, 1.1fr) minmax(0, .9fr) minmax(0, .95fr);
+    grid-template-columns: 36px minmax(0, 1.35fr) minmax(0, .85fr) minmax(0, .9fr);
     gap: 5px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div {

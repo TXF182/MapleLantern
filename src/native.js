@@ -107,6 +107,33 @@
     return String(Math.round(n * 100) / 100);
   }
 
+  /* 原版 title 只有当前值；上限从 State.variables 的 *max 读取（只读）。
+     pain 固定 100，tiredness 固定 2000，allure 由游戏 clamp 到 8000。 */
+  var STAT_MAX = {
+    pain: 100,
+    arousal: 10000,
+    tiredness: 2000,
+    stress: 10000,
+    trauma: 5000,
+    control: 1000,
+    willpower: 1000,
+    allure: 8000
+  };
+
+  function readStatMax(key) {
+    var fallback = STAT_MAX[key] || 0;
+    try {
+      var vars = window.State && window.State.variables;
+      if (!vars) { return fallback; }
+      if (key === "arousal") { return Number(vars.arousalmax) || fallback; }
+      if (key === "stress") { return Number(vars.stressmax) || fallback; }
+      if (key === "trauma") { return Number(vars.traumamax) || fallback; }
+      if (key === "control") { return Number(vars.controlmax) || fallback; }
+      if (key === "willpower") { return Number(vars.willpowermax) || fallback; }
+    } catch (e) {}
+    return fallback;
+  }
+
   function markStatmeters() {
     var host = doc.getElementById("statmeters");
     if (!host) { return; }
@@ -117,15 +144,27 @@
       var key = card.id.replace(/caption$/, "");
       var value = parseStatValue(card);
       var pct = readPercent(card);
+      var max = readStatMax(key);
       card.setAttribute("data-ml-stat-card", "1");
       card.setAttribute("data-ml-stat-key", key);
       card.removeAttribute("data-ml-value");
       card.removeAttribute("data-ml-current");
       card.removeAttribute("data-ml-percent");
+      card.removeAttribute("data-ml-total");
+      card.removeAttribute("data-ml-readout");
       if (value) {
+        var current = compactStatNumber(value) || value;
+        var readout = "";
+        if (max) {
+          readout = current + "/" + max;
+          card.setAttribute("data-ml-total", String(max));
+        } else if (pct !== null) {
+          readout = current + " · " + pct + "%";
+        }
         card.setAttribute("data-ml-value", pct === null ? value : (value + " · " + pct + "%"));
-        card.setAttribute("data-ml-current", compactStatNumber(value) || value);
+        card.setAttribute("data-ml-current", current);
         card.setAttribute("data-ml-percent", pct === null ? "" : (pct + "%"));
+        if (readout) { card.setAttribute("data-ml-readout", readout); }
       }
     }
   }
@@ -255,6 +294,50 @@
     }
   }
 
+  /* 原版正文用连续 <br> 做空行；选项之间因此出现大段空白。只折叠连续空行，
+     并去掉正文起始的空行，保留段落之间的一行间距。 */
+  function collapseBreaks(root) {
+    var passages = root.querySelectorAll("#passages .passage");
+    for (var i = 0; i < passages.length; i++) {
+      var passage = passages[i];
+      var first = passage.firstChild;
+      while (first) {
+        if (first.nodeType === 3 && !(first.nodeValue || "").trim()) {
+          first = first.nextSibling;
+          continue;
+        }
+        if (first.nodeType === 1 && first.tagName === "BR") {
+          var next = first.nextSibling;
+          passage.removeChild(first);
+          first = next;
+          continue;
+        }
+        break;
+      }
+      var brs = passage.querySelectorAll("br");
+      for (var j = brs.length - 1; j >= 0; j--) {
+        var br = brs[j];
+        var prev = br.previousSibling;
+        while (prev && prev.nodeType === 3 && !(prev.nodeValue || "").trim()) {
+          prev = prev.previousSibling;
+        }
+        var next = br.nextSibling;
+        while (next && next.nodeType === 3 && !(next.nodeValue || "").trim()) {
+          next = next.nextSibling;
+        }
+        if (prev && prev.nodeType === 1 && prev.tagName === "BR") {
+          br.parentNode.removeChild(br);
+          continue;
+        }
+        /* 选项前那一行空 br 会把卡片推得太远；选项自身已有 5px 间距。 */
+        if (next && next.nodeType === 1 && next.tagName === "A" &&
+            (next.classList.contains("macro-link") || next.classList.contains("link-internal"))) {
+          br.parentNode.removeChild(br);
+        }
+      }
+    }
+  }
+
   function markPassages() {
     var passages = doc.getElementById("passages");
     if (!passages) { return; }
@@ -268,6 +351,7 @@
     markShopTools(passages);
     tidyShopText(passages);
     markEmptyDetails(passages);
+    collapseBreaks(passages);
   }
 
   function overlayKey(overlay) {
@@ -458,8 +542,8 @@
         b.setAttribute("data-ml-label-size", b.style.fontSize || "");
         b.setAttribute("data-ml-label-spacing", b.style.letterSpacing || "");
       }
-      b.style.setProperty("font-size", "9.5px", "important");
-      b.style.setProperty("letter-spacing", "-0.04em", "important");
+      b.style.setProperty("font-size", "10px", "important");
+      b.style.setProperty("letter-spacing", "-0.02em", "important");
     }
   }
 
@@ -471,6 +555,10 @@
       marked[i].removeAttribute("data-ml-stat-card");
       marked[i].removeAttribute("data-ml-stat-key");
       marked[i].removeAttribute("data-ml-value");
+      marked[i].removeAttribute("data-ml-current");
+      marked[i].removeAttribute("data-ml-percent");
+      marked[i].removeAttribute("data-ml-total");
+      marked[i].removeAttribute("data-ml-readout");
       marked[i].removeAttribute("data-ml-option");
       marked[i].removeAttribute("data-ml-statmeters");
       marked[i].removeAttribute("data-ml-dialog");

@@ -148,7 +148,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
         diag: window.MapleLantern.diagnostics(),
         native: native,
         statsCards: statsCards,
-        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), h: Math.round(n.getBoundingClientRect().height) })),
+        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), current: n.getAttribute("data-ml-current"), total: n.getAttribute("data-ml-total"), readout: n.getAttribute("data-ml-readout"), h: Math.round(n.getBoundingClientRect().height) })),
         option: opt ? { display: getComputedStyle(opt).display, w: Math.round(opt.getBoundingClientRect().width), h: Math.round(opt.getBoundingClientRect().height) } : null
       };
     });
@@ -217,7 +217,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
         diag: window.MapleLantern.diagnostics(),
         native: document.documentElement.getAttribute("data-ml-native"),
         statsCards: stats ? Array.from(stats.children).map((n) => ({ chip: n.getAttribute("data-ml-chip"), h: Math.round(n.getBoundingClientRect().height), w: Math.round(n.getBoundingClientRect().width) })) : [],
-        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), h: Math.round(n.getBoundingClientRect().height) })),
+        statCards: statCards.map((n) => ({ key: n.getAttribute("data-ml-stat-key"), value: n.getAttribute("data-ml-value"), current: n.getAttribute("data-ml-current"), total: n.getAttribute("data-ml-total"), readout: n.getAttribute("data-ml-readout"), h: Math.round(n.getBoundingClientRect().height) })),
         option: opt ? { display: getComputedStyle(opt).display, w: Math.round(opt.getBoundingClientRect().width), h: Math.round(opt.getBoundingClientRect().height) } : null };
     });
     await page.screenshot({ path: path.join(SHOTS, prefix + "-passage.png") });
@@ -239,7 +239,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["单次刷新 ≤ 16ms", typeof afterPassage.diag.renderMs === "number" && afterPassage.diag.renderMs > 0 && afterPassage.diag.renderMs <= 16],
       ["原生层默认开启", HOST_MODE ? true : afterPassage.native === "on"],
       ["金钱/时间/星期四格齐", HOST_MODE ? afterPassage.statsCards.length === 4 : (afterPassage.statsCards.length === 4 && afterPassage.statsCards.every((c) => c.chip && c.h >= 44))],
-      ["状态卡七张且有数值", HOST_MODE ? afterPassage.statCards.length === 7 : (afterPassage.statCards.length === 7 && afterPassage.statCards.every((c) => c.key && c.value && c.h >= 44))],
+      ["状态大卡七行且有当前/上限", HOST_MODE ? afterPassage.statCards.length === 7 : (afterPassage.statCards.length === 7 && afterPassage.statCards.every((c) => c.key && c.readout && c.total && c.h >= 24))],
       ["正文选项为整行卡片", HOST_MODE ? !!afterPassage.option : (!!afterPassage.option && afterPassage.option.display === "flex" && afterPassage.option.w > 240 && afterPassage.option.h >= 44)],
       ["无未捕获异常", pageErrors.length === 0]
     ];

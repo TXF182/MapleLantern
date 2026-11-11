@@ -16,7 +16,7 @@ function openOptions(w) {
   w.MapleLanternNative.refresh();
 }
 
-test("默认：原生卡片开启，悬浮球关闭，钱/时间/星期与 7 张状态卡就位", async () => {
+test("默认：原生卡片开启，悬浮球关闭，钱/时间/星期与 7 行状态就位", async () => {
   const { w } = createEnv();
   await tick(w);
   assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on");
@@ -34,8 +34,24 @@ test("默认：原生卡片开启，悬浮球关闭，钱/时间/星期与 7 张
   assert.equal(w.document.getElementById("paincaption").getAttribute("data-ml-value"), "0.00 · 0%");
   assert.equal(w.document.getElementById("paincaption").getAttribute("data-ml-current"), "0");
   assert.equal(w.document.getElementById("paincaption").getAttribute("data-ml-percent"), "0%");
+  assert.equal(w.document.getElementById("paincaption").getAttribute("data-ml-readout"), "0/100");
   assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-value"), "39.80 · 40%");
+  assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-readout"), "39.8/5000");
+  assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-total"), "5000");
   assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-stat-key"), "trauma");
+});
+
+test("正文空行：起始空行移除，连续 <br> 折叠为一行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.insertAdjacentHTML("afterbegin", "<br><br>");
+  p.insertAdjacentHTML("beforeend", "<br><br><span>after</span>");
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(p.querySelectorAll("br").length, 1, "连续空行没有折叠");
+  const first = Array.from(p.childNodes).find((n) => n.nodeType === 3 ? n.nodeValue.trim() : true);
+  assert.notEqual(first.nodeName, "BR", "正文起始仍留有空白行");
 });
 
 test("幂等：重复 refresh 不会重复卡片、入口或徽标", async () => {
