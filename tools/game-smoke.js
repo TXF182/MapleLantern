@@ -18,7 +18,7 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = path.join(ROOT, "dist", "MapleLantern-1.1.3.mod.zip");
+const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.3.mod.zip");
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const HOST_MODE = process.env.HOST === "1";
 const PROFILE = path.join(os.tmpdir(), HOST_MODE ? "lantern-host-profile" : "lantern-edge-profile");
@@ -245,7 +245,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     ];
     if (HOST_MODE) {
       checks.push(
-        ["宿主下原生层让位", geo.native === "off"],
+        ["宿主下原生层仍按玩家开关挂载", geo.native === "on"],
         ["宿主 DoLGameUI API v1", !!(injected.host && injected.host.apiVersion === 1)],
         ["宿主主题 token 已读", !!(injected.host && injected.host.tokens && injected.host.tokens.ocean)],
         ["宿主下仍为 380×504", geo.panel.w === 380 && geo.panel.h === 504],

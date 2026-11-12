@@ -8,8 +8,8 @@ const path = require("path");
 const SRC = path.join(__dirname, "..", "src");
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
 const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
-const native = fs.readFileSync(path.join(SRC, "native.js"), "utf8");
-const nativeCss = fs.readFileSync(path.join(SRC, "native.css"), "utf8");
+const native = fs.readFileSync(path.join(SRC, "maplelantern-native.js"), "utf8");
+const nativeCss = fs.readFileSync(path.join(SRC, "maplelantern-native.css"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
@@ -18,13 +18,13 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.6");
+  assert.equal(boot.version, "1.1.7");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
-  assert.deepEqual(boot.scriptFileList, ["core.js", "native.js", "render.js"], "core 必须先于 native/render");
-  assert.deepEqual(boot.styleFileList, ["style.css", "native.css"]);
+  assert.deepEqual(boot.scriptFileList, ["core.js", "maplelantern-native.js", "render.js"], "core 必须先于 native/render");
+  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css"]);
   for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
@@ -151,7 +151,7 @@ test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage �
   assert.match(index, /setSetting\("theme", v, false\)/);
 });
 
-test("native.css：左轨保持 32px，字号提升且每格有左侧色条", () => {
+test("原生样式：左轨保持 32px，字号提升且每格有左侧色条", () => {
   assert.match(nativeCss, /#mobileStats\s*\{[^}]*width:\s*32px[^}]*box-sizing:\s*border-box/s);
   assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*border-left:\s*2px solid currentColor/s);
   assert.match(nativeCss, /#mobileStats \.stat\s*\{[^}]*font-size:\s*12\.5px/s);
@@ -159,7 +159,7 @@ test("native.css：左轨保持 32px，字号提升且每格有左侧色条", ()
   assert.match(nativeCss, /#mobileStats \.stat::before\s*\{[^}]*linear-gradient\(90deg/s);
 });
 
-test("native.css：顶栏四列强制 grid、金额不省略、侧栏按实际立绘底边起排", () => {
+test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际立绘底边起排", () => {
   assert.match(nativeCss, /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1\.32fr\)/s);
   assert.match(nativeCss, /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*normal[^}]*text-overflow:\s*clip/s);
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*top:\s*var\(--ml-caption-top, 192px\)/s);
@@ -213,7 +213,7 @@ test("原型：先 CSS 后脚本，core 先于 render", () => {
 });
 
 test("体积预算：UI 包源码应远小于 1MB", () => {
-  for (const f of ["core.js", "native.js", "render.js", "style.css", "native.css", "boot.json"]) {
+  for (const f of ["core.js", "maplelantern-native.js", "render.js", "style.css", "maplelantern-native.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
     assert.ok(size < 200 * 1024, f + " 过大: " + size);
   }
@@ -221,7 +221,7 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
 });
 
 
-test("native.css：所有规则都以原生开启属性为前导，且不动 #ml-root", () => {
+test("原生样式：所有规则都以原生开启属性为前导，且不动 #ml-root", () => {
   const selectors = strip(nativeCss).match(/[^{}]+(?=\{)/g) || [];
   for (const raw of selectors) {
     const sel = raw.trim();
@@ -237,7 +237,7 @@ test("native.css：所有规则都以原生开启属性为前导，且不动 #ml
   assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)/);
 });
 
-test("native.js：只读标记、无轮询、宿主让位与幂等入口", () => {
+test("原生脚本：只读标记、无轮询、恒按开关挂载与幂等入口", () => {
   assert.match(native, /data-ml-native/);
   assert.match(native, /data-ml-stat-card/);
   assert.match(native, /data-ml-value/);
@@ -253,7 +253,7 @@ test("native.js：只读标记、无轮询、宿主让位与幂等入口", () =>
   assert.ok(!/State\.variables\s*[.\[]\s*[A-Za-z_$][\w$]*\s*[+\-*/]?=([^=]|$)/g.test(native));
 });
 
-test("1.1.6：正文选项按压、图标同卡与星空页面背景都有契约", () => {
+test("1.1.7：正文选项按压、图标同卡、六主题整页背景与宿主不再关层", () => {
   assert.ok(index.includes('.ml-option-group,a.link-internal.macro-link[data-ml-option=\\"1\\"]'),
     "正文选项必须进入 PRESS_SELECTOR");
   assert.match(index, /mln-press-ring/);
@@ -262,7 +262,12 @@ test("1.1.6：正文选项按压、图标同卡与星空页面背景都有契约
   assert.match(nativeCss, /grid-template-columns: 28px minmax\(0, 1fr\)/);
   assert.match(nativeCss, /\.mln-press-ring/);
   assert.match(nativeCss, /@keyframes mln-press-ripple/);
-  assert.match(nativeCss, /\[data-ml-theme="star"\] body/);
+  assert.match(nativeCss, /html\[data-ml-native="on"\] body\s*\{[\s\S]*?background-color: transparent !important/);
+  assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image: var\(--mln-page-texture\) !important/);
   assert.match(nativeCss, /background-attachment: fixed/);
-  assert.match(nativeCss, /radial-gradient\(2px 2px at 33% 15%/);
+  assert.match(nativeCss, /radial-gradient\(3\.2px 3\.2px at 33% 15%/);
+  assert.match(nativeCss, /br:has\(\+ a\.macro-link\)/);
+  assert.ok(native.includes("var on = state.settings.native !== false;"),
+    "检测到 DoLGameUI 不能把本包原生层整层关掉");
+  assert.ok(!native.includes("state.settings.native !== false && !state.host"));
 });

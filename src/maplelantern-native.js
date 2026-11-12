@@ -1,5 +1,5 @@
 /* ============================================================================
- * 灯台 · MapleLantern — native.js（原版 UI 展示投影层）
+ * 灯台 · MapleLantern — maplelantern-native.js（原版 UI 展示投影层）
  * 只给原版节点打展示标记，不改文本、不改 data-passage、不改点击事件、不写存档。
  * 由 CSS 承担布局与视觉；本文件只解决 CSS 无法可靠推断的结构语义。
  * ========================================================================== */
@@ -419,7 +419,24 @@
          有文字就不是纯图标容器，不能当图标搬走。 */
       if ((node.textContent || "").trim()) { return null; }
       var imgs = node.querySelectorAll("img.icon");
-      return imgs.length === 1 ? imgs[0] : null;
+      if (!imgs.length) { return null; }
+      if (imgs.length === 1) { return imgs[0]; }
+      /* 真实存档可能叠着「不可见的 icon-container 图标」和「可见的场景底图」；
+         不能因为数量 >1 就整组放弃，否则页面会留下卡外图标。优先按实际绘制
+         面积选；图片尚未解码、全部 0×0 时按 naturalWidth 与所在装饰壳判断，
+         避免把 icon-container 里 0×0 的隐藏图标搬进卡、把真正可见的场景图留在卡外。 */
+      var best = imgs[imgs.length - 1];
+      var bestScore = -Infinity;
+      for (var k = 0; k < imgs.length; k++) {
+        var img = imgs[k];
+        var r = img.getBoundingClientRect ? img.getBoundingClientRect() : null;
+        var rectArea = r && r.width && r.height ? r.width * r.height : 0;
+        var natural = (img.naturalWidth || 0) * (img.naturalHeight || 0);
+        var hiddenShell = img.closest && img.closest(".icon-container") ? 1 : 0;
+        var score = rectArea * 1000 + natural - hiddenShell * 1000000;
+        if (score > bestScore) { bestScore = score; best = img; }
+      }
+      return best;
     }
     function iconBefore(node) {
       var prev = node.previousSibling;
@@ -437,6 +454,9 @@
       for (var c = holder.firstChild; c; c = c.nextSibling) {
         if (c === link || c === icon) { continue; }
         if (blank(c) || (c.nodeType === 1 && c.tagName === "BR")) { continue; }
+        /* 空图标壳/纯装饰 span 不构成“第二个内容节点”，否则
+           <div><span class=icon-container><img></span><a> 会被整组跳过。 */
+        if (c.nodeType === 1 && decorativeShell(c)) { continue; }
         return false;
       }
       return true;
@@ -456,6 +476,7 @@
       var links = passage.querySelectorAll("a.link-internal.macro-link, a.macro-link");
       for (var j = 0; j < links.length; j++) {
         var link = links[j];
+        try {
         var inGroup = false;
         for (var p = link.parentNode; p && p !== passage; p = p.parentNode) {
           if (p.getAttribute && p.getAttribute("data-ml-option-group")) { inGroup = true; break; }
@@ -548,6 +569,7 @@
           }
           break;
         }
+        } catch (err) { /* 单个选项结构异常时跳过它，不能让整页选项都留在卡外 */ }
       }
     }
   }
@@ -857,14 +879,18 @@
     state.settings = readSettings();
     state.lang = C.pickLang(state.settings.lang, navigator.language || "zh");
     state.host = hostEnabled();
-    var on = state.settings.native !== false && !state.host;
+    /* 独立外观层不能因为检测到 DoLGameUI 就把自己关掉：
+       面板里的「原生卡片」开关是玩家对本包的明确指令，宿主的全局按钮/
+       字号规则可以被本层选择器覆盖，但“整层不挂”无法由 CSS 挽回。
+       1.1.6 及以前在 Android 上正是因此出现“面板是 1.1.6、正文却退回
+       宿主原生卡片”的分裂状态。 */
+    var on = state.settings.native !== false;
     state.nativeOn = on;
     setRoot(on);
     if (!on) {
       clearMarks();
-      /* 入口是面板入口，不是原生样式的一部分；关原生卡片后仍要从选项进得来。
-         弹层容器不在这里搬回正文层：游戏会把它视为一次关闭，连带清掉 T.tab。 */
-      if (!state.host) { markEntry(); }
+      /* 入口是面板入口，不是原生样式的一部分；关原生卡片后仍要从选项进得来。 */
+      markEntry();
       return;
     }
     liftOverlay();
@@ -890,7 +916,13 @@
     else { setTimeout(run, 0); }
   }
 
-  function onPassage() { schedule(); }
+  /* 正文换页后补扫两次：Android/宿主链上图标与本地化包裹可能晚于
+     passageend 一拍才落 DOM；只在 rAF 扫一次会留下卡外图标与空行。 */
+  function onPassage() {
+    schedule();
+    setTimeout(schedule, 140);
+    setTimeout(schedule, 480);
+  }
 
   function onClick(e) {
     var t = e && e.target;

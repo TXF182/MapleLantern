@@ -1,23 +1,24 @@
-# 灯台 · Lantern（MapleLantern 1.1.6）
+# 灯台 · Lantern（MapleLantern 1.1.7）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
 - **默认直接替换原版呈现**：顶栏金钱/时间/星期改四格卡片，七行状态数值收进一张状态大卡，正文选项改整行卡片，侧栏按钮、弹层、对话框统一卡片语言。只改呈现，不碰业务数值与存档。
 - 原生卡片开关默认**开**；悬浮灯台默认**关**，入口在 `OPTIONS` 弹层顶部「灯台」行，也可用 `Alt+L` 唤起。
 - 此刻 / 身心 / 着装 / 系统 / 设置 五个页签；「此刻」页保留时间、金钱、场景与身心速览。
-- 自动跟随 DoLGameUI 4.x 的强调色与圆角；检测到可用主 UI 时原生替换层**自动让位**，避免两套外观打架。
+- 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
 - **点击/按压反馈**：按钮、页签、分段控件、图标、开关与快捷项按下时轻微下沉提亮；面板内生成短涟漪，松手后自动移除。系统「减少动态效果」或设置关闭动效时不播放，操作仍完整。
 - **不写存档、不改数值、不接管任何第三方业务。**
 - **1.1.3 热修**：关掉「原生卡片」再开回来时，`OPTIONS` 弹层不再被游戏 `closeOverlay()` 收掉，「灯台」入口保留，页签 `T.tab` 不被清空。
 - **1.1.4 主题迭代**：降低琥珀纸纹与石墨碳纤的细线密度，补青瓷开片斜纹、石墨拉丝与星空底部星云；六套主题面板补内缘高光/主题阴影；按压涟漪改为贴合控件的亮环，原生标题栏同步铺纹理。二次增强再补青瓷釉光、石墨金属光带、星空银河带、卡片内缘光与 20px→3.4 倍双层涟漪。
-- **1.1.6 正文选项修复**：地点图标与选项合并进同一张卡（覆盖直属兄弟、同容器、本地化包裹、`water-outdoor-night` / `icon-container` 装饰层四种真实结构）；卡片间距收紧、清掉组前后连续 `<br>` 与空图标壳；正文选项接入指针涟漪与按压下沉；星空主题改为整页固定深空星场，长 passage 滚动不再把星点拉散。
+- **整页主题背景**：`html` 承担固定整页纹理，`body` / `#passages` / `.passage` 全部透明；六主题不再只是面板换色。
+- **1.1.7 体验收口**：移除“检测到宿主即关闭原生层”的让位逻辑；`native.js` / `native.css` 改为唯一文件名 `maplelantern-native.js` / `maplelantern-native.css`，避免多包同装时通用脚本名被静默跳过；六主题重写高对比度页面纹理（琥珀纸纤维、赛博霓虹网格、青瓷釉面冰裂、石墨拉丝、星空约 70 星点+银河带+十字星芒）；正文选项按压加入下沉、描边与主题辉光。
 
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.6-theme.mod.zip`；已装 1.1.4 旧包时直接覆盖同名技术身份。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.7-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6 旧包时直接覆盖同名技术身份。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -51,7 +52,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.6）
+## 原生 UI 替换层（1.1.7）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
@@ -110,22 +111,23 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-12，Windows）实测：
 
-- `node --test tests\*.test.js`：**82 / 82 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、1.1.3 原生开关回归、1.1.6 装饰层图标/正文选项按压/星空背景契约）
-- 真实 `Lake Shore`（390×844，Edge 隔离 profile，1.1.6 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 48px；`water-outdoor-night` / `icon-container` 图标均已在卡内，页面上不再有浮在卡外的图标；星空主题 `body.backgroundColor=rgb(5,8,19)`、`backgroundAttachment=fixed`、`#passages.backgroundImage=none`
+- `node --test tests\*.test.js`：**83 / 83 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.7 整页背景/星场/按压契约、同层双图标优先可见场景图）
+- 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.7 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 48px；两个 `img.icon` 装饰层均已进入卡内；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
 - 真实正文按压：`pointerdown` 后 `pressed:true` / `ring:true`，`mln-press-ring` 出现在卡片内
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，8/8 `clicked:true`、`overlayHidden:false`、`errors:[]`；OPTIONS 页灯台入口保留
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
 - Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、z 89900、0 未捕获异常，**18 项 PASS**
+- 宿主档（DoLGameUI 4.2.0 启用）：**23 项 PASS**，含「宿主下原生层仍按玩家开关挂载」、宿主 token 已读、面板仍 380×504
 - 原生按钮关→开回归：`NATIVE_OFF` / `NATIVE_ON` 均 `overlayHidden:false`、`entryCount:1`、`ttab:true`，随后点 Theme 页签无 `<<toggleTab>>` 报错
 - 1.1.4 阶段留存的六主题原型截图：6/6 面板 380×620；按压涟漪实测 `ring:true`、空心主题色亮环不遮字
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`
-- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；SHA256 见 `dist\SHA256-1.1.6-theme.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；`70 KB` 量级，SHA256 见 `dist\SHA256-1.1.7-theme.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.6-theme.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.7-theme.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

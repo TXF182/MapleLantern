@@ -1,15 +1,15 @@
 {
   "name": "MapleLantern",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "nickName": "灯台 Lantern",
   "scriptFileList": [
     "core.js",
-    "native.js",
+    "maplelantern-native.js",
     "render.js"
   ],
   "styleFileList": [
     "style.css",
-    "native.css"
+    "maplelantern-native.css"
   ],
   "tweeFileList": [],
   "imgFileList": [],

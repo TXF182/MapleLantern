@@ -33,8 +33,17 @@ html[data-ml-native="on"] {
     linear-gradient(135deg, rgb(227 178 95 / 6%), transparent 58%),
     repeating-linear-gradient(0deg, rgb(255 255 255 / 1.4%) 0 1px, transparent 1px 5px);
   --mln-page-texture:
-    linear-gradient(180deg, rgb(227 178 95 / 3%), transparent 30%),
-    repeating-linear-gradient(115deg, rgb(255 255 255 / 1.2%) 0 1px, transparent 1px 7px);
+    radial-gradient(120% 88% at 14% -6%, rgb(227 178 95 / 22%), transparent 62%),
+    radial-gradient(100% 78% at 92% 8%, rgb(176 108 52 / 18%), transparent 66%),
+    linear-gradient(180deg, rgb(255 236 200 / 7%), transparent 34%, transparent 72%, rgb(30 16 8 / 28%)),
+    repeating-linear-gradient(115deg, rgb(255 228 180 / 4%) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(0deg, rgb(120 66 28 / 6%) 0 2px, transparent 2px 5px),
+    radial-gradient(78% 58% at 50% 108%, rgb(0 0 0 / 32%), transparent 72%);
+  background-color: var(--mln-bg) !important;
+  background-image: var(--mln-page-texture) !important;
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
 }
 
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
@@ -73,8 +82,13 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
     linear-gradient(315deg, rgb(255 61 154 / 5%), transparent 44%),
     repeating-linear-gradient(0deg, rgb(0 229 255 / 1.5%) 0 1px, transparent 1px 4px);
   --mln-page-texture:
-    repeating-linear-gradient(0deg, transparent 0 23px, rgb(0 229 255 / 2.2%) 23px 24px),
-    linear-gradient(135deg, transparent 48%, rgb(255 61 154 / 2%) 49%, transparent 50%);
+    radial-gradient(120% 82% at 12% -4%, rgb(0 229 255 / 16%), transparent 60%),
+    radial-gradient(100% 76% at 92% 10%, rgb(255 61 154 / 15%), transparent 64%),
+    linear-gradient(180deg, rgb(0 229 255 / 8%), transparent 28%, transparent 78%, rgb(255 61 154 / 6%)),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(0 229 255 / 6%) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgb(0 229 255 / 5%) 47px 48px),
+    linear-gradient(135deg, transparent 44%, rgb(255 61 154 / 7%) 48%, transparent 52%),
+    radial-gradient(80% 55% at 50% 108%, rgb(0 0 0 / 40%), transparent 72%);
 }
 
 html[data-ml-native="on"][data-ml-theme="jade"] {
@@ -103,8 +117,12 @@ html[data-ml-native="on"][data-ml-theme="jade"] {
     linear-gradient(135deg, rgb(95 191 172 / 7%), transparent 58%),
     repeating-linear-gradient(-24deg, rgb(255 255 255 / 1.6%) 0 1px, transparent 1px 9px);
   --mln-page-texture:
-    linear-gradient(180deg, rgb(95 191 172 / 4%), transparent 32%),
-    repeating-linear-gradient(66deg, rgb(127 214 197 / 1.6%) 0 1px, transparent 1px 10px);
+    radial-gradient(116% 84% at 10% -4%, rgb(95 191 172 / 22%), transparent 60%),
+    radial-gradient(96% 72% at 90% 8%, rgb(127 214 197 / 14%), transparent 64%),
+    linear-gradient(118deg, transparent 38%, rgb(224 255 245 / 16%) 46%, rgb(255 255 255 / 4%) 52%, transparent 60%),
+    repeating-linear-gradient(66deg, rgb(127 214 197 / 5%) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(-18deg, rgb(255 255 255 / 3%) 0 2px, transparent 2px 18px),
+    radial-gradient(80% 58% at 50% 108%, rgb(0 0 0 / 34%), transparent 72%);
 }
 
 html[data-ml-native="on"][data-ml-theme="graphite"] {
@@ -134,12 +152,16 @@ html[data-ml-native="on"][data-ml-theme="graphite"] {
     linear-gradient(135deg, rgb(201 205 212 / 6%), transparent 58%),
     repeating-linear-gradient(45deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 4px);
   --mln-page-texture:
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.1%) 0 1px, transparent 1px 5px),
-    repeating-linear-gradient(-45deg, rgb(0 0 0 / 7%) 0 2px, transparent 2px 5px);
+    radial-gradient(110% 82% at 50% -8%, rgb(201 205 212 / 14%), transparent 62%),
+    linear-gradient(180deg, rgb(255 255 255 / 7%), transparent 26%, transparent 76%, rgb(0 0 0 / 30%)),
+    repeating-linear-gradient(108deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(108deg, rgb(0 0 0 / 12%) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(255 255 255 / 3%) 23px 24px),
+    radial-gradient(78% 58% at 50% 108%, rgb(0 0 0 / 42%), transparent 72%);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] {
-  --mln-bg: #070A14;
+  --mln-bg: #050813;
   --mln-surface: #0D1222;
   --mln-surface-2: #12182B;
   --mln-surface-3: #181F35;
@@ -176,52 +198,90 @@ html[data-ml-native="on"][data-ml-theme="star"] {
     radial-gradient(1px 1px at 18% 20%, rgb(255 255 255 / 20%) 0, transparent 1.2px),
     radial-gradient(1px 1px at 72% 68%, rgb(196 208 255 / 18%) 0, transparent 1.2px);
   --mln-page-texture:
-    radial-gradient(130% 95% at 16% -10%, rgb(92 74 210 / 24%), transparent 58%),
-    radial-gradient(105% 72% at 88% 4%, rgb(58 111 210 / 16%), transparent 62%),
-    radial-gradient(70% 48% at 60% 36%, rgb(143 166 255 / 8%), transparent 70%),
-    linear-gradient(54deg, transparent 36%, rgb(194 207 255 / 9%) 45%, rgb(143 166 255 / 3%) 52%, transparent 66%),
-    radial-gradient(1px 1px at 7% 9%, rgb(255 255 255 / 82%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 15% 18%, rgb(196 208 255 / 70%) 0, transparent 2px),
-    radial-gradient(1px 1px at 24% 7%, rgb(255 255 255 / 55%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 33% 15%, rgb(255 255 255 / 74%) 0, transparent 2.6px),
-    radial-gradient(1px 1px at 41% 4%, rgb(190 205 255 / 62%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 52% 12%, rgb(255 255 255 / 66%) 0, transparent 2px),
-    radial-gradient(1px 1px at 61% 21%, rgb(196 208 255 / 50%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 72% 8%, rgb(255 255 255 / 80%) 0, transparent 2.6px),
-    radial-gradient(1px 1px at 83% 17%, rgb(190 205 255 / 64%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 94% 6%, rgb(255 255 255 / 58%) 0, transparent 2px),
-    radial-gradient(1px 1px at 5% 29%, rgb(196 208 255 / 46%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 12% 39%, rgb(255 255 255 / 86%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 20% 48%, rgb(255 255 255 / 44%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 29% 34%, rgb(190 205 255 / 62%) 0, transparent 2px),
-    radial-gradient(1px 1px at 39% 44%, rgb(255 255 255 / 56%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 48% 31%, rgb(196 208 255 / 82%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 58% 42%, rgb(255 255 255 / 45%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 68% 35%, rgb(255 255 255 / 68%) 0, transparent 2px),
-    radial-gradient(1px 1px at 78% 47%, rgb(190 205 255 / 52%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 88% 37%, rgb(255 255 255 / 90%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 96% 49%, rgb(196 208 255 / 56%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 8% 61%, rgb(255 255 255 / 72%) 0, transparent 2px),
-    radial-gradient(1px 1px at 18% 70%, rgb(190 205 255 / 48%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 27% 58%, rgb(255 255 255 / 84%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 37% 68%, rgb(196 208 255 / 58%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 46% 54%, rgb(255 255 255 / 64%) 0, transparent 2px),
-    radial-gradient(1px 1px at 56% 67%, rgb(255 255 255 / 46%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 65% 57%, rgb(190 205 255 / 80%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 74% 72%, rgb(255 255 255 / 56%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 84% 61%, rgb(255 255 255 / 72%) 0, transparent 2px),
-    radial-gradient(2px 2px at 93% 74%, rgb(196 208 255 / 86%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 4% 84%, rgb(255 255 255 / 46%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 14% 92%, rgb(190 205 255 / 64%) 0, transparent 2px),
-    radial-gradient(2px 2px at 24% 81%, rgb(255 255 255 / 78%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 35% 94%, rgb(255 255 255 / 52%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 44% 85%, rgb(196 208 255 / 66%) 0, transparent 2px),
-    radial-gradient(2px 2px at 54% 96%, rgb(255 255 255 / 82%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 63% 86%, rgb(190 205 255 / 48%) 0, transparent 1.5px),
-    radial-gradient(1.5px 1.5px at 73% 95%, rgb(255 255 255 / 70%) 0, transparent 2px),
-    radial-gradient(1px 1px at 82% 88%, rgb(255 255 255 / 54%) 0, transparent 1.5px),
-    radial-gradient(2px 2px at 91% 96%, rgb(196 208 255 / 84%) 0, transparent 2.8px),
-    radial-gradient(1px 1px at 48% 76%, rgb(255 255 255 / 38%) 0, transparent 1.5px);
+    radial-gradient(130% 96% at 14% -12%, rgb(92 74 210 / 40%), transparent 58%),
+    radial-gradient(108% 76% at 90% 2%, rgb(58 111 210 / 30%), transparent 62%),
+    radial-gradient(78% 52% at 58% 34%, rgb(143 166 255 / 18%), transparent 70%),
+    linear-gradient(58deg, transparent 26%, rgb(156 174 255 / 16%) 38%, rgb(226 234 255 / 28%) 47%, rgb(146 166 255 / 15%) 56%, transparent 72%),
+    linear-gradient(58deg, transparent 34%, rgb(255 255 255 / 9%) 44%, transparent 58%),
+    radial-gradient(64% 42% at 50% 80%, rgb(76 58 180 / 18%), transparent 75%),
+    radial-gradient(2.6px 2.6px at 7% 9%, rgb(255 255 255 / 98%) 0, rgb(196 208 255 / 52%) 48%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 15% 18%, rgb(255 255 255 / 88%) 0, transparent 1.6px),
+    radial-gradient(1.8px 1.8px at 24% 7%, rgb(255 255 255 / 72%) 0, transparent 2.2px),
+    radial-gradient(3.2px 3.2px at 33% 15%, rgb(255 255 255 / 100%) 0, rgb(205 216 255 / 58%) 44%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 41% 4%, rgb(206 218 255 / 82%) 0, transparent 1.5px),
+    radial-gradient(1.6px 1.6px at 52% 12%, rgb(255 255 255 / 90%) 0, transparent 2.1px),
+    radial-gradient(1.2px 1.2px at 61% 21%, rgb(196 208 255 / 72%) 0, transparent 1.6px),
+    radial-gradient(3.6px 3.6px at 72% 8%, rgb(255 255 255 / 100%) 0, rgb(190 205 255 / 62%) 46%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 83% 17%, rgb(214 224 255 / 86%) 0, transparent 1.9px),
+    radial-gradient(2.1px 2.1px at 94% 6%, rgb(255 255 255 / 78%) 0, transparent 2.6px),
+    radial-gradient(1.2px 1.2px at 5% 29%, rgb(202 214 255 / 66%) 0, transparent 1.6px),
+    radial-gradient(3.8px 3.8px at 12% 39%, rgb(255 255 255 / 100%) 0, rgb(206 216 255 / 66%) 42%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 20% 48%, rgb(255 255 255 / 62%) 0, transparent 1.9px),
+    radial-gradient(2.4px 2.4px at 29% 34%, rgb(228 236 255 / 92%) 0, rgb(143 166 255 / 44%) 55%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 39% 44%, rgb(255 255 255 / 76%) 0, transparent 1.5px),
+    radial-gradient(4.2px 4.2px at 48% 31%, rgb(255 255 255 / 100%) 0, rgb(196 208 255 / 70%) 44%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 58% 42%, rgb(255 255 255 / 68%) 0, transparent 1.7px),
+    radial-gradient(2.2px 2.2px at 68% 35%, rgb(255 255 255 / 94%) 0, transparent 2.7px),
+    radial-gradient(1.5px 1.5px at 78% 47%, rgb(206 218 255 / 76%) 0, transparent 2px),
+    radial-gradient(4.6px 4.6px at 88% 37%, rgb(255 255 255 / 100%) 0, rgb(214 224 255 / 72%) 40%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 96% 49%, rgb(216 226 255 / 84%) 0, transparent 1.6px),
+    radial-gradient(2.8px 2.8px at 8% 61%, rgb(255 255 255 / 100%) 0, rgb(196 208 255 / 52%) 52%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 18% 70%, rgb(196 208 255 / 66%) 0, transparent 1.5px),
+    radial-gradient(3.4px 3.4px at 27% 58%, rgb(255 255 255 / 98%) 0, rgb(170 188 255 / 56%) 48%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 37% 68%, rgb(212 222 255 / 78%) 0, transparent 1.9px),
+    radial-gradient(2.3px 2.3px at 46% 54%, rgb(255 255 255 / 88%) 0, transparent 2.8px),
+    radial-gradient(1.2px 1.2px at 56% 67%, rgb(255 255 255 / 64%) 0, transparent 1.6px),
+    radial-gradient(4.8px 4.8px at 65% 57%, rgb(255 255 255 / 100%) 0, rgb(196 208 255 / 64%) 42%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 74% 72%, rgb(255 255 255 / 70%) 0, transparent 1.7px),
+    radial-gradient(2.6px 2.6px at 84% 61%, rgb(255 255 255 / 96%) 0, rgb(214 224 255 / 52%) 50%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 93% 74%, rgb(196 208 255 / 76%) 0, transparent 1.5px),
+    radial-gradient(3.6px 3.6px at 4% 84%, rgb(255 255 255 / 100%) 0, rgb(180 198 255 / 58%) 46%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 14% 92%, rgb(216 226 255 / 82%) 0, transparent 2px),
+    radial-gradient(2.8px 2.8px at 24% 81%, rgb(255 255 255 / 96%) 0, transparent 3.3px),
+    radial-gradient(1.2px 1.2px at 35% 94%, rgb(255 255 255 / 72%) 0, transparent 1.6px),
+    radial-gradient(3.9px 3.9px at 44% 85%, rgb(255 255 255 / 100%) 0, rgb(206 216 255 / 66%) 44%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 54% 96%, rgb(255 255 255 / 90%) 0, transparent 1.8px),
+    radial-gradient(2.4px 2.4px at 63% 86%, rgb(228 236 255 / 88%) 0, rgb(143 166 255 / 40%) 55%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 73% 95%, rgb(255 255 255 / 74%) 0, transparent 1.5px),
+    radial-gradient(3.2px 3.2px at 82% 88%, rgb(255 255 255 / 98%) 0, transparent 3.7px),
+    radial-gradient(1.3px 1.3px at 91% 96%, rgb(216 226 255 / 86%) 0, transparent 1.7px),
+    radial-gradient(2.2px 2.2px at 48% 76%, rgb(255 255 255 / 60%) 0, transparent 2.7px),
+    radial-gradient(1.6px 1.6px at 56% 24%, rgb(255 255 255 / 92%) 0, transparent 2.1px),
+    radial-gradient(1px 1px at 63% 8%, rgb(255 255 255 / 80%) 0, transparent 1.4px),
+    radial-gradient(2.7px 2.7px at 70% 25%, rgb(255 255 255 / 86%) 0, transparent 3.2px),
+    radial-gradient(1.2px 1.2px at 77% 39%, rgb(255 255 255 / 72%) 0, transparent 1.6px),
+    radial-gradient(3.4px 3.4px at 86% 22%, rgb(255 255 255 / 96%) 0, transparent 3.9px),
+    radial-gradient(1.4px 1.4px at 95% 31%, rgb(214 224 255 / 80%) 0, transparent 1.8px),
+    radial-gradient(2.1px 2.1px at 3% 47%, rgb(255 255 255 / 84%) 0, transparent 2.6px),
+    radial-gradient(1.1px 1.1px at 11% 55%, rgb(255 255 255 / 68%) 0, transparent 1.5px),
+    radial-gradient(3.1px 3.1px at 22% 64%, rgb(255 255 255 / 94%) 0, transparent 3.6px),
+    radial-gradient(1.3px 1.3px at 31% 88%, rgb(206 218 255 / 78%) 0, transparent 1.7px),
+    radial-gradient(2.5px 2.5px at 40% 74%, rgb(255 255 255 / 88%) 0, transparent 3px),
+    radial-gradient(1.1px 1.1px at 49% 63%, rgb(255 255 255 / 64%) 0, transparent 1.5px),
+    radial-gradient(3.7px 3.7px at 59% 78%, rgb(255 255 255 / 100%) 0, transparent 4.2px),
+    radial-gradient(1.4px 1.4px at 68% 90%, rgb(216 226 255 / 84%) 0, transparent 1.8px),
+    radial-gradient(2.9px 2.9px at 79% 76%, rgb(255 255 255 / 96%) 0, transparent 3.4px),
+    radial-gradient(1.2px 1.2px at 88% 82%, rgb(255 255 255 / 70%) 0, transparent 1.6px),
+    radial-gradient(4.1px 4.1px at 96% 69%, rgb(255 255 255 / 100%) 0, transparent 4.6px),
+    radial-gradient(6px 1px at 18% 22%, rgb(255 255 255 / 18%) 0, transparent 6px),
+    radial-gradient(1px 6px at 18% 22%, rgb(255 255 255 / 16%) 0, transparent 6px),
+    radial-gradient(7px 1px at 88% 37%, rgb(255 255 255 / 20%) 0, transparent 7px),
+    radial-gradient(1px 7px at 88% 37%, rgb(255 255 255 / 18%) 0, transparent 7px),
+    radial-gradient(6px 6px at 12% 14%, rgb(255 255 255 / 100%) 0, rgb(190 205 255 / 55%) 36%, transparent 100%),
+    radial-gradient(5px 5px at 34% 26%, rgb(255 255 255 / 100%) 0, rgb(170 190 255 / 48%) 40%, transparent 100%),
+    radial-gradient(6.4px 6.4px at 62% 18%, rgb(255 255 255 / 100%) 0, rgb(205 218 255 / 58%) 38%, transparent 100%),
+    radial-gradient(5.2px 5.2px at 84% 44%, rgb(255 255 255 / 100%) 0, rgb(185 202 255 / 50%) 40%, transparent 100%),
+    radial-gradient(6.8px 6.8px at 24% 56%, rgb(255 255 255 / 100%) 0, rgb(200 214 255 / 56%) 36%, transparent 100%),
+    radial-gradient(5.4px 5.4px at 48% 66%, rgb(255 255 255 / 100%) 0, rgb(176 196 255 / 46%) 42%, transparent 100%),
+    radial-gradient(6.2px 6.2px at 72% 60%, rgb(255 255 255 / 100%) 0, rgb(212 224 255 / 58%) 38%, transparent 100%),
+    radial-gradient(5px 5px at 92% 78%, rgb(255 255 255 / 100%) 0, rgb(190 208 255 / 48%) 40%, transparent 100%),
+    radial-gradient(6.6px 6.6px at 8% 76%, rgb(255 255 255 / 100%) 0, rgb(196 210 255 / 54%) 36%, transparent 100%),
+    radial-gradient(5.8px 5.8px at 38% 88%, rgb(255 255 255 / 100%) 0, rgb(180 198 255 / 50%) 40%, transparent 100%),
+    radial-gradient(6px 6px at 66% 84%, rgb(255 255 255 / 100%) 0, rgb(206 220 255 / 56%) 38%, transparent 100%),
+    radial-gradient(5.2px 5.2px at 18% 42%, rgb(255 255 255 / 94%) 0, rgb(190 205 255 / 44%) 46%, transparent 100%),
+    radial-gradient(5.6px 5.6px at 54% 46%, rgb(255 255 255 / 96%) 0, rgb(198 212 255 / 46%) 44%, transparent 100%),
+    radial-gradient(5px 5px at 78% 28%, rgb(255 255 255 / 92%) 0, rgb(184 200 255 / 42%) 46%, transparent 100%),
+    radial-gradient(5.4px 5.4px at 28% 76%, rgb(255 255 255 / 90%) 0, rgb(188 204 255 / 44%) 44%, transparent 100%);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] #ui-bar#ui-bar {
@@ -861,6 +921,8 @@ html[data-ml-native="on"] #passages .passage a.macro-link {
   text-align: left;
   text-decoration: none !important;
   overflow-wrap: anywhere;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
   transition: border-color 120ms ease, background-color 120ms ease, transform 80ms ease;
 }
@@ -873,13 +935,28 @@ html[data-ml-native="on"] #passages .passage a.macro-link:hover {
 
 html[data-ml-native="on"] #passages .passage a.link-internal.macro-link:active,
 html[data-ml-native="on"] #passages .passage a.macro-link:active {
-  transform: scale(.985);
+  transform: translateY(1px) scale(.96);
+  border-color: var(--mln-accent);
+  filter: brightness(1.16) saturate(1.06);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-accent), 0 0 20px -5px var(--mln-glow);
+  transition-duration: 40ms;
 }
 
 html[data-ml-native="on"] #passages .passage a.link-internal.macro-link:focus-visible,
 html[data-ml-native="on"] #passages .passage a.macro-link:focus-visible {
   outline: 2px solid var(--mln-accent);
   outline-offset: 2px;
+}
+
+/* 原生层晚一步命中时的兜底：选项前连续的 <br> 一律不占高度。
+   1.1.6 在 Android 上曾出现 native 脚本被宿主脚本挤掉、正文只剩原版空行，
+   表现就是“图标与卡片隔很远、选项之间很开”。:has 在 Android WebView 可用；
+   不支持时规则不生效，不会破坏原版换行。 */
+html[data-ml-native="on"] #passages .passage br:has(+ a.macro-link),
+html[data-ml-native="on"] #passages .passage br:has(+ br + a.macro-link),
+html[data-ml-native="on"] #passages .passage br:has(+ br + br + a.macro-link),
+html[data-ml-native="on"] #passages .passage a.macro-link + br {
+  display: none !important;
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group {
@@ -3337,21 +3414,15 @@ html[data-ml-native="on"] #mobileStats .stat {
   background-image: var(--mln-surface-texture);
 }
 
-html[data-ml-native="on"] #passages {
-  background-image: var(--mln-page-texture);
+/* 整页背景由 html 承担，正文层全部透明：六主题都能看到自己的页面纹理，
+   而不只是面板换色；fixed 让纹理不随长 passage 滚动拉伸。 */
+html[data-ml-native="on"] body {
+  background-color: transparent !important;
+  background-image: none !important;
 }
 
-/* 星空主题必须真的有星空：固定星场铺在 body 背后，正文层透明；
-   fixed 让星点不随长 passage 滚动拉伸，视野里始终是一整片深空。 */
-html[data-ml-native="on"][data-ml-theme="star"] body {
-  background-color: #050813 !important;
-  background-image: var(--mln-page-texture);
-  background-attachment: fixed;
-  background-size: cover;
-  background-repeat: no-repeat;
-}
-
-html[data-ml-native="on"][data-ml-theme="star"] #passages {
+html[data-ml-native="on"] #passages,
+html[data-ml-native="on"] #passages .passage {
   background-color: transparent !important;
   background-image: none !important;
 }
@@ -3395,7 +3466,7 @@ html[data-ml-native="on"] #passages .passage a.macro-link.mln-is-pressed,
 html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
   transform: translateY(1px) scale(.972);
   filter: brightness(1.14) saturate(1.04);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-glow), 0 0 18px -6px var(--mln-glow);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-accent), 0 0 22px -4px var(--mln-accent);
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group.mln-press-host,

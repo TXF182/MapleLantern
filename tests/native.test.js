@@ -179,6 +179,24 @@ test("正文选项：场景图标包在装饰层里时也能进同一张卡", as
   assert.equal(p.querySelector('.ml-option-group a[data-passage="C"]') !== null, true);
 });
 
+test("正文选项：同一装饰层里叠两个图标时，优先把可见场景图搬进卡", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<span class="scene">' +
+    '<span class="icon-container icon infront"><img class="icon" src="hidden.png"></span>' +
+    '<img class="icon" src="scene.png">' +
+    '</span>' +
+    '<a class="link-internal macro-link" data-passage="A">(1) Check your reflection</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const group = p.querySelector(".ml-option-group");
+  assert.equal(group !== null, true);
+  assert.equal(group.querySelector('img.icon').getAttribute("src"), "scene.png", "不应选中 icon-container 里的隐藏图标");
+  assert.equal(group.querySelector('a[data-passage="A"]') !== null, true);
+});
+
 test("正文选项：pointerdown 生成原生主题环并进入按压态", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   await tick(w);
@@ -234,12 +252,14 @@ test("OPTIONS 弹层：入口幂等注入，点击打开灯台面板", async () 
   assert.equal(w.document.getElementById("ml-panel").hidden, false);
 });
 
-test("宿主启用：原生层自动让位，不挂原生标记", async () => {
+test("宿主启用：独立外观层仍按玩家开关挂载，不因宿主存在而整层让位", async () => {
   const { w } = createEnv({ host: true });
   await tick(w);
-  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
-  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
-  assert.equal(w.document.querySelectorAll('#customOverlay [data-ml-entry="panel"]').length, 0);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on");
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length > 0, true);
+  openOptions(w);
+  await tick(w);
+  assert.equal(w.document.querySelectorAll('#customOverlay [data-ml-entry="panel"]').length, 1);
 });
 
 test("原生开关关闭：不加原生标记，但选项里的灯台入口仍保留", async () => {
