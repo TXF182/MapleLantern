@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.10）
+# 灯台 · Lantern（MapleLantern 1.1.11）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.11 性能收口**：① 分组稳定后 `packStable` 直接跳过整轮 pack，含两次签名扫描与三轮全页遍历；用首个选项链接做锚点，`innerHTML` 直接替换时不会误判稳定。② CE 面板加 `ceDirty/ceReady/ceSig` 脏检查，正文 refresh 不再重复重排。③ 补扫压缩为「立即 + 140ms」固定拍，之后 600ms 起自适应、连续两拍无变化即停。④ `setAttr()` 同值不写：状态卡、左轨百分比、侧栏字号、标题锚点均先比对再写；200 选项页 20 次 apply 从 251ms 降到 64ms（jsdom 逻辑层）。
 - **1.1.10 二次收口**：① 修掉页签被“内容按钮通扫”二次改写（11px→13px、宽度 65→81）的回归，页签与关闭按钮加标记跳过；分类栏收窄 36px 给 ✖ 留真实缺口，右缘加 26px 渐隐提示横向滚动。② 平铺六胶囊解除 CE 固定 `width:100px`，`flex:1 1 0` 等分单行。③ 状态条箭头补充识别 `<div>/<span>` 叶子节点，统一 34×34。④ 分组后双向清理组前后空 `<p>`/`<br>`（含图标的段落不删），3px 间距不再被空段落撑大。
 - **1.1.9 Android 真机收口**：① 选项候补链接类名扩到 `a.link-internal`，并在 `passageend` 后补扫 1200/2400ms + 约 6s 的受控补扫 + `MutationObserver`；汉化或 TweeReplacer 晚一步重建链接时，`repairGroups()` / `adoptOrphanIcons()` 会把新链接接回原图标卡，图标不再单独浮在卡外；卡片间距 3px。② CE overlay 不再依赖 `:has()`：`watchOverlay()` 在面板异步挂载后重算，页签强制单行（旧版平铺等分、两层横向滚动且给关闭按钮留 36px），内容网格单列（用「纯箭头按钮」识别并跳过状态条），状态条箭头压到 34px，`#customOverlay` 手机端硬限 `calc(100vw - 16px)`，关闭按钮 28×28 不再被裁。③ 所有 `color-mix()` 前补 `rgba()` 兜底；旧 WebView 不支持混色时背景不会整条失效。④ 背景再加主题顶部光/底部回光/暗角与不透明底兜底，并降低弹层遮蔽（普通弹层 58% / 内容 62%，CE 60/64）。
 - **1.1.8 背景增强**：整页新增「边缘暗角 + 主题顶部光 + 底部回光」三层；普通 `#customOverlay` / `#ui-dialog` 改为 **68% 半透明**，内容层 **78% / 82%** 并叠页纹理；CheatExtended 的 overlay **66%**、`.dol-shadow` **64%**，面板不再是一块实色，星空/纸纹/网格能从弹层与 CE 面板透上来。
@@ -21,7 +22,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.10-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.11-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -55,7 +56,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.10）
+## 原生 UI 替换层（1.1.11）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
@@ -114,7 +115,9 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-12，Windows）实测：
 
-- `node --test tests\*.test.js`：**86 / 86 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约）
+- `node --test tests\*.test.js`：**95 / 95 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约、性能补扫收敛、分组稳定跳过 pack、同值写入跳过、晚到 2 秒链接仍接回）
+- `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 314 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **64ms、pack 0 次、写入 0 次（跳过 5160 次同值写）**（上一轮 78ms / 251ms；jsdom 逻辑层，不冒充浏览器帧率）
+- 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
 - CE 1.20.3.1 合成 DOM（390 宽）：`#customOverlayContent` padding 0、CE 页签 47×30 / padding 4px 8px / min-height auto、`.settingsGrid` 334px 单列、72% 半透明主题底 + 星空纹理；桌面 1280 不命中单列、保持 CE 两列
 - 普通 OPTIONS 弹层（390 宽）：`#customOverlay` / `#customOverlayContent` 68% / 78% 半透明主题底 + 页纹理，8 个原生入口几何不变
@@ -127,12 +130,12 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 1.1.4 阶段留存的六主题原型截图：6/6 面板 380×620；按压涟漪实测 `ring:true`、空心主题色亮环不遮字
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`
-- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；`71.1 KB` 量级，SHA256 见 `dist\SHA256-1.1.8-theme.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；体积与 SHA256 见 `dist\SHA256-1.1.11-theme.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.8-theme.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.11-theme.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

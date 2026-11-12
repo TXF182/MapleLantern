@@ -3768,3 +3768,17 @@ html[data-ml-native="on"] #customOverlay .CEDISPLAY button {
   }
 }
 
+
+/* 手机端固定背景会在滚动时反复重绘整页渐变；改成随元素滚动，视觉层不变，
+   少一层视口锚定合成。桌面保留 fixed。 */
+@media (max-width: 899px) {
+  html[data-ml-native="on"] {
+    background-attachment: scroll !important;
+  }
+  html[data-ml-native="on"] #customOverlay#customOverlay,
+  html[data-ml-native="on"] #customOverlayContent#customOverlayContent,
+  html[data-ml-native="on"] #ui-dialog#ui-dialog,
+  html[data-ml-native="on"] #ui-dialog-body#ui-dialog-body {
+    background-attachment: scroll !important;
+  }
+}

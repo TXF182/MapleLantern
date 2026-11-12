@@ -476,6 +476,72 @@ test("CE 平铺页签：六颗胶囊同一行等分，不被 CE 固定 100px 撑
     assert.match(b.style.getPropertyValue("flex"), /^1 1 0(px)?$/, "平铺页签应等分一行");
   }
 });
+test("性能：补扫停止后晚到 2 秒的链接仍由 MutationObserver 接回卡片", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML = '<p>旧页</p><img class="icon" src="a.png"><a class="link-internal macro-link" data-passage="A">A</a>';
+  w.document.dispatchEvent(new w.Event("passageend"));
+  await tick(w, 2000);
+  assert.ok(w.MapleLanternNative.stats().sweeps <= 4, "补扫应已停止");
+  p.innerHTML = '<p>新页</p>' +
+    '<img class="icon" src="b.png"><a class="link-internal macro-link" data-passage="B">B</a>' +
+    '<img class="icon" src="c.png"><a class="link-internal macro-link" data-passage="C">C</a>';
+  await tick(w, 400);
+  const groups = p.querySelectorAll(".ml-option-group");
+  assert.equal(groups.length, 2, "晚到选项应重新成组");
+  for (const g of groups) {
+    assert.ok(g.querySelector("img.icon") && g.querySelector("a.macro-link"), "图标与链接必须在同一张卡");
+  }
+});
+
+test("性能：分组稳定后重复 apply 不再重跑 pack 全页遍历", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML = '<p>测试页</p>' +
+    '<img class="icon" src="a.png"><a class="link-internal macro-link" data-passage="A">A</a>' +
+    '<img class="icon" src="b.png"><a class="link-internal macro-link" data-passage="B">B</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w, 50);
+  const base = w.MapleLanternNative.stats();
+  for (let i = 0; i < 20; i++) { w.MapleLanternNative.apply(); }
+  const after = w.MapleLanternNative.stats();
+  assert.ok(after.packs - base.packs <= 1, "稳定页最多再 pack 1 次，实际 " + (after.packs - base.packs));
+});
+
+test("性能：静态页补扫连续两拍无变化即停，不再固定空跑 6 秒", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML = '<p>测试页</p><a class="link-internal macro-link" data-passage="Next">继续</a>';
+  const before = w.MapleLanternNative.stats();
+  w.document.dispatchEvent(new w.Event("passageend"));
+  await tick(w, 2600);
+  const after = w.MapleLanternNative.stats();
+  assert.ok(after.sweeps - before.sweeps <= 4, "稳定页最多 4 拍补扫，实际 " + (after.sweeps - before.sweeps));
+  assert.ok(after.applies - before.applies <= 8, "稳定页 apply 次数应受控，实际 " + (after.applies - before.applies));
+});
+
+test("性能：CE 面板未变脏时，正文 refresh 不再重复重排", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML = '<div id="cheat_extended_options"><button>状态</button><button>传送</button></div>';
+  await tick(w, 700);
+  const base = w.MapleLanternNative.stats();
+  assert.ok(base.ceNorm >= 1, "面板出现时应重排一次");
+  for (let i = 0; i < 3; i++) {
+    w.MapleLanternNative.refresh();
+    await tick(w, 120);
+  }
+  const after = w.MapleLanternNative.stats();
+  assert.equal(after.ceNorm, base.ceNorm, "未变脏时不应重复重排");
+  content.innerHTML = '<div id="cheat_extended_options"><button>状态</button><button>传送</button></div><p>另一个页签</p><button>新按钮</button>';
+  await tick(w, 300);
+  assert.equal(w.MapleLanternNative.stats().ceNorm, base.ceNorm + 1, "页签内容变化应只重排一次");
+});
 test("选项分组：组前后空 <p> 不残留，避免把 3px 间距重新撑大", async () => {
   const { w } = createEnv();
   await tick(w);
@@ -496,4 +562,21 @@ test("选项分组：组前后空 <p> 不残留，避免把 3px 间距重新撑�
   const emptyP = Array.from(p.querySelectorAll("p")).filter((n) => !(n.textContent || "").trim());
   assert.equal(emptyP.length, 0, "空 <p> 应被清掉");
   assert.equal(p.querySelectorAll("p").length, 2, "正文首尾段落应保留");
+});
+
+test("性能：状态卡同值不重复写，数值变化仍更新", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const card = w.document.getElementById("paincaption");
+  assert.equal(card.getAttribute("data-ml-value"), "0.00 · 0%", "首轮应写入显示值");
+  const base = w.MapleLanternNative.stats();
+  for (let i = 0; i < 10; i++) { w.MapleLanternNative.apply(); }
+  const steady = w.MapleLanternNative.stats();
+  assert.equal(steady.writes - base.writes, 0, "同值重复 apply 不应产生属性写入");
+  assert.ok(steady.writesSaved - base.writesSaved > 0, "应累计跳过同值写入");
+  card.setAttribute("title", "Pain: 12.00");
+  w.MapleLanternNative.apply();
+  assert.equal(card.getAttribute("data-ml-current"), "12", "数值变化必须写回");
+  assert.equal(card.getAttribute("data-ml-readout"), "12/100", "上限拼接必须保持");
+  assert.equal(w.MapleLanternNative.stats().writes > steady.writes, true, "变化时应产生写入");
 });

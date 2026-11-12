@@ -27,8 +27,26 @@
     packObserver: null,
     overlayObserver: null,
     sweep: null,
-    packTimer: null
+    packTimer: null,
+    packChanged: false,
+    packStable: false,
+    packAnchor: null,
+    stableTicks: 0,
+    ceDirty: true,
+    ceReady: false,
+    ceSig: "",
+    perf: { applies: 0, sweeps: 0, ceNorm: 0, packs: 0, writes: 0, writesSaved: 0 }
   };
+
+  /* 同值写入会触发样式失效/观察记录；先比对再写，稳定页可省掉绝大多数
+     attribute 变更（CE 参考的“缓存 + 只做增量”同思路）。 */
+  function setAttr(el, name, value) {
+    if (!el || !el.getAttribute) { return; }
+    var next = value === null || value === undefined ? null : String(value);
+    if (el.getAttribute(name) === next) { state.perf.writesSaved++; return; }
+    if (next === null) { el.removeAttribute(name); } else { el.setAttribute(name, next); }
+    state.perf.writes++;
+  }
 
   function readSettings() {
     var result = { value: Object.assign({}, D) };
@@ -68,8 +86,12 @@
     var barTop = bar.getBoundingClientRect().top;
     var imgBottom = img.getBoundingClientRect().bottom;
     if (!isFinite(barTop) || !isFinite(imgBottom) || imgBottom <= barTop) { return; }
-    var top = Math.round(imgBottom - barTop);
-    doc.documentElement.style.setProperty("--ml-caption-top", Math.max(0, top) + "px");
+    var top = Math.max(0, Math.round(imgBottom - barTop)) + "px";
+    var root = doc.documentElement;
+    if (root.style.getPropertyValue("--ml-caption-top") !== top) {
+      root.style.setProperty("--ml-caption-top", top);
+      state.perf.writes++;
+    } else { state.perf.writesSaved++; }
   }
 
   function markStats() {
@@ -84,8 +106,8 @@
       else if (node.querySelector(".clockContainer")) { kind = "time"; }
       else if (node.querySelector('img[src*="sidebar-day"]')) { kind = "day"; }
       else if (node.querySelector('img[src*="sidebar-open"], img[src*="sidebar-closed"]')) { kind = "toggle"; }
-      if (kind) { node.setAttribute("data-ml-chip", kind); }
-      else { node.removeAttribute("data-ml-chip"); }
+      if (kind) { setAttr(node, "data-ml-chip", kind); }
+      else { setAttr(node, "data-ml-chip", null); }
       if (kind === "money") {
         var money = node.querySelector(".true .true") || node.querySelector(".true");
         if (money) {
@@ -163,7 +185,7 @@
   function markStatmeters() {
     var host = doc.getElementById("statmeters");
     if (!host) { return; }
-    host.setAttribute("data-ml-statmeters", "1");
+    setAttr(host, "data-ml-statmeters", "1");
     var cards = host.querySelectorAll('div[id$="caption"]');
     for (var i = 0; i < cards.length; i++) {
       var card = cards[i];
@@ -171,27 +193,29 @@
       var value = parseStatValue(card);
       var pct = readPercent(card);
       var max = readStatMax(key);
-      card.setAttribute("data-ml-stat-card", "1");
-      card.setAttribute("data-ml-stat-key", key);
-      card.removeAttribute("data-ml-value");
-      card.removeAttribute("data-ml-current");
-      card.removeAttribute("data-ml-percent");
-      card.removeAttribute("data-ml-total");
-      card.removeAttribute("data-ml-readout");
+      setAttr(card, "data-ml-stat-card", "1");
+      setAttr(card, "data-ml-stat-key", key);
+      var current = "";
+      var readout = "";
+      var display = "";
+      var percent = "";
+      var total = null;
       if (value) {
-        var current = compactStatNumber(value) || value;
-        var readout = "";
+        current = compactStatNumber(value) || value;
         if (max) {
           readout = current + "/" + max;
-          card.setAttribute("data-ml-total", String(max));
+          total = String(max);
         } else if (pct !== null) {
           readout = current + " · " + pct + "%";
         }
-        card.setAttribute("data-ml-value", pct === null ? value : (value + " · " + pct + "%"));
-        card.setAttribute("data-ml-current", current);
-        card.setAttribute("data-ml-percent", pct === null ? "" : (pct + "%"));
-        if (readout) { card.setAttribute("data-ml-readout", readout); }
+        display = pct === null ? value : (value + " · " + pct + "%");
+        percent = pct === null ? "" : (pct + "%");
       }
+      setAttr(card, "data-ml-value", display || null);
+      setAttr(card, "data-ml-current", current || null);
+      setAttr(card, "data-ml-percent", value ? percent : null);
+      setAttr(card, "data-ml-total", total);
+      setAttr(card, "data-ml-readout", readout || null);
     }
   }
 
@@ -203,27 +227,34 @@
     var rail = doc.getElementById("mobileStats");
     if (!rail) { return; }
     var stats = rail.querySelectorAll(".stat");
+    var vars = null;
+    try { vars = gameVars(); } catch (e) { vars = null; }
     var index = 0;
     for (var i = 0; i < stats.length; i++) {
       var node = stats[i];
       if (node.classList.contains("time")) { continue; }
       var key = RAIL_KEYS[index] || "";
       index++;
-      node.removeAttribute("data-ml-rail-key");
-      node.removeAttribute("data-ml-rail-pct");
-      node.style.removeProperty("--ml-rail-pct");
-      if (!key) { continue; }
-      var value = 0;
-      try {
-        var vars = gameVars();
-        value = Number(vars && vars[key]);
-        if (!isFinite(value)) { value = 0; }
-      } catch (e) { value = 0; }
+      if (!key) {
+        setAttr(node, "data-ml-rail-key", null);
+        setAttr(node, "data-ml-rail-pct", null);
+        if (node.style.getPropertyValue("--ml-rail-pct")) {
+          node.style.removeProperty("--ml-rail-pct");
+          state.perf.writes++;
+        }
+        continue;
+      }
+      var value = Number(vars && vars[key]);
+      if (!isFinite(value)) { value = 0; }
       var max = readStatMax(key) || STAT_MAX[key] || 0;
       var pct = max ? Math.max(0, Math.min(100, Math.round(value / max * 100))) : 0;
-      node.setAttribute("data-ml-rail-key", key);
-      node.setAttribute("data-ml-rail-pct", String(pct));
-      node.style.setProperty("--ml-rail-pct", pct + "%");
+      setAttr(node, "data-ml-rail-key", key);
+      setAttr(node, "data-ml-rail-pct", pct);
+      var css = pct + "%";
+      if (node.style.getPropertyValue("--ml-rail-pct") !== css) {
+        node.style.setProperty("--ml-rail-pct", css);
+        state.perf.writes++;
+      } else { state.perf.writesSaved++; }
     }
   }
 
@@ -751,9 +782,30 @@
      :has() 或固定 class 名做约束（Android WebView 可能整条丢弃 :has()）。
      这里在面板打开时直接写 inline !important：先保证不超视口，再把页签收成
      单行、把两列网格收成一列、把状态条两侧的巨大箭头压回 34px。 */
+  /* 只认“面板结构”信号：页签数量、当前选中页、内容控件数。inline 样式写入
+     也会触发 attribute 观察，但它不改变这些数，不能算脏。 */
+  function ceStructureSig() {
+    var tabs = doc.getElementById("cheat_extended_options");
+    if (!tabs) { return ""; }
+    var content = doc.getElementById("customOverlayContent");
+    var selected = tabs.querySelector(".CEtabSelected");
+    return [
+      tabs.childElementCount,
+      tabs.querySelectorAll("button").length,
+      selected ? (selected.textContent || "").trim() : "",
+      content ? content.childElementCount : -1,
+      content ? content.querySelectorAll("button, input, select").length : -1,
+      content ? (content.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60) : ""
+    ].join("|");
+  }
+
   function normalizeCheatLayout() {
     var tabs = doc.getElementById("cheat_extended_options");
-    if (!tabs) { return; }
+    if (!tabs) { state.ceReady = false; return; }
+    /* CE 只在面板结构真的变了才重排：换页签/开关/尺寸变化由 dirty 标记驱动，
+       正文换页的十几次 apply 不再重复扫 300 个元素。 */
+    if (state.ceReady && !state.ceDirty) { return; }
+    state.perf.ceNorm++;
     var overlay = null;
     try { overlay = tabs.closest("#customOverlay"); } catch (e) { overlay = null; }
     if (!overlay) { overlay = doc.getElementById("customOverlay"); }
@@ -953,6 +1005,23 @@
         }
       }
     }
+    state.ceReady = true;
+    state.ceDirty = false;
+    state.ceSig = ceStructureSig();
+  }
+
+  /* 补扫收敛判据：只数链接/图标/选项组，不读文本、不碰几何。DOM 没变就说明
+     这一拍没有新东西可接，连续两拍稳定即可停止补扫（CE 的分批渲染同思路）。 */
+  function packSignature(passages) {
+    var nodes = passages.querySelectorAll("a.link-internal, a.macro-link, img.icon, .icon-container");
+    var links = 0;
+    var icons = 0;
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      if (n.tagName === "A") { links++; } else { icons++; }
+    }
+    var groups = passages.querySelectorAll(".ml-option-group").length;
+    return links + ":" + icons + ":" + groups;
   }
 
   function markPassages() {    var passages = doc.getElementById("passages");
@@ -960,7 +1029,7 @@
     /* 只标记，不替换链接；CSS 依据 .macro-link 区分正文选项与行内链接。 */
     var links = passages.querySelectorAll("a.link-internal.macro-link");
     for (var i = 0; i < links.length; i++) {
-      links[i].setAttribute("data-ml-option", "1");
+      setAttr(links[i], "data-ml-option", "1");
     }
     tidySeparators(passages);
     markShopCats(passages);
@@ -968,7 +1037,26 @@
     tidyShopText(passages);
     markEmptyDetails(passages);
     collapseBreaks(passages);
+    /* 本页分组已经稳定且没有新节点：直接跳过整轮 pack（含两次签名扫描、
+       repairGroups / adoptOrphanIcons / tidyGroupGaps 三轮全页遍历）。
+       任何新增/替换链接都会先经过 MutationObserver，把 packStable 打回 false。
+       锚点（首个选项链接）变了也视为新页：直接 innerHTML 替换时 observer 回调
+       可能还没跑，不能只信 flags。 */
+    if (state.packStable && state.packAnchor && passages.contains(state.packAnchor) &&
+        passages.querySelector("a.link-internal.macro-link, a.macro-link, a.link-internal") === state.packAnchor) {
+      state.packChanged = false;
+      return;
+    }
+    var before = packSignature(passages);
+    state.perf.packs++;
     packIconOptions(passages);
+    var after = packSignature(passages);
+    state.packChanged = before !== after;
+    state.packStable = true;
+    state.packAnchor = passages.querySelector("a.link-internal.macro-link, a.macro-link, a.link-internal");
+    /* 丢弃 pack 自己搬节点产生的观察记录；否则下一拍会把自己误判成“新节点”，
+       再白跑一轮全页遍历。 */
+    if (state.packObserver && state.packObserver.takeRecords) { state.packObserver.takeRecords(); }
   }
 
   function overlayKey(overlay) {
@@ -1161,15 +1249,14 @@
     var overlay = doc.getElementById("customOverlay");
     if (!overlay) { return; }
     var key = overlayKey(overlay);
-    overlay.setAttribute("data-ml-overlay", key);
-    if (key === "options") { addEntry(overlay); }
+    setAttr(overlay, "data-ml-overlay", key);    if (key === "options") { addEntry(overlay); }
     if (key === "gameFeats") { armFeatsIntro(); }
     if (key === "statistics") { alignStatRows(overlay); }
   }
 
   function markDialog() {
     var dialog = doc.getElementById("ui-dialog");
-    if (dialog) { dialog.setAttribute("data-ml-dialog", "1"); }
+    if (dialog) { setAttr(dialog, "data-ml-dialog", "1"); }
   }
 
   /* --------------------------------------------------------- 应用 / 调度 */
@@ -1195,6 +1282,13 @@
     var list = doc.querySelectorAll("#overlayButtons button");
     for (var i = 0; i < list.length; i++) {
       var b = list[i];
+      /* 已收过字号就不重复写；设置值相同也会让浏览器重新计算样式。 */
+      if (b.getAttribute("data-ml-label") === "1" &&
+          b.style.getPropertyValue("font-size") === "10px" &&
+          b.style.getPropertyValue("letter-spacing") === "-0.02em") {
+        state.perf.writesSaved += 2;
+        continue;
+      }
       if (!b.getAttribute("data-ml-label")) {
         b.setAttribute("data-ml-label", "1");
         b.setAttribute("data-ml-label-size", b.style.fontSize || "");
@@ -1202,6 +1296,7 @@
       }
       b.style.setProperty("font-size", "10px", "important");
       b.style.setProperty("letter-spacing", "-0.02em", "important");
+      state.perf.writes += 2;
     }
   }
 
@@ -1245,6 +1340,7 @@
 
   function apply() {
     if (state.disposed || !state.mounted) { return; }
+    state.perf.applies++;
     state.settings = readSettings();
     state.lang = C.pickLang(state.settings.lang, navigator.language || "zh");
     state.host = hostEnabled();
@@ -1254,10 +1350,12 @@
        1.1.6 及以前在 Android 上正是因此出现“面板是 1.1.6、正文却退回
        宿主原生卡片”的分裂状态。 */
     var on = state.settings.native !== false;
+    if (state.nativeOn !== on) { state.ceDirty = true; state.ceReady = false; }
     state.nativeOn = on;
     setRoot(on);
     if (!on) {
       clearMarks();
+      state.packStable = false;
       /* 入口是面板入口，不是原生样式的一部分；关原生卡片后仍要从选项进得来。 */
       markEntry();
       return;
@@ -1286,26 +1384,27 @@
     else { setTimeout(run, 0); }
   }
 
-  /* 正文换页后补扫两次：Android/宿主链上图标与本地化包裹可能晚于
-     passageend 一拍才落 DOM；只在 rAF 扫一次会留下卡外图标与空行。 */
+  /* 正文换页后补扫：只保留“立即 + 140ms”两拍，之后由自适应补扫接管
+     （600ms 起、700ms 一拍、连续两拍无变化即停）。原来另外固定 480/1200/
+     2400ms 三拍与补扫时间点重叠，稳定页会白跑多次全量 apply。 */
   function onPassage() {
+    state.stableTicks = 0;
+    state.packStable = false;
     schedule();
     setTimeout(schedule, 140);
-    setTimeout(schedule, 480);
-    /* 汉化 / TweeReplacer / 宿主会在 passageend 之后重建链接节点；
-       再补两拍，并配合 MutationObserver 兜底。 */
-    setTimeout(schedule, 1200);
-    setTimeout(schedule, 2400);
-    /* 安卓汉化包可能在数秒后才整段替换选项节点；继续低频补扫，
-       直到新链接稳定落位（约 6s），否则图标会停在卡外。 */
     if (state.sweep) { clearTimeout(state.sweep); }
     var ticks = 0;
     var sweepOnce = function () {
       state.sweep = null;
       if (state.disposed) { return; }
+      state.perf.sweeps++;
       schedule();
       ticks++;
-      if (ticks < 10) { state.sweep = setTimeout(sweepOnce, 600); }
+      /* 两次稳定判据：600ms 这一拍先跑完 apply（rAF），下一拍再读 packChanged。
+         连续两拍没有新组/新图标就停；有新节点时 observer 会重新排程。 */
+      if (state.packChanged) { state.stableTicks = 0; }
+      else { state.stableTicks++; }
+      if (state.stableTicks < 2 && ticks < 8) { state.sweep = setTimeout(sweepOnce, 700); }
     };
     state.sweep = setTimeout(sweepOnce, 600);
   }
@@ -1318,6 +1417,8 @@
       if (!node || node.nodeType !== 1) { return false; }
       try {
         if (node.matches && node.matches("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
+        /* 纯文本包裹没有后代元素，不必为它跑一次 querySelector。 */
+        if (!node.firstElementChild) { return false; }
         if (node.querySelector && node.querySelector("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
       } catch (e) { /* 选择器不支持时按无关处理 */ }
       return false;
@@ -1338,6 +1439,7 @@
         }
       }
       if (!hit) { return; }
+      state.packStable = false;
       if (state.packTimer) { clearTimeout(state.packTimer); }
       state.packTimer = setTimeout(schedule, 120);
     });
@@ -1353,13 +1455,18 @@
     var inInner = !!(t.closest && t.closest("#clothingShop-div, #clothes-list, #wardrobe"));
     if (inBar || inInner) {
       schedule();
-      setTimeout(schedule, 0);
       setTimeout(schedule, 150);
       if (t.closest && t.closest("#overlayButtons")) { armFeatsIntro(); }
     }
   }
 
   function onReady() { schedule(); }
+
+  /* 尺寸变了 CE 的 100vw / 单列判断必须重算；只在 resize 这一路标脏。 */
+  function onResize() {
+    state.ceDirty = true;
+    schedule();
+  }
 
   /* CE 面板是点开 OPTIONS 之后才异步挂进来的，正文观察器看不到它；
      单独盯 #customOverlay 子树，面板一出现/换页签就重算一次几何。 */
@@ -1370,6 +1477,10 @@
     state.overlayObserver = new window.MutationObserver(function () {
       if (state.disposed || !state.nativeOn) { return; }
       if (!doc.getElementById("cheat_extended_options")) { return; }
+      var sig = ceStructureSig();
+      if (sig === state.ceSig) { return; }
+      state.ceSig = sig;
+      state.ceDirty = true;
       if (state.packTimer) { clearTimeout(state.packTimer); }
       state.packTimer = setTimeout(function () {
         try { normalizeCheatLayout(); } catch (e) { /* 面板结构异常时不拖垮主流程 */ }
@@ -1382,7 +1493,7 @@
     doc.addEventListener("passageend", onPassage);
     doc.addEventListener("dol-ui-runtime-ready", schedule);
     doc.addEventListener("click", onClick, true);
-    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
     try {
       if (window.jQuery) { window.jQuery(doc).on(":passageend", onPassage); }
     } catch (e) { /* 原生事件兜底 */ }
@@ -1394,7 +1505,7 @@
     doc.removeEventListener("passageend", onPassage);
     doc.removeEventListener("dol-ui-runtime-ready", schedule);
     doc.removeEventListener("click", onClick, true);
-    window.removeEventListener("resize", schedule);
+    window.removeEventListener("resize", onResize);
     try {
       if (window.jQuery) { window.jQuery(doc).off(":passageend", onPassage); }
     } catch (e) { /* ignore */ }
@@ -1427,7 +1538,20 @@
     version: C.VERSION,
     refresh: schedule,
     apply: apply,
-    destroy: destroy
+    destroy: destroy,
+    stats: function () {
+      return {
+        applies: state.perf.applies,
+        sweeps: state.perf.sweeps,
+        packs: state.perf.packs,
+        writes: state.perf.writes,
+        writesSaved: state.perf.writesSaved,
+        ceNorm: state.perf.ceNorm,
+        ceReady: state.ceReady,
+        ceDirty: state.ceDirty,
+        ceSig: state.ceSig
+      };
+    }
   };
 
   if (doc.readyState === "loading") {
