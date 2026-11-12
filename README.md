@@ -19,7 +19,7 @@ Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.7-theme.mod.zip`（已装 1.1.4/1.1.5/1.1.6 旧包时可直接覆盖同名技术身份）。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.8-theme.mod.zip`（已装 1.1.4/1.1.5/1.1.6 旧包时可直接覆盖同名技术身份）。
 3. 刷新页面，无需重启游戏。
 
 > 把 zip 复制进 `game\` 目录不等于安装：ModLoader 从 `file://` origin 的 IndexedDB 读取模组。

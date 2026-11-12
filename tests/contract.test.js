@@ -15,10 +15,13 @@ const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
+/* 第三方 cheat overlay 的排除前导：CheatExtended 落在 #customOverlayContent 内，
+   带 #cheat_extended_options / #CE_settingsDiv / .CEtab；MapleBirchCE 则是 #mce-root。 */
+const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root\\)\\)";
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.7");
+  assert.equal(boot.version, "1.1.8");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -165,9 +168,26 @@ test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*top:\s*var\(--ml-caption-top, 192px\)/s);
   assert.match(nativeCss, /#saves-list-container \.savesListRow\s*\{[^}]*max-height:\s*none !important/s);
   assert.match(nativeCss, /:is\(#saves-list-container,#savesListContainer\) \.savesListRow\[data-ml-save-empty="1"\]\s*\{[^}]*padding:/s);
-  assert.match(nativeCss, /#customOverlayContent \.saveMenuButton\s*\{[^}]*background:\s*var\(--mln-surface-2\) !important/s);
-  assert.match(nativeCss, /#customOverlayContent \.saveMenuButton\s*\{[^}]*background:\s*var\(--mln-surface-2\) !important/s);
-  assert.match(nativeCss, /#customOverlayContent \.saveButton input,[\s\S]{0,400}?background:\s*var\(--mln-surface-2\) !important/s);
+  assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\.saveMenuButton\\s*\\{[^}]*background:\\s*var\\(--mln-surface-2\\) !important", "s"));
+  assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\.saveMenuButton\\s*\\{[^}]*background:\\s*var\\(--mln-surface-2\\) !important", "s"));
+  assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\.saveButton input,[\\s\\S]{0,400}?background:\\s*var\\(--mln-surface-2\\) !important", "s"));
+});
+
+test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留主题材质", () => {
+  assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\{", "s"));
+  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,500}background-color:\s*color-mix\(in srgb,\s*var\(--mln-bg\) 66%,\s*transparent\) !important/s);
+  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,500}background-image:\s*var\(--mln-page-texture\) !important/s);
+  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,900}\.dol-shadow[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*var\(--mln-surface\) 64%,\s*transparent\) !important/s);
+  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,900}\.dol-shadow[\s\S]{0,400}background-image:\s*var\(--mln-overlay-texture\) !important/s);
+  assert.match(nativeCss, /:has\(#cheat_extended_options\)[\s\S]{0,600}\.settingsGrid[\s\S]{0,200}grid-template-columns:\s*minmax\(0,\s*1fr\) !important/s);
+  assert.match(nativeCss, /:has\(#cheat_extended_options\)[\s\S]{0,600}\.CEtab[\s\S]{0,300}flex-wrap:\s*nowrap !important/s);
+});
+
+test("普通弹层：主题页纹理与半透明材质透出，不只是纯色底", () => {
+  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-bg\) 68%,\s*transparent\)/);
+  assert.match(nativeCss, /background-image:\s*var\(--mln-overlay-texture\),\s*var\(--mln-page-texture\)/);
+  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-surface\) 78%,\s*transparent\)/);
+  assert.match(nativeCss, /#customOverlayContent[\s\S]{0,300}background-image:\s*var\(--mln-page-texture\),\s*var\(--mln-surface-texture\)/);
 });
 
 test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，旧主题仍保留", () => {
@@ -178,6 +198,8 @@ test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，
   assert.match(css, /赛博朋克主题装饰/);
   assert.match(nativeCss, /data-ml-theme="cyberpunk"\]\s*\{[\s\S]*--mln-accent:\s*#00E5FF/);
   assert.match(nativeCss, /赛博朋克主题装饰/);
+  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlay:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#05070F 68%,\s*transparent\)/s);
+  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlayContent:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#080D19 78%,\s*transparent\)/s);
   for (const old of ["amber", "jade", "graphite", "star"]) {
     assert.ok(core.includes("theme." + old), "旧主题 " + old + " 不应被删除");
   }
@@ -253,7 +275,7 @@ test("原生脚本：只读标记、无轮询、恒按开关挂载与幂等入�
   assert.ok(!/State\.variables\s*[.\[]\s*[A-Za-z_$][\w$]*\s*[+\-*/]?=([^=]|$)/g.test(native));
 });
 
-test("1.1.7：正文选项按压、图标同卡、六主题整页背景与宿主不再关层", () => {
+test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主不再关层", () => {
   assert.ok(index.includes('.ml-option-group,a.link-internal.macro-link[data-ml-option=\\"1\\"]'),
     "正文选项必须进入 PRESS_SELECTOR");
   assert.match(index, /mln-press-ring/);
@@ -263,7 +285,7 @@ test("1.1.7：正文选项按压、图标同卡、六主题整页背景与宿主
   assert.match(nativeCss, /\.mln-press-ring/);
   assert.match(nativeCss, /@keyframes mln-press-ripple/);
   assert.match(nativeCss, /html\[data-ml-native="on"\] body\s*\{[\s\S]*?background-color: transparent !important/);
-  assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image: var\(--mln-page-texture\) !important/);
+  assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image:\s*radial-gradient\(122% 102% at 50% 46%[\s\S]*?var\(--mln-page-texture\) !important/);
   assert.match(nativeCss, /background-attachment: fixed/);
   assert.match(nativeCss, /radial-gradient\(3\.2px 3\.2px at 33% 15%/);
   assert.match(nativeCss, /br:has\(\+ a\.macro-link\)/);

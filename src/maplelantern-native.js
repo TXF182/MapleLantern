@@ -415,6 +415,19 @@
     function iconImage(node) {
       if (!node || node.nodeType !== 1) { return null; }
       if (node.tagName === "IMG" && node.classList.contains("icon")) { return node; }
+      /* DoL 原生地点图标不一定是 img：常见形态是
+         <span class="icon-container"><span class="icon swim"></span></span>，
+         背景图挂在内层 .icon 上。必须把整个容器搬进卡，否则外层绝对定位
+         会让图标留在卡外上方。 */
+      if (node.classList.contains("icon-container")) {
+        if ((node.textContent || "").trim()) { return null; }
+        if (node.querySelector("img.icon, .icon")) { return node; }
+        return null;
+      }
+      if (node.classList.contains("icon")) {
+        if ((node.textContent || "").trim()) { return null; }
+        return node;
+      }
       /* 地点/场景图标常被包在只含一个 img.icon 的 span 里；
          有文字就不是纯图标容器，不能当图标搬走。 */
       if ((node.textContent || "").trim()) { return null; }

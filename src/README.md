@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.7）
+# 灯台 · Lantern（MapleLantern 1.1.8）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.8 背景增强**：整页新增「边缘暗角 + 主题顶部光 + 底部回光」三层；普通 `#customOverlay` / `#ui-dialog` 改为 **68% 半透明**，内容层 **78% / 82%** 并叠页纹理；CheatExtended 的 overlay **66%**、`.dol-shadow` **64%**，面板不再是一块实色，星空/纸纹/网格能从弹层与 CE 面板透上来。
 - **点击/按压反馈**：按钮、页签、分段控件、图标、开关与快捷项按下时轻微下沉提亮；面板内生成短涟漪，松手后自动移除。系统「减少动态效果」或设置关闭动效时不播放，操作仍完整。
 - **不写存档、不改数值、不接管任何第三方业务。**
 - **1.1.3 热修**：关掉「原生卡片」再开回来时，`OPTIONS` 弹层不再被游戏 `closeOverlay()` 收掉，「灯台」入口保留，页签 `T.tab` 不被清空。
@@ -18,7 +19,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.7-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6 旧包时直接覆盖同名技术身份。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.8-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -52,7 +53,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.7）
+## 原生 UI 替换层（1.1.8）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
@@ -111,8 +112,10 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-12，Windows）实测：
 
-- `node --test tests\*.test.js`：**83 / 83 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.7 整页背景/星场/按压契约、同层双图标优先可见场景图）
-- 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.7 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 48px；两个 `img.icon` 装饰层均已进入卡内；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
+- `node --test tests\*.test.js`：**86 / 86 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约）
+- 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
+- CE 1.20.3.1 合成 DOM（390 宽）：`#customOverlayContent` padding 0、CE 页签 47×30 / padding 4px 8px / min-height auto、`.settingsGrid` 334px 单列、72% 半透明主题底 + 星空纹理；桌面 1280 不命中单列、保持 CE 两列
+- 普通 OPTIONS 弹层（390 宽）：`#customOverlay` / `#customOverlayContent` 68% / 78% 半透明主题底 + 页纹理，8 个原生入口几何不变
 - 真实正文按压：`pointerdown` 后 `pressed:true` / `ring:true`，`mln-press-ring` 出现在卡片内
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，8/8 `clicked:true`、`overlayHidden:false`、`errors:[]`；OPTIONS 页灯台入口保留
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
@@ -122,12 +125,12 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 1.1.4 阶段留存的六主题原型截图：6/6 面板 380×620；按压涟漪实测 `ring:true`、空心主题色亮环不遮字
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`
-- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；`70 KB` 量级，SHA256 见 `dist\SHA256-1.1.7-theme.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；`71.1 KB` 量级，SHA256 见 `dist\SHA256-1.1.8-theme.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.7-theme.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.8-theme.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

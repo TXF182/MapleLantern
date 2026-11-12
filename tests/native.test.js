@@ -197,6 +197,23 @@ test("正文选项：同一装饰层里叠两个图标时，优先把可见场�
   assert.equal(group.querySelector('a[data-passage="A"]') !== null, true);
 });
 
+test("正文选项：span.icon-container 图标也能整组搬进卡", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<span class="icon-container"><span class="icon swim"></span></span>' +
+    '<a class="link-internal macro-link" data-passage="A">(3) 游泳</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const group = p.querySelector(".ml-option-group");
+  assert.equal(group !== null, true);
+  assert.equal(group.querySelector(".icon-container") !== null, true, "图标容器应搬进卡内");
+  assert.equal(group.querySelector(".icon") !== null, true);
+  assert.equal(p.querySelectorAll(".icon-container").length, 1, "卡外不应再留图标容器");
+  assert.equal(group.querySelector('a[data-passage="A"]') !== null, true);
+});
+
 test("正文选项：pointerdown 生成原生主题环并进入按压态", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   await tick(w);
