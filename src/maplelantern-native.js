@@ -584,11 +584,48 @@
         icon.parentNode.insertBefore(wrap, icon);
         wrap.appendChild(icon);
         wrap.appendChild(link);
+        /* 空 <p>/<div> 会把 3px 的组间距重新撑成一大段；但含图标的段落不能删。 */
+        var emptyBlock = function (n) {
+          return n && n.nodeType === 1 && /^(P|DIV|SPAN)$/.test(n.tagName) &&
+            !(n.textContent || "").trim() &&
+            !(n.querySelector && n.querySelector("img.icon, .icon-container, a.link-internal, a.macro-link"));
+        };
         var before = wrap.previousSibling;
-        while (before && (blank(before) || (before.nodeType === 1 && before.tagName === "BR"))) {
+        while (before && (blank(before) || (before.nodeType === 1 && before.tagName === "BR") || emptyBlock(before))) {
           var dead = before;
           before = before.previousSibling;
           if (dead.parentNode) { dead.parentNode.removeChild(dead); }
+        }
+        var after = wrap.nextSibling;
+        while (after && (blank(after) || (after.nodeType === 1 && after.tagName === "BR") || emptyBlock(after))) {
+          var deadAfter = after;
+          after = after.nextSibling;
+          if (deadAfter.parentNode) { deadAfter.parentNode.removeChild(deadAfter); }
+        }
+      }
+    }
+    /* 正常分组路径不会经过 adoptOrphanIcons，组旁的空 <p>/<br> 仍会把 3px
+       间距撑回一大段。统一在每页收尾时清一遍，含图标的段落不动。 */
+    function tidyGroupGaps(passage) {
+      var emptyBlock = function (n) {
+        return n && n.nodeType === 1 && /^(P|DIV|SPAN)$/.test(n.tagName) &&
+          !(n.textContent || "").trim() &&
+          !(n.querySelector && n.querySelector("img.icon, .icon-container, a.link-internal, a.macro-link"));
+      };
+      var groups = passage.querySelectorAll(".ml-option-group");
+      for (var i = 0; i < groups.length; i++) {
+        var group = groups[i];
+        var prev = group.previousSibling;
+        while (prev && (blank(prev) || (prev.nodeType === 1 && prev.tagName === "BR") || emptyBlock(prev))) {
+          var deadPrev = prev;
+          prev = prev.previousSibling;
+          if (deadPrev.parentNode) { deadPrev.parentNode.removeChild(deadPrev); }
+        }
+        var next = group.nextSibling;
+        while (next && (blank(next) || (next.nodeType === 1 && next.tagName === "BR") || emptyBlock(next))) {
+          var deadNext = next;
+          next = next.nextSibling;
+          if (deadNext.parentNode) { deadNext.parentNode.removeChild(deadNext); }
         }
       }
     }
@@ -695,6 +732,7 @@
       }
       repairGroups(passage);
       adoptOrphanIcons(passage);
+      tidyGroupGaps(passage);
     }
   }
 
@@ -778,6 +816,7 @@
     var tabButtons = tabs.querySelectorAll("button");
     for (var t = 0; t < tabButtons.length; t++) {
       var tb = tabButtons[t];
+      tb.setAttribute("data-mln-tab", "1");
       imp(tb, "width", "auto");
       imp(tb, "min-width", "0");
       imp(tb, "max-width", "100%");
@@ -785,6 +824,8 @@
       imp(tb, "min-height", "34px");
       imp(tb, "padding", "3px 5px");
       imp(tb, "font-size", "11px");
+      imp(tb, "letter-spacing", "0");
+      imp(tb, "text-indent", "0");
       imp(tb, "line-height", "1.2");
       imp(tb, "white-space", "nowrap");
       imp(tb, "border-radius", "8px");
@@ -795,8 +836,31 @@
     var closeBtn = (content && content.querySelector(".CE-close-btn")) || tabs.querySelector(".CE-close-btn");
     /* 两层页签的第一行右端会被关闭按钮压住：给容器留出等宽内边距。 */
     var catBar = tabs.querySelector(".CE-category-bar");
-    if (catBar) { imp(catBar, "padding-right", "36px"); }
+    if (catBar) {
+      /* padding-right 只加在滚动内容的尾部，不能阻止页签滚到关闭按钮下面。
+         直接把分类栏收窄 36px，右侧留出真正的空白缺口。 */
+      imp(catBar, "width", "calc(100% - 36px)");
+      imp(catBar, "max-width", "calc(100% - 36px)");
+      imp(catBar, "box-sizing", "border-box");
+    }
+    /* 单行页签必然有滚动余量，右边缘直接切断文字像“坏了”。加一层不吃事件的
+       渐隐，提示还能横向滑，同时不遮关闭按钮。 */
+    var barNodes = tabs.querySelectorAll(".CE-category-bar, .CE-subtab-bar, .CEbuttonBar");
+    for (var f = 0; f < barNodes.length; f++) {
+      var bar = barNodes[f];
+      var oldFade = bar.querySelector(".mln-tab-fade");
+      if (oldFade && oldFade.parentNode) { oldFade.parentNode.removeChild(oldFade); }
+      if (bar.scrollWidth > bar.clientWidth + 2) {
+        imp(bar, "position", "relative");
+        var fade = doc.createElement("span");
+        fade.className = "mln-tab-fade";
+        fade.setAttribute("aria-hidden", "true");
+        fade.style.cssText = "position:absolute;top:0;right:0;width:26px;height:100%;pointer-events:none;z-index:2;background:linear-gradient(90deg,rgba(5,8,19,0)," + tint(bg, 0.82) + ")";
+        bar.appendChild(fade);
+      }
+    }
     if (closeBtn) {
+      closeBtn.setAttribute("data-mln-close", "1");
       imp(closeBtn, "right", "6px");
       imp(closeBtn, "top", "5px");
       imp(closeBtn, "width", "28px");
@@ -812,6 +876,7 @@
     var buttons = scope.querySelectorAll("button");
     for (var b = 0; b < buttons.length && b < 320; b++) {
       var btn = buttons[b];
+      if (btn.getAttribute("data-mln-tab") || btn.getAttribute("data-mln-close")) { continue; }
       var label = (btn.textContent || "").trim();
       imp(btn, "min-height", "32px");
       imp(btn, "padding", "3px 7px");
@@ -840,6 +905,21 @@
       imp(el, "min-width", "0");
       imp(el, "box-sizing", "border-box");
       imp(el, "overflow-wrap", "anywhere");
+      /* 部分 CE 皮肤把状态条箭头做成 <div>/<span> 而不是 <button>，
+         只用按钮规则会漏掉，箭头仍会撑成整格。只认“叶子节点 + 纯箭头文字”，
+         带子元素的包裹层（文字同样是 ‹<）不会被误缩。 */
+      if (!el.children.length && /^[<>‹›←→«»▲▼◀▶⏪⏩]+$/.test((el.textContent || "").trim())) {
+        imp(el, "width", "34px");
+        imp(el, "min-width", "34px");
+        imp(el, "max-width", "34px");
+        imp(el, "height", "34px");
+        imp(el, "min-height", "34px");
+        imp(el, "padding", "0");
+        imp(el, "font-size", "16px");
+        imp(el, "line-height", "34px");
+        imp(el, "text-align", "center");
+        imp(el, "flex", "0 0 auto");
+      }
       var cs = null;
       try { cs = window.getComputedStyle(el); } catch (e) { cs = null; }
       if (!cs) { continue; }

@@ -453,3 +453,47 @@ test("只读：原生层全程不写 State.variables", async () => {
   await tick(w);
   assert.equal(getWrites(), 0, "出现了 State.variables 写入");
 });
+
+test("CE 平铺页签：六颗胶囊同一行等分，不被 CE 固定 100px 撑成两行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    ['状态', '外观', 'NPC', '传送', '其它', '模组作弊'].map((t) => '<button>' + t + '</button>').join('') +
+    '</div>';
+  await tick(w, 320);
+  const tabs = content.querySelector("#cheat_extended_options");
+  assert.ok(tabs, "CE 面板应存在");
+  assert.equal(tabs.style.getPropertyValue("flex-wrap"), "nowrap", "页签必须单行");
+  const buttons = tabs.querySelectorAll("button");
+  assert.equal(buttons.length, 6);
+  for (const b of buttons) {
+    assert.equal(b.getAttribute("data-mln-tab"), "1", "页签应被标记，避免被内容按钮规则二次改写");
+    assert.equal(b.style.getPropertyValue("width"), "auto", "固定 100px 必须被解除");
+    assert.equal(b.style.getPropertyValue("font-size"), "11px");
+    assert.match(b.style.getPropertyValue("flex"), /^1 1 0(px)?$/, "平铺页签应等分一行");
+  }
+});
+test("选项分组：组前后空 <p> 不残留，避免把 3px 间距重新撑大", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<p>孤儿院大厅</p>' +
+    '<img class="icon" src="garden.png"><p></p><a class="link-internal macro-link" data-passage="Garden">(1) 花园</a><p></p>' +
+    '<img class="icon" src="office.png"><p></p><a class="link-internal macro-link" data-passage="Office">(2) 办公室</a><p></p>' +
+    '<p>尾注</p>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const groups = p.querySelectorAll(".ml-option-group");
+  assert.equal(groups.length, 2);
+  for (const g of groups) {
+    assert.ok(g.querySelector("img.icon"), "每组都要有图标");
+    assert.ok(g.querySelector("a.macro-link"), "每组都要有链接");
+  }
+  const emptyP = Array.from(p.querySelectorAll("p")).filter((n) => !(n.textContent || "").trim());
+  assert.equal(emptyP.length, 0, "空 <p> 应被清掉");
+  assert.equal(p.querySelectorAll("p").length, 2, "正文首尾段落应保留");
+});

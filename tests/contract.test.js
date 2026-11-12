@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.9");
+  assert.equal(boot.version, "1.1.10");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -327,4 +327,17 @@ test("1.1.9：Android 真实 DOM 兜底——晚替换链接重组、CE 不超�
   /* color-mix 前必须有 rgba 兜底，旧 WebView 才不是一整块实色。 */
   assert.match(nativeCss, /background-color: rgba\(18, 22, 27, \.62\);\s*\n\s*background-color: color-mix/);
   assert.match(nativeCss, /--mln-halo: rgba\(227, 178, 95, \.28\)/);
+});
+
+test("CE 页签不被内容按钮通扫覆盖，关闭按钮不被二次改尺寸", () => {
+  /* 实测回归：页签先设 11px / padding 3px 5px，随后“所有 button”循环
+     又把它改回 13px / 3px 7px，宽度从 65 撑到 81。必须加标记并跳过。 */
+  assert.match(native, /setAttribute\("data-mln-tab", "1"\)/);
+  assert.match(native, /setAttribute\("data-mln-close", "1"\)/);
+  assert.match(native, /getAttribute\("data-mln-tab"\) \|\| btn\.getAttribute\("data-mln-close"\)/);
+  /* 箭头可能是 <div>/<span> 叶子，不能只处理 button。 */
+  assert.match(native, /!el\.children\.length && \/\^\[<>‹›←→«»▲▼◀▶⏪⏩\]/);
+  /* 组前后空 <p> 会把 3px 间距重新撑大；必须双向清理且不得删掉含图标的段落。 */
+  assert.match(native, /var after = wrap\.nextSibling/);
+  assert.match(native, /querySelector\("img\.icon, \.icon-container, a\.link-internal, a\.macro-link"\)/);
 });
