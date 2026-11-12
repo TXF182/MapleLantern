@@ -402,24 +402,50 @@
   }
 
   /* 图标与选项在原版里是相邻节点；包成一组后，图标才能进入同一张卡左侧，
-     而不是独占一行把选项推远。除直接兄弟外，兼容「<span>包裹选项」的本地化
-     结构：只在该包裹层仅含这一个链接时搬家，避免误包内层页。 */
+     而不是独占一行把选项推远。兼容真实游戏里的多种结构：
+     1) 直属兄弟：<img class="icon"><br><a class="macro-link">；
+     2) 同一容器内：<div><img class="icon"><br><a class="macro-link"></div>；
+     3) 图标容器：<span class="water-outdoor-night"><img class="icon"></span><a>；
+     4) 本地化只包链接：<img class="icon"><span><a class="macro-link"></a></span>。
+     只在该容器只含这一个链接（和它的图标）时搬家，避免误包内层页。 */
   function packIconOptions(root) {
     function blank(node) {
       return node && node.nodeType === 3 && !(node.nodeValue || "").trim();
+    }
+    function iconImage(node) {
+      if (!node || node.nodeType !== 1) { return null; }
+      if (node.tagName === "IMG" && node.classList.contains("icon")) { return node; }
+      /* 地点/场景图标常被包在只含一个 img.icon 的 span 里；
+         有文字就不是纯图标容器，不能当图标搬走。 */
+      if ((node.textContent || "").trim()) { return null; }
+      var imgs = node.querySelectorAll("img.icon");
+      return imgs.length === 1 ? imgs[0] : null;
     }
     function iconBefore(node) {
       var prev = node.previousSibling;
       while (prev && (blank(prev) || (prev.nodeType === 1 && prev.tagName === "BR"))) {
         prev = prev.previousSibling;
       }
-      return prev && prev.nodeType === 1 && prev.tagName === "IMG" &&
-        prev.classList.contains("icon") ? prev : null;
+      return iconImage(prev);
     }
-    function onlyLink(holder, link) {
+    function outerIcon(icon, stop) {
+      var node = icon;
+      while (node.parentNode && node.parentNode !== stop) { node = node.parentNode; }
+      return node;
+    }
+    function onlyLink(holder, link, icon) {
       for (var c = holder.firstChild; c; c = c.nextSibling) {
-        if (c === link) { continue; }
+        if (c === link || c === icon) { continue; }
         if (blank(c) || (c.nodeType === 1 && c.tagName === "BR")) { continue; }
+        return false;
+      }
+      return true;
+    }
+    function decorativeShell(node) {
+      if (!node || node.nodeType !== 1) { return false; }
+      for (var c = node.firstChild; c; c = c.nextSibling) {
+        if (blank(c) || (c.nodeType === 1 && c.tagName === "BR")) { continue; }
+        if (c.nodeType === 1 && decorativeShell(c)) { continue; }
         return false;
       }
       return true;
@@ -437,36 +463,81 @@
         if (inGroup) { continue; }
 
         var holder = link.parentNode;
-        var icon = null;
-        var moveHolder = false;
-        if (holder === passage) {
-          icon = iconBefore(link);
-        } else if (holder && holder.nodeType === 1 && onlyLink(holder, link)) {
+        var icon = iconBefore(link);
+        var iconOuter = null;
+        var iconInHolder = false;
+        if (icon && holder && holder.contains && holder.contains(icon)) {
+          iconInHolder = true;
+          iconOuter = outerIcon(icon, holder);
+        }
+        if (!icon && holder !== passage && holder && holder.nodeType === 1 &&
+            onlyLink(holder, link, null)) {
           icon = iconBefore(holder);
-          if (icon) { moveHolder = true; }
+          if (icon) {
+            var boundary = holder.parentNode || passage;
+            iconOuter = outerIcon(icon, boundary);
+          }
         }
         if (!icon) { continue; }
+        if (holder !== passage &&
+            !onlyLink(holder, link, iconInHolder ? iconOuter : null)) { continue; }
 
+        var outer = iconOuter || icon;
+        if (!outer.parentNode) { continue; }
         var wrap = doc.createElement("div");
         wrap.className = "ml-option-group";
         wrap.setAttribute("data-ml-option-group", "1");
-        icon.parentNode.insertBefore(wrap, icon);
+        outer.parentNode.insertBefore(wrap, outer);
         wrap.appendChild(icon);
         wrap.appendChild(link);
-        if (moveHolder && holder.parentNode && !(holder.textContent || "").trim()) {
-          holder.parentNode.removeChild(holder);
+        /* 真实 Lake Shore 会在同一个选项前叠两层：icon-container（选项图标）
+           与 water-outdoor-night（场景底图）。已把可见的场景图标搬进卡后，
+           紧邻的空 icon-container 只会在原位留一个 0×0 绝对定位壳，摘掉。 */
+        var prior = wrap.previousSibling;
+        while (prior && (blank(prior) || (prior.nodeType === 1 && prior.tagName === "BR"))) {
+          prior = prior.previousSibling;
         }
-        /* 图标与选项之间原来的换行若因包裹层留下，会变成卡片后的空行。 */
+        if (prior && prior.nodeType === 1 && prior.classList.contains("icon-container") &&
+            !(prior.textContent || "").trim() && prior.parentNode) {
+          prior.parentNode.removeChild(prior);
+        }
+        /* 图标原来包在装饰层里时，搬走 img 后只剩空壳（可能还嵌着空 span），
+           一并摘掉，避免绝对定位的空容器继续占位或留下虚线框。 */
+        if (outer !== icon && outer.parentNode && decorativeShell(outer)) {
+          outer.parentNode.removeChild(outer);
+        }
+        /* 同容器结构：图标和链接移走后，容器只剩 <br>/空白。把卡片提到
+           容器原来的位置并摘掉容器，否则外层容器仍会占一行。 */
+        if (holder !== passage && holder.parentNode) {
+          var holderParent = holder.parentNode;
+          holderParent.insertBefore(wrap, holder);
+          holderParent.removeChild(holder);
+        }
+        /* 选项卡片之间、以及卡后奖励行之间的连续空行，全部收掉；
+           卡片自带 margin，不再靠 <br> 撑距离。 */
         var after = wrap.nextSibling;
-        while (after && blank(after)) { after = after.nextSibling; }
-        if (after && after.nodeType === 1 && after.tagName === "BR") {
-          after.parentNode.removeChild(after);
+        while (after) {
+          if (blank(after)) {
+            var blankNode = after;
+            after = after.nextSibling;
+            if (blankNode.parentNode) { blankNode.parentNode.removeChild(blankNode); }
+            continue;
+          }
+          if (after.nodeType === 1 && after.tagName === "BR") {
+            var brNode = after;
+            after = after.nextSibling;
+            if (brNode.parentNode) { brNode.parentNode.removeChild(brNode); }
+            continue;
+          }
+          break;
         }
         /* 图标前的空行会把整组再推远一行，直接摘掉。 */
         var prev = wrap.previousSibling;
         while (prev) {
           if (prev.nodeType === 3 && !(prev.nodeValue || "").trim()) {
+            var spaceNode = prev;
             prev = prev.previousSibling;
+            if (spaceNode.parentNode) { spaceNode.parentNode.removeChild(spaceNode); }
             continue;
           }
           if (prev.nodeType === 1 && prev.tagName === "BR") {
@@ -530,7 +601,15 @@
 
   function addEntry(overlay) {
     if (!overlay || overlay.classList.contains("hidden")) { return; }
-    if (overlay.querySelector('[data-ml-entry="panel"]')) { return; }
+    var text = C.strings(state.lang)["native.entry"];
+    var hint = C.strings(state.lang)["native.entryHint"];
+    var existing = overlay.querySelector('[data-ml-entry="panel"]');
+    if (existing) {
+      existing.textContent = text;
+      existing.setAttribute("title", hint);
+      state.entry = existing;
+      return;
+    }
     var body = doc.getElementById("customOverlayContent");
     if (!body) { return; }
     var wrap = doc.createElement("div");
@@ -539,12 +618,30 @@
     btn.type = "button";
     btn.className = "ml-native-entry";
     btn.setAttribute("data-ml-entry", "panel");
-    btn.setAttribute("title", C.strings(state.lang)["native.entryHint"]);
-    btn.textContent = C.strings(state.lang)["native.entry"];
+    btn.setAttribute("title", hint);
+    btn.textContent = text;
     btn.addEventListener("click", openPanel);
     wrap.appendChild(btn);
     body.insertBefore(wrap, body.firstChild);
     state.entry = btn;
+  }
+
+  /* 「灯台」入口属于面板本身，不属于原生卡片层。关闭原生卡片后入口必须留下，
+     否则玩家关掉面板就再也进不来。只在销毁时移除。 */
+  function removeEntry() {
+    var entries = doc.querySelectorAll('[data-ml-entry="panel"]');
+    for (var i = 0; i < entries.length; i++) {
+      var wrap = entries[i].parentNode;
+      if (wrap && wrap.parentNode) { wrap.parentNode.removeChild(wrap); }
+    }
+    state.entry = null;
+  }
+
+  function markEntry() {
+    var overlay = doc.getElementById("customOverlay");
+    if (!overlay || overlay.classList.contains("hidden")) { return; }
+    if (overlayKey(overlay) !== "options") { return; }
+    addEntry(overlay);
   }
 
   function markFeatsIntro() {
@@ -743,11 +840,6 @@
       railStats[r].removeAttribute("data-ml-rail-pct");
       railStats[r].style.removeProperty("--ml-rail-pct");
     }
-    var entries = doc.querySelectorAll('[data-ml-entry="panel"]');
-    for (var j = 0; j < entries.length; j++) {
-      var wrap = entries[j].parentNode;
-      if (wrap && wrap.parentNode) { wrap.parentNode.removeChild(wrap); }
-    }
     var labels = doc.querySelectorAll("[data-ml-label]");
     for (var k = 0; k < labels.length; k++) {
       labels[k].removeAttribute("data-ml-label");
@@ -758,7 +850,6 @@
       labels[k].removeAttribute("data-ml-label-size");
       labels[k].removeAttribute("data-ml-label-spacing");
     }
-    state.entry = null;
   }
 
   function apply() {
@@ -771,9 +862,9 @@
     setRoot(on);
     if (!on) {
       clearMarks();
-      restoreOverlay();
-      if (state.entry && state.entry.parentNode) { state.entry.parentNode.removeChild(state.entry); }
-      state.entry = null;
+      /* 入口是面板入口，不是原生样式的一部分；关原生卡片后仍要从选项进得来。
+         弹层容器不在这里搬回正文层：游戏会把它视为一次关闭，连带清掉 T.tab。 */
+      if (!state.host) { markEntry(); }
       return;
     }
     liftOverlay();
@@ -842,8 +933,8 @@
     state.disposed = true;
     unbind();
     clearMarks();
+    removeEntry();
     restoreOverlay();
-    if (state.entry && state.entry.parentNode) { state.entry.parentNode.removeChild(state.entry); }
     doc.documentElement.setAttribute(ATTR, "off");
   }
 

@@ -1167,12 +1167,14 @@
     clearTimeout(state.closeTimer);
     clearTimeout(toastTimer);
     clearTimeout(moveTimer);
+    clearPressTimers();
     try {
       if (window.jQuery) { window.jQuery(doc).off(":passageend", onPassage); }
       doc.removeEventListener("passageend", onPassage);
       doc.removeEventListener("dol-ui-runtime-ready", syncHost);
       doc.removeEventListener("keydown", onKeyDown);
       doc.removeEventListener("pointerdown", onDocPointer, true);
+      doc.removeEventListener("pointerdown", onPressFx, true);
       window.removeEventListener("resize", onResize);
     } catch (e) { /* ignore */ }
     if (els.root && els.root.parentNode) { els.root.parentNode.removeChild(els.root); }
@@ -1180,6 +1182,57 @@
   }
 
   /* ---------------------------------------------------------------- 挂载 */
+
+  var PRESS_SELECTOR = ".ml-btn,.ml-tab,.ml-seg-btn,.ml-icon,.ml-switch,.ml-quick,.ml-native-entry,.ml-option-group,a.link-internal.macro-link[data-ml-option=\"1\"]";
+  var pressTimers = [];
+
+  function clearPressTimers() {
+    while (pressTimers.length) { clearTimeout(pressTimers.pop()); }
+  }
+
+  function onPressFx(e) {
+    if (!els.root || prefersReduced() || !state.settings.motion) { return; }
+    if (typeof e.button === "number" && e.button !== 0) { return; }
+    var target = e.target;
+    if (!target || typeof target.closest !== "function") { return; }
+    var node = target.closest(".ml-option-group");
+    if (!node) { node = target.closest(PRESS_SELECTOR); }
+    if (!node) { return; }
+    var inRoot = els.root.contains(node);
+    var isEntry = node.classList.contains("ml-native-entry");
+    var isOption = node.classList.contains("ml-option-group") ||
+      (node.getAttribute && node.getAttribute("data-ml-option") === "1");
+    if (!inRoot && !isEntry && !isOption) { return; }
+    var pressedClass = inRoot ? "ml-is-pressed" : "mln-is-pressed";
+    var hostClass = inRoot ? "ml-press-host" : "mln-press-host";
+    var ringClass = inRoot ? "ml-press-ring" : "mln-press-ring";
+
+    node.classList.add(pressedClass);
+    var timer = setTimeout(function () {
+      node.classList.remove(pressedClass);
+      var idx = pressTimers.indexOf(timer);
+      if (idx >= 0) { pressTimers.splice(idx, 1); }
+    }, 160);
+    pressTimers.push(timer);
+
+    if (typeof e.clientX !== "number" || typeof e.clientY !== "number") { return; }
+    var rect = node.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+    if (!rect.width || !rect.height) { return; }
+    if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
+      x = rect.width / 2;
+      y = rect.height / 2;
+    }
+    if (!node.classList.contains(hostClass)) { node.classList.add(hostClass); }
+    var old = node.querySelectorAll("." + ringClass);
+    Array.prototype.forEach.call(old, function (n) { if (n.parentNode) { n.parentNode.removeChild(n); } });
+    var ring = el("span", ringClass, { "aria-hidden": "true" });
+    ring.style.left = x + "px";
+    ring.style.top = y + "px";
+    node.appendChild(ring);
+    setTimeout(function () { if (ring.parentNode) { ring.parentNode.removeChild(ring); } }, 520);
+  }
 
   function bind() {
     var boundJq = false;
@@ -1189,6 +1242,7 @@
     if (!boundJq) { doc.addEventListener("passageend", onPassage); }
     doc.addEventListener("dol-ui-runtime-ready", syncHost);
     doc.addEventListener("keydown", onKeyDown);
+    doc.addEventListener("pointerdown", onPressFx, true);
     window.addEventListener("resize", onResize, { passive: true });
   }
 

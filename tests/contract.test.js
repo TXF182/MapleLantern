@@ -18,7 +18,7 @@ const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.3");
+  assert.equal(boot.version, "1.1.6");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -75,6 +75,9 @@ test("样式作用域：所有 .ml-* 选择器都在 #ml-root 之下", () => {
   for (const raw of selectors) {
     const sel = raw.trim();
     if (!sel || sel.startsWith("@") || /^\d+%$/.test(sel) || /^(from|to)$/.test(sel)) { continue; }
+    /* 原生选项入口挂在 #customOverlayContent 内，天生不在 #ml-root 之下；
+       只允许这一组前缀例外。 */
+    if (sel.startsWith(".ml-native-entry")) { continue; }
     if (sel.includes(".ml-") && !sel.includes("#ml-root")) {
       assert.fail("未作用域的选择器: " + sel);
     }
@@ -87,6 +90,49 @@ test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
       assert.fail("未跟随字号的声明: " + line.trim());
     }
   }
+});
+
+test("主题纹理：6 套主题都有独立背景变量，面板/正文/卡片三层落点", () => {
+  for (const theme of ["amber", "cyberpunk", "jade", "graphite", "star"]) {
+    assert.match(css, new RegExp('data-theme="' + theme + '"'), "缺少主题块: " + theme);
+  }
+  assert.match(css, /--ml-tex-panel:/);
+  assert.match(css, /--ml-tex-body:/);
+  assert.match(css, /--ml-tex-card:/);
+  assert.match(css, /background-image: var\(--ml-tex-panel\)/);
+  assert.match(css, /#ml-root \.ml-body\s*\{[^}]*background-image:\s*var\(--ml-tex-body\)/s);
+  assert.match(css, /#ml-root \.ml-stat,[\s\S]*?\.ml-slot,[\s\S]*?\.ml-quick\s*\{[^}]*background-image:\s*var\(--ml-tex-card\)/s);
+  assert.match(css, /#ml-root\[data-theme="star"\] \.ml-mark/);
+  assert.match(css, /#ml-root\[data-theme="star"\] \.ml-panel\s*\{[^}]*inset 0 0 40px/s);
+  assert.match(nativeCss, /#customOverlayTitle/);
+  assert.match(nativeCss, /#ui-dialog-titlebar/);
+});
+
+test("按压反馈：CSS 按压/涟漪 + JS 指针入口 + 减少动效兜底", () => {
+  assert.match(css, /\.ml-press-ring\s*\{[^}]*z-index:\s*1/s);
+  assert.match(css, /@keyframes ml-press-ripple\s*\{[\s\S]*?scale\(3\.4\)/);
+  assert.match(css, /@keyframes ml-press-ripple/);
+  assert.match(css, /:active,[\s\S]*?\.ml-is-pressed/s);
+  assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*?\.ml-press-ring\s*\{\s*animation:\s*none/s);
+  assert.match(index, /PRESS_SELECTOR/);
+  assert.match(index, /onPressFx/);
+  assert.match(index, /ml-press-ring/);
+  assert.match(index, /doc\.addEventListener\("pointerdown", onPressFx, true\)/);
+  assert.match(index, /doc\.removeEventListener\("pointerdown", onPressFx, true\)/);
+  assert.match(nativeCss, /--mln-overlay-texture:/);
+  assert.match(nativeCss, /--mln-bar-texture:/);
+  assert.match(nativeCss, /background-image:\s*var\(--mln-overlay-texture\)/);
+});
+
+test("增强：卡片内缘光、表盘外环、双层涟漪与更长清理窗口", () => {
+  assert.match(css, /\.ml-stat\.is-accent\s*\{[^}]*inset 0 0 26px -8px/s);
+  assert.match(css, /#ml-root \.ml-ring::after/);
+  assert.match(css, /0 0 0 1px var\(--ml-press-ripple\),[\s\S]*?0 0 26px var\(--ml-press-glow\)/);
+  assert.match(css, /\.ml-head\s*\{[^}]*background-image:/s);
+  assert.match(index, /520\);/);
+  assert.match(nativeCss, /scale\(\.972\)/);
+  assert.match(nativeCss, /rgb\(190 255 240 \/ 6%\)/);
+  assert.match(nativeCss, /#customOverlayTitle,[\s\S]*?background-image:\s*linear-gradient\(180deg,\s*var\(--mln-glow\)/s);
 });
 
 test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage 单飞", () => {
@@ -205,4 +251,18 @@ test("native.js：只读标记、无轮询、宿主让位与幂等入口", () =>
   assert.ok(native.includes('data-ml-entry="panel"'));
   assert.ok(native.includes("querySelector"));
   assert.ok(!/State\.variables\s*[.\[]\s*[A-Za-z_$][\w$]*\s*[+\-*/]?=([^=]|$)/g.test(native));
+});
+
+test("1.1.6：正文选项按压、图标同卡与星空页面背景都有契约", () => {
+  assert.ok(index.includes('.ml-option-group,a.link-internal.macro-link[data-ml-option=\\"1\\"]'),
+    "正文选项必须进入 PRESS_SELECTOR");
+  assert.match(index, /mln-press-ring/);
+  assert.match(index, /mln-is-pressed/);
+  assert.match(nativeCss, /\.ml-option-group > img\.icon/);
+  assert.match(nativeCss, /grid-template-columns: 28px minmax\(0, 1fr\)/);
+  assert.match(nativeCss, /\.mln-press-ring/);
+  assert.match(nativeCss, /@keyframes mln-press-ripple/);
+  assert.match(nativeCss, /\[data-ml-theme="star"\] body/);
+  assert.match(nativeCss, /background-attachment: fixed/);
+  assert.match(nativeCss, /radial-gradient\(2px 2px at 33% 15%/);
 });

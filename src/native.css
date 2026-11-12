@@ -21,6 +21,20 @@ html[data-ml-native="on"] {
   --mln-radius: 14px;
   --mln-radius-sm: 10px;
   --mln-font: system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif;
+  --mln-glow: rgba(227, 178, 95, .2);
+  --mln-overlay-texture:
+    linear-gradient(172deg, rgb(255 242 216 / 4%), transparent 36%, transparent 68%, rgb(120 66 28 / 7%)),
+    radial-gradient(110% 80% at 10% 0%, rgb(227 178 95 / 10%), transparent 58%),
+    repeating-linear-gradient(92deg, rgb(255 255 255 / 2.4%) 0 1px, transparent 1px 4px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0%, rgb(227 178 95 / 10%), transparent 64%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(227 178 95 / 2.5%) 23px 24px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(227 178 95 / 6%), transparent 58%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 1.4%) 0 1px, transparent 1px 5px);
+  --mln-page-texture:
+    linear-gradient(180deg, rgb(227 178 95 / 3%), transparent 30%),
+    repeating-linear-gradient(115deg, rgb(255 255 255 / 1.2%) 0 1px, transparent 1px 7px);
 }
 
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
@@ -43,6 +57,24 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
   --mln-glow: rgba(0, 229, 255, .22);
   --mln-hot: rgba(255, 61, 154, .28);
   --mln-grid: rgba(0, 229, 255, .045);
+  --mln-overlay-texture:
+    linear-gradient(132deg, transparent 42%, rgb(0 229 255 / 3%) 47%, transparent 52%, transparent 76%, rgb(255 61 154 / 4%) 82%, transparent 88%),
+    radial-gradient(120% 70% at 100% 0, rgb(255 61 154 / 10%), transparent 54%),
+    linear-gradient(180deg, rgb(0 229 255 / 6%), transparent 30%),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgb(0 229 255 / 3.5%) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgb(255 61 154 / 2.5%) 47px 48px);
+  --mln-bar-texture:
+    radial-gradient(120% 62% at 50% 0%, rgb(0 229 255 / 10%), transparent 62%),
+    linear-gradient(180deg, rgb(255 61 154 / 6%), transparent 28%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(0 229 255 / 3.5%) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgb(0 229 255 / 2%) 47px 48px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(0 229 255 / 7%), transparent 48%),
+    linear-gradient(315deg, rgb(255 61 154 / 5%), transparent 44%),
+    repeating-linear-gradient(0deg, rgb(0 229 255 / 1.5%) 0 1px, transparent 1px 4px);
+  --mln-page-texture:
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(0 229 255 / 2.2%) 23px 24px),
+    linear-gradient(135deg, transparent 48%, rgb(255 61 154 / 2%) 49%, transparent 50%);
 }
 
 html[data-ml-native="on"][data-ml-theme="jade"] {
@@ -59,6 +91,20 @@ html[data-ml-native="on"][data-ml-theme="jade"] {
   --mln-jade: #7FD6C5;
   --mln-rose: #D2737B;
   --mln-danger: #C65449;
+  --mln-overlay-texture:
+    linear-gradient(112deg, transparent 28%, rgb(190 255 240 / 6%) 40%, rgb(190 255 240 / 1%) 50%, transparent 62%),
+    radial-gradient(100% 75% at 8% 0, rgb(95 191 172 / 12%), transparent 58%),
+    linear-gradient(118deg, transparent 42%, rgb(255 255 255 / 3%) 43%, transparent 44%),
+    repeating-linear-gradient(66deg, rgb(127 214 197 / 2.5%) 0 1px, transparent 1px 10px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0, rgb(95 191 172 / 10%), transparent 64%),
+    repeating-linear-gradient(66deg, rgb(127 214 197 / 2.2%) 0 1px, transparent 1px 10px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(95 191 172 / 7%), transparent 58%),
+    repeating-linear-gradient(-24deg, rgb(255 255 255 / 1.6%) 0 1px, transparent 1px 9px);
+  --mln-page-texture:
+    linear-gradient(180deg, rgb(95 191 172 / 4%), transparent 32%),
+    repeating-linear-gradient(66deg, rgb(127 214 197 / 1.6%) 0 1px, transparent 1px 10px);
 }
 
 html[data-ml-native="on"][data-ml-theme="graphite"] {
@@ -75,6 +121,21 @@ html[data-ml-native="on"][data-ml-theme="graphite"] {
   --mln-jade: #8FD3C4;
   --mln-rose: #CE7C84;
   --mln-danger: #C65449;
+  --mln-overlay-texture:
+    linear-gradient(108deg, transparent 16%, rgb(255 255 255 / 5%) 23%, rgb(255 255 255 / 1%) 31%, transparent 39%, transparent 72%, rgb(255 255 255 / 3%) 78%, transparent 86%),
+    radial-gradient(100% 70% at 50% 0, rgb(201 205 212 / 9%), transparent 64%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 2.2%) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgb(0 0 0 / 14%) 0 2px, transparent 2px 4px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0, rgb(201 205 212 / 8%), transparent 64%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 2%) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgb(0 0 0 / 10%) 0 2px, transparent 2px 4px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(201 205 212 / 6%), transparent 58%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 4px);
+  --mln-page-texture:
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.1%) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, rgb(0 0 0 / 7%) 0 2px, transparent 2px 5px);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] {
@@ -92,22 +153,83 @@ html[data-ml-native="on"][data-ml-theme="star"] {
   --mln-rose: #D98CCB;
   --mln-danger: #E06B6B;
   --mln-star: rgba(143, 166, 255, .16);
+  --mln-overlay-texture:
+    linear-gradient(58deg, transparent 24%, rgb(111 90 255 / 5%) 34%, rgb(190 205 255 / 11%) 48%, rgb(111 90 255 / 4%) 60%, transparent 72%),
+    radial-gradient(90% 65% at 18% 0, rgb(111 90 255 / 14%), transparent 58%),
+    radial-gradient(70% 55% at 84% 18%, rgb(143 166 255 / 9%), transparent 62%),
+    radial-gradient(1px 1px at 12% 9%, rgb(255 255 255 / 55%) 0, transparent 1.4px),
+    radial-gradient(1px 1px at 78% 16%, rgb(196 208 255 / 48%) 0, transparent 1.4px),
+    radial-gradient(1.5px 1.5px at 34% 6%, rgb(255 255 255 / 36%) 0, transparent 2px),
+    radial-gradient(1px 1px at 92% 34%, rgb(143 166 255 / 48%) 0, transparent 1.4px),
+    radial-gradient(1px 1px at 22% 43%, rgb(255 255 255 / 28%) 0, transparent 1.4px),
+    radial-gradient(1px 1px at 62% 58%, rgb(196 208 255 / 28%) 0, transparent 1.4px),
+    radial-gradient(1.5px 1.5px at 6% 62%, rgb(255 255 255 / 30%) 0, transparent 2px),
+    radial-gradient(2px 2px at 88% 72%, rgb(196 208 255 / 38%) 0, transparent 2.4px);
+  --mln-bar-texture:
+    radial-gradient(90% 60% at 50% 0, rgb(111 90 255 / 12%), transparent 62%),
+    radial-gradient(1px 1px at 14% 7%, rgb(255 255 255 / 58%) 0, transparent 1.4px),
+    radial-gradient(1px 1px at 72% 13%, rgb(190 205 255 / 46%) 0, transparent 1.4px),
+    radial-gradient(1.5px 1.5px at 38% 21%, rgb(255 255 255 / 33%) 0, transparent 2px),
+    radial-gradient(1px 1px at 88% 31%, rgb(143 166 255 / 50%) 0, transparent 1.4px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(143 166 255 / 9%), transparent 58%),
+    radial-gradient(1px 1px at 18% 20%, rgb(255 255 255 / 20%) 0, transparent 1.2px),
+    radial-gradient(1px 1px at 72% 68%, rgb(196 208 255 / 18%) 0, transparent 1.2px);
+  --mln-page-texture:
+    radial-gradient(130% 95% at 16% -10%, rgb(92 74 210 / 24%), transparent 58%),
+    radial-gradient(105% 72% at 88% 4%, rgb(58 111 210 / 16%), transparent 62%),
+    radial-gradient(70% 48% at 60% 36%, rgb(143 166 255 / 8%), transparent 70%),
+    linear-gradient(54deg, transparent 36%, rgb(194 207 255 / 9%) 45%, rgb(143 166 255 / 3%) 52%, transparent 66%),
+    radial-gradient(1px 1px at 7% 9%, rgb(255 255 255 / 82%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 15% 18%, rgb(196 208 255 / 70%) 0, transparent 2px),
+    radial-gradient(1px 1px at 24% 7%, rgb(255 255 255 / 55%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 33% 15%, rgb(255 255 255 / 74%) 0, transparent 2.6px),
+    radial-gradient(1px 1px at 41% 4%, rgb(190 205 255 / 62%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 52% 12%, rgb(255 255 255 / 66%) 0, transparent 2px),
+    radial-gradient(1px 1px at 61% 21%, rgb(196 208 255 / 50%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 72% 8%, rgb(255 255 255 / 80%) 0, transparent 2.6px),
+    radial-gradient(1px 1px at 83% 17%, rgb(190 205 255 / 64%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 94% 6%, rgb(255 255 255 / 58%) 0, transparent 2px),
+    radial-gradient(1px 1px at 5% 29%, rgb(196 208 255 / 46%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 12% 39%, rgb(255 255 255 / 86%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 20% 48%, rgb(255 255 255 / 44%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 29% 34%, rgb(190 205 255 / 62%) 0, transparent 2px),
+    radial-gradient(1px 1px at 39% 44%, rgb(255 255 255 / 56%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 48% 31%, rgb(196 208 255 / 82%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 58% 42%, rgb(255 255 255 / 45%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 68% 35%, rgb(255 255 255 / 68%) 0, transparent 2px),
+    radial-gradient(1px 1px at 78% 47%, rgb(190 205 255 / 52%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 88% 37%, rgb(255 255 255 / 90%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 96% 49%, rgb(196 208 255 / 56%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 8% 61%, rgb(255 255 255 / 72%) 0, transparent 2px),
+    radial-gradient(1px 1px at 18% 70%, rgb(190 205 255 / 48%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 27% 58%, rgb(255 255 255 / 84%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 37% 68%, rgb(196 208 255 / 58%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 46% 54%, rgb(255 255 255 / 64%) 0, transparent 2px),
+    radial-gradient(1px 1px at 56% 67%, rgb(255 255 255 / 46%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 65% 57%, rgb(190 205 255 / 80%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 74% 72%, rgb(255 255 255 / 56%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 84% 61%, rgb(255 255 255 / 72%) 0, transparent 2px),
+    radial-gradient(2px 2px at 93% 74%, rgb(196 208 255 / 86%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 4% 84%, rgb(255 255 255 / 46%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 14% 92%, rgb(190 205 255 / 64%) 0, transparent 2px),
+    radial-gradient(2px 2px at 24% 81%, rgb(255 255 255 / 78%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 35% 94%, rgb(255 255 255 / 52%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 44% 85%, rgb(196 208 255 / 66%) 0, transparent 2px),
+    radial-gradient(2px 2px at 54% 96%, rgb(255 255 255 / 82%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 63% 86%, rgb(190 205 255 / 48%) 0, transparent 1.5px),
+    radial-gradient(1.5px 1.5px at 73% 95%, rgb(255 255 255 / 70%) 0, transparent 2px),
+    radial-gradient(1px 1px at 82% 88%, rgb(255 255 255 / 54%) 0, transparent 1.5px),
+    radial-gradient(2px 2px at 91% 96%, rgb(196 208 255 / 84%) 0, transparent 2.8px),
+    radial-gradient(1px 1px at 48% 76%, rgb(255 255 255 / 38%) 0, transparent 1.5px);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] #ui-bar#ui-bar {
-  background-image:
-    radial-gradient(1px 1px at 14% 7%, rgba(255, 255, 255, .62) 0, rgba(255, 255, 255, 0) 1.4px),
-    radial-gradient(1px 1px at 72% 13%, rgba(190, 205, 255, .5) 0, rgba(190, 205, 255, 0) 1.4px),
-    radial-gradient(1.5px 1.5px at 38% 21%, rgba(255, 255, 255, .35) 0, rgba(255, 255, 255, 0) 2px),
-    radial-gradient(1px 1px at 88% 31%, rgba(143, 166, 255, .55) 0, rgba(143, 166, 255, 0) 1.4px),
-    radial-gradient(1px 1px at 22% 43%, rgba(255, 255, 255, .28) 0, rgba(255, 255, 255, 0) 1.4px) !important;
+  background-image: var(--mln-bar-texture) !important;
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] #customOverlay {
-  background-image:
-    radial-gradient(1px 1px at 8% 6%, rgba(255, 255, 255, .45) 0, rgba(255, 255, 255, 0) 1.3px),
-    radial-gradient(1.5px 1.5px at 82% 10%, rgba(190, 205, 255, .35) 0, rgba(190, 205, 255, 0) 2px),
-    radial-gradient(1px 1px at 44% 3%, rgba(255, 255, 255, .3) 0, rgba(255, 255, 255, 0) 1.3px);
+  background-image: var(--mln-overlay-texture);
 }
 
 /* ---------------------------------------------------------------- 外壳 */
@@ -726,8 +848,8 @@ html[data-ml-native="on"] #passages .passage a.macro-link {
   gap: 10px;
   width: 100% !important;
   min-height: 44px;
-  margin: 5px 0 !important;
-  padding: 10px 13px;
+  margin: 4px 0 !important;
+  padding: 9px 12px;
   box-sizing: border-box;
   border: 1px solid var(--mln-border);
   border-radius: 10px;
@@ -761,20 +883,24 @@ html[data-ml-native="on"] #passages .passage a.macro-link:focus-visible {
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group {
+  position: relative;
+  isolation: isolate;
   display: grid !important;
-  grid-template-columns: 30px minmax(0, 1fr);
-  gap: 8px;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 7px;
   align-items: center;
   width: 100% !important;
-  min-height: 46px;
-  margin: 5px 0 !important;
-  padding: 0 13px;
+  min-height: 44px;
+  margin: 4px 0 !important;
+  padding: 0 12px;
   box-sizing: border-box;
   border: 1px solid var(--mln-border);
   border-radius: 10px;
   background: var(--mln-surface);
+  background-image: var(--mln-surface-texture);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 3%);
-  transition: border-color 120ms ease, background-color 120ms ease;
+  overflow: visible !important;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 100ms ease, filter 100ms ease;
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group:hover {
@@ -783,10 +909,10 @@ html[data-ml-native="on"] #passages .passage .ml-option-group:hover {
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group > img.icon {
-  width: 30px;
-  height: 30px;
-  max-width: 30px;
-  max-height: 30px;
+  width: 28px;
+  height: 28px;
+  max-width: 28px;
+  max-height: 28px;
   justify-self: start;
   object-fit: contain;
   image-rendering: pixelated;
@@ -797,7 +923,7 @@ html[data-ml-native="on"] #passages .passage .ml-option-group > a.macro-link {
   display: flex !important;
   align-items: center;
   width: 100% !important;
-  min-height: 44px !important;
+  min-height: 42px !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box;
@@ -3019,11 +3145,8 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage a.link-i
 
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlay:not([data-overlay="modloader"]) {
   border-color: rgb(0 229 255 / 44%) !important;
-  background:
-    radial-gradient(120% 70% at 100% 0, rgb(255 61 154 / 10%), transparent 54%),
-    linear-gradient(180deg, rgb(0 229 255 / 6%), transparent 30%),
-    repeating-linear-gradient(0deg, transparent 0 31px, rgb(0 229 255 / 3.5%) 31px 32px),
-    #05070F !important;
+  background-color: #05070F !important;
+  background-image: var(--mln-overlay-texture);
   box-shadow: 0 0 0 1px rgb(255 61 154 / 14%), 0 24px 70px rgb(0 0 0 / 52%), 0 0 34px rgb(0 229 255 / 10%);
 }
 
@@ -3179,5 +3302,149 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-title {
 
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body {
   background: #080D19;
+}
+
+/* ---------------------------------------------------------------- 主题纹理层
+ * 原生层只叠加 background-image，与 --mln-* 色板一一对应；
+ * 不改任何位置、尺寸、滚动与业务状态。
+ * -------------------------------------------------------------------------- */
+
+html[data-ml-native="on"] #ui-bar#ui-bar {
+  background-image: var(--mln-bar-texture) !important;
+}
+
+html[data-ml-native="on"] #customOverlay:not([data-overlay="modloader"]) {
+  background-color: var(--mln-bg);
+  background-image: var(--mln-overlay-texture);
+}
+
+html[data-ml-native="on"] #customOverlayContent,
+html[data-ml-native="on"] #customOverlayTitle,
+html[data-ml-native="on"] #ui-dialog,
+html[data-ml-native="on"] #ui-dialog-titlebar,
+html[data-ml-native="on"] #ui-dialog-body {
+  background-image: var(--mln-surface-texture);
+}
+
+html[data-ml-native="on"] #customOverlayTitle,
+html[data-ml-native="on"] #ui-dialog-titlebar {
+  background-image: linear-gradient(180deg, var(--mln-glow), transparent 58%), var(--mln-surface-texture);
+}
+
+html[data-ml-native="on"] #stats .centered-elements > div,
+html[data-ml-native="on"] #statmeters,
+html[data-ml-native="on"] #mobileStats .stat {
+  background-image: var(--mln-surface-texture);
+}
+
+html[data-ml-native="on"] #passages {
+  background-image: var(--mln-page-texture);
+}
+
+/* 星空主题必须真的有星空：固定星场铺在 body 背后，正文层透明；
+   fixed 让星点不随长 passage 滚动拉伸，视野里始终是一整片深空。 */
+html[data-ml-native="on"][data-ml-theme="star"] body {
+  background-color: #050813 !important;
+  background-image: var(--mln-page-texture);
+  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+html[data-ml-native="on"][data-ml-theme="star"] #passages {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* ---------------------------------------------------------------- 原生按压反馈
+ * 只给点击结果一个短反馈，不改变任何业务动作的执行顺序。
+ * -------------------------------------------------------------------------- */
+
+html[data-ml-native="on"] :is(#customOverlayContent, #ui-dialog-body, #passages) button,
+html[data-ml-native="on"] #overlayTabs button,
+html[data-ml-native="on"] #overlayButtons button,
+html[data-ml-native="on"] #menu button,
+html[data-ml-native="on"] #ui-bar-toggle,
+html[data-ml-native="on"] #ui-bar-history button,
+html[data-ml-native="on"] .ml-native-entry {
+  transition: transform .1s ease, filter .12s ease, box-shadow .12s ease;
+}
+
+html[data-ml-native="on"] :is(#customOverlayContent, #ui-dialog-body, #passages) button:active,
+html[data-ml-native="on"] #overlayTabs button:active,
+html[data-ml-native="on"] #overlayButtons button:active,
+html[data-ml-native="on"] #menu button:active,
+html[data-ml-native="on"] #ui-bar-toggle:active,
+html[data-ml-native="on"] #ui-bar-history button:active {
+  transform: translateY(1px) scale(.972);
+  filter: brightness(1.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 0 1px var(--mln-glow), 0 0 18px -6px var(--mln-glow);
+}
+
+html[data-ml-native="on"] .ml-native-entry:active {
+  transform: scale(.975);
+  filter: brightness(1.14);
+  box-shadow: 0 0 0 2px var(--mln-glow), 0 0 18px -5px var(--mln-glow);
+}
+
+/* 正文选项同样有按压反馈：卡片下沉 + 从指针位置扩散的主题色空心环。
+   标记与动画只用于视觉，不改变 a.macro-link 的跳转。 */
+html[data-ml-native="on"] #passages .passage .ml-option-group:active,
+html[data-ml-native="on"] #passages .passage .ml-option-group.mln-is-pressed,
+html[data-ml-native="on"] #passages .passage a.macro-link.mln-is-pressed,
+html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
+  transform: translateY(1px) scale(.972);
+  filter: brightness(1.14) saturate(1.04);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-glow), 0 0 18px -6px var(--mln-glow);
+}
+
+html[data-ml-native="on"] #passages .passage .ml-option-group.mln-press-host,
+html[data-ml-native="on"] #passages .passage a.macro-link.mln-press-host,
+html[data-ml-native="on"] .ml-native-entry.mln-press-host {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-ml-native="on"] .mln-press-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--mln-accent);
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--mln-glow), 0 0 26px var(--mln-glow), inset 0 0 12px var(--mln-star);
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+  transform: translate(-50%, -50%) scale(.45);
+  opacity: .95;
+  animation: mln-press-ripple .46s cubic-bezier(.2, .8, .25, 1) forwards;
+}
+
+@keyframes mln-press-ripple {
+  0%   { opacity: .95; transform: translate(-50%, -50%) scale(.45); }
+  55%  { opacity: .9;  transform: translate(-50%, -50%) scale(1.9); }
+  100% { opacity: 0;   transform: translate(-50%, -50%) scale(3.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ml-native="on"] :is(#customOverlayContent, #ui-dialog-body, #passages) button:active,
+  html[data-ml-native="on"] #overlayTabs button:active,
+  html[data-ml-native="on"] #overlayButtons button:active,
+  html[data-ml-native="on"] #menu button:active,
+  html[data-ml-native="on"] #ui-bar-toggle:active,
+  html[data-ml-native="on"] #ui-bar-history button:active,
+  html[data-ml-native="on"] #passages .passage .ml-option-group:active,
+  html[data-ml-native="on"] #passages .passage .ml-option-group.mln-is-pressed,
+  html[data-ml-native="on"] #passages .passage a.macro-link.mln-is-pressed,
+  html[data-ml-native="on"] .ml-native-entry:active,
+  html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+  html[data-ml-native="on"] .mln-press-ring { animation: none; opacity: 0; }
 }
 

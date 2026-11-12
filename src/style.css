@@ -22,6 +22,20 @@
   --ml-rose: #D2737B;
   --ml-danger: #C65449;
   --ml-track: rgba(255, 255, 255, .07);
+  --ml-panel-bg: rgba(11, 13, 16, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    radial-gradient(120% 80% at 10% 0%, rgba(227, 178, 95, .16), transparent 58%),
+    radial-gradient(90% 60% at 100% 100%, rgba(198, 84, 73, .07), transparent 62%),
+    repeating-linear-gradient(92deg, rgba(255, 255, 255, .026) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(2deg, rgba(227, 178, 95, .03) 0 1px, transparent 1px 7px);
+  --ml-tex-body:
+    radial-gradient(100% 70% at 50% 0%, rgba(227, 178, 95, .06), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, .016) 0 1px, transparent 1px 6px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(227, 178, 95, .07), transparent 58%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .014) 0 1px, transparent 1px 5px);
+  --ml-press-glow: rgba(227, 178, 95, .38);
+  --ml-press-ripple: rgba(255, 228, 180, .18);
   --ml-radius: 12px;
   --ml-card-radius: 16px;
   --ml-panel-radius: 18px;
@@ -41,6 +55,26 @@
   font-family: system-ui, "Segoe UI", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   color: var(--ml-text);
   -webkit-tap-highlight-color: transparent;
+}
+
+#ml-root[data-theme="amber"] {
+  --ml-panel-bg: rgba(11, 13, 16, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(172deg, rgba(255, 242, 216, .05) 0%, transparent 34%, transparent 68%, rgba(120, 66, 28, .07) 100%),
+    radial-gradient(120% 80% at 10% 0%, rgba(227, 178, 95, .2), transparent 58%),
+    radial-gradient(90% 60% at 100% 100%, rgba(198, 84, 73, .09), transparent 62%),
+    radial-gradient(70% 35% at 50% 100%, rgba(120, 66, 28, .1), transparent 72%),
+    repeating-linear-gradient(92deg, rgba(255, 255, 255, .024) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(2deg, rgba(227, 178, 95, .032) 0 1px, transparent 1px 7px);
+  --ml-tex-body:
+    radial-gradient(100% 70% at 50% 0%, rgba(227, 178, 95, .075), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 6px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(227, 178, 95, .1), transparent 58%),
+    radial-gradient(120% 80% at 10% 0%, rgba(255, 235, 200, .06), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .014) 0 1px, transparent 1px 5px);
+  --ml-press-glow: rgba(227, 178, 95, .5);
+  --ml-press-ripple: rgba(255, 228, 180, .22);
 }
 
 #ml-root[data-theme="cyberpunk"],
@@ -64,6 +98,23 @@
   --ml-card-radius: 10px;
   --ml-panel-radius: 10px;
   --ml-mono: "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --ml-panel-bg: rgba(5, 7, 15, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(132deg, transparent 42%, rgba(0, 229, 255, .03) 47%, transparent 52%, transparent 76%, rgba(255, 61, 154, .04) 82%, transparent 88%),
+    radial-gradient(120% 76% at 100% 0%, rgba(255, 61, 154, .17), transparent 54%),
+    radial-gradient(80% 60% at 0% 100%, rgba(0, 229, 255, .12), transparent 62%),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(0, 229, 255, .06) 31px 32px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255, 61, 154, .04) 47px 48px),
+    repeating-linear-gradient(135deg, transparent 0 9px, rgba(0, 229, 255, .022) 9px 10px);
+  --ml-tex-body:
+    repeating-linear-gradient(0deg, transparent 0 23px, rgba(0, 229, 255, .026) 23px 24px),
+    linear-gradient(135deg, transparent 48%, rgba(255, 61, 154, .024) 49%, transparent 50%);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(0, 229, 255, .09), transparent 48%),
+    linear-gradient(315deg, rgba(255, 61, 154, .06), transparent 44%),
+    repeating-linear-gradient(0deg, rgba(0, 229, 255, .018) 0 1px, transparent 1px 4px);
+  --ml-press-glow: rgba(0, 229, 255, .56);
+  --ml-press-ripple: rgba(125, 249, 255, .24);
   --ml-shadow: 0 24px 64px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255, 61, 154, .12), 0 0 34px rgba(0, 229, 255, .12);
 }
 
@@ -77,6 +128,25 @@
   --ml-accent: #5FBFAC;
   --ml-accent-soft: rgba(95, 191, 172, .16);
   --ml-accent-ink: #06130F;
+  --ml-panel-bg: rgba(10, 17, 16, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(112deg, transparent 28%, rgba(190, 255, 240, .06) 40%, rgba(190, 255, 240, .012) 50%, transparent 62%),
+    radial-gradient(110% 80% at 8% 0%, rgba(95, 191, 172, .2), transparent 58%),
+    radial-gradient(80% 60% at 100% 100%, rgba(127, 214, 197, .1), transparent 62%),
+    linear-gradient(118deg, transparent 42%, rgba(255, 255, 255, .04) 43%, transparent 44%),
+    repeating-linear-gradient(66deg, rgba(127, 214, 197, .034) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(28deg, transparent 0 21px, rgba(233, 255, 249, .024) 21px 22px),
+    repeating-linear-gradient(-24deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 16px);
+  --ml-tex-body:
+    radial-gradient(100% 70% at 50% 0%, rgba(95, 191, 172, .07), transparent 70%),
+    repeating-linear-gradient(66deg, rgba(127, 214, 197, .02) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(28deg, transparent 0 21px, rgba(233, 255, 249, .016) 21px 22px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(95, 191, 172, .1), transparent 58%),
+    radial-gradient(120% 80% at 0% 0%, rgba(220, 255, 247, .05), transparent 55%),
+    repeating-linear-gradient(-24deg, rgba(255, 255, 255, .016) 0 1px, transparent 1px 9px);
+  --ml-press-glow: rgba(127, 214, 197, .5);
+  --ml-press-ripple: rgba(200, 255, 242, .22);
 }
 
 #ml-root[data-theme="graphite"] {
@@ -89,6 +159,23 @@
   --ml-accent: #C9CDD4;
   --ml-accent-soft: rgba(201, 205, 212, .14);
   --ml-accent-ink: #101216;
+  --ml-panel-bg: rgba(12, 13, 15, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(108deg, transparent 16%, rgba(255, 255, 255, .055) 23%, rgba(255, 255, 255, .012) 31%, transparent 39%, transparent 72%, rgba(255, 255, 255, .028) 78%, transparent 86%),
+    radial-gradient(100% 70% at 50% 0%, rgba(201, 205, 212, .11), transparent 64%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .16) 0 2px, transparent 2px 4px),
+    linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, .04) 31%, transparent 32%, transparent 68%, rgba(255, 255, 255, .02) 69%, transparent 70%);
+  --ml-tex-body:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .013) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .08) 0 2px, transparent 2px 5px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(201, 205, 212, .08), transparent 58%),
+    radial-gradient(130% 80% at 0% 0%, rgba(255, 255, 255, .045), transparent 55%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, .016) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px);
+  --ml-press-glow: rgba(201, 205, 212, .42);
+  --ml-press-ripple: rgba(255, 255, 255, .2);
 }
 
 #ml-root[data-theme="star"] {
@@ -104,6 +191,36 @@
   --ml-jade: #6FE0D2;
   --ml-rose: #D98CCB;
   --ml-danger: #E06B6B;
+  --ml-panel-bg: rgba(7, 10, 20, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(58deg, transparent 24%, rgba(111, 90, 255, .05) 34%, rgba(190, 205, 255, .11) 48%, rgba(111, 90, 255, .04) 60%, transparent 72%),
+    radial-gradient(90% 65% at 18% 0%, rgba(111, 90, 255, .18), transparent 58%),
+    radial-gradient(70% 55% at 84% 18%, rgba(143, 166, 255, .12), transparent 62%),
+    radial-gradient(100% 34% at 50% 100%, rgba(111, 90, 255, .13), transparent 72%),
+    radial-gradient(1px 1px at 12% 9%, rgba(255, 255, 255, .7) 0, rgba(255, 255, 255, 0) 1.4px),
+    radial-gradient(1px 1px at 78% 16%, rgba(196, 208, 255, .6) 0, rgba(196, 208, 255, 0) 1.4px),
+    radial-gradient(1.5px 1.5px at 34% 6%, rgba(255, 255, 255, .5) 0, rgba(255, 255, 255, 0) 2px),
+    radial-gradient(1px 1px at 92% 34%, rgba(143, 166, 255, .6) 0, rgba(143, 166, 255, 0) 1.4px),
+    radial-gradient(1px 1px at 22% 43%, rgba(255, 255, 255, .36) 0, rgba(255, 255, 255, 0) 1.4px),
+    radial-gradient(1px 1px at 62% 58%, rgba(196, 208, 255, .38) 0, rgba(196, 208, 255, 0) 1.4px),
+    radial-gradient(1.5px 1.5px at 6% 62%, rgba(255, 255, 255, .42) 0, rgba(255, 255, 255, 0) 2px),
+    radial-gradient(2px 2px at 88% 72%, rgba(196, 208, 255, .5) 0, rgba(196, 208, 255, 0) 2.4px),
+    radial-gradient(1px 1px at 44% 76%, rgba(255, 255, 255, .32) 0, rgba(255, 255, 255, 0) 1.4px),
+    radial-gradient(1px 1px at 54% 88%, rgba(196, 208, 255, .3) 0, rgba(196, 208, 255, 0) 1.4px),
+    linear-gradient(116deg, transparent 22%, rgba(143, 166, 255, .14) 22.2%, transparent 22.6%),
+    linear-gradient(64deg, transparent 68%, rgba(143, 166, 255, .1) 68.2%, transparent 68.6%);
+  --ml-tex-body:
+    radial-gradient(80% 55% at 20% 0%, rgba(111, 90, 255, .09), transparent 62%),
+    radial-gradient(90% 35% at 50% 100%, rgba(111, 90, 255, .07), transparent 72%),
+    radial-gradient(1px 1px at 16% 18%, rgba(255, 255, 255, .28) 0, rgba(255, 255, 255, 0) 1.2px),
+    radial-gradient(1px 1px at 72% 42%, rgba(196, 208, 255, .26) 0, rgba(196, 208, 255, 0) 1.2px),
+    radial-gradient(1px 1px at 46% 84%, rgba(255, 255, 255, .22) 0, rgba(255, 255, 255, 0) 1.2px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(143, 166, 255, .13), transparent 62%),
+    radial-gradient(1.5px 1.5px at 18% 22%, rgba(255, 255, 255, .26) 0, rgba(255, 255, 255, 0) 1.8px),
+    radial-gradient(1px 1px at 72% 68%, rgba(196, 208, 255, .22) 0, rgba(196, 208, 255, 0) 1.4px);
+  --ml-press-glow: rgba(143, 166, 255, .5);
+  --ml-press-ripple: rgba(205, 218, 255, .22);
 }
 
 #ml-root *,
@@ -226,8 +343,8 @@
   flex-direction: column;
   pointer-events: auto;
   z-index: 2;
-  background: rgba(11, 13, 16, var(--ml-surface-alpha));
-  background-image: linear-gradient(180deg, rgba(38, 31, 20, .45) 0%, rgba(11, 13, 16, 0) 34%);
+  background-color: var(--ml-panel-bg);
+  background-image: var(--ml-tex-panel);
   border: 1px solid rgba(255, 255, 255, var(--ml-edge));
   border-radius: var(--ml-panel-radius);
   box-shadow: var(--ml-shadow), inset 0 1px 0 rgba(255, 255, 255, calc(var(--ml-edge) * .55));
@@ -238,20 +355,11 @@
   transform-origin: 50% 100%;
   transition: opacity .18s ease, transform .18s cubic-bezier(.2, .8, .2, 1);
 }
-#ml-root[data-theme="jade"] .ml-panel { background-image: linear-gradient(180deg, rgba(20, 46, 40, .45) 0%, rgba(10, 17, 16, 0) 34%); }
-#ml-root[data-theme="graphite"] .ml-panel { background-image: linear-gradient(180deg, rgba(40, 43, 48, .45) 0%, rgba(12, 13, 15, 0) 34%); }
-#ml-root[data-theme="star"] .ml-panel {
-  background-image:
-    radial-gradient(1px 1px at 12% 9%, rgba(255, 255, 255, .55) 0, rgba(255, 255, 255, 0) 1.4px),
-    radial-gradient(1px 1px at 78% 16%, rgba(196, 208, 255, .5) 0, rgba(196, 208, 255, 0) 1.4px),
-    radial-gradient(1.5px 1.5px at 34% 6%, rgba(255, 255, 255, .38) 0, rgba(255, 255, 255, 0) 2px),
-    radial-gradient(1px 1px at 92% 34%, rgba(143, 166, 255, .5) 0, rgba(143, 166, 255, 0) 1.4px),
-    linear-gradient(180deg, rgba(28, 37, 71, .5) 0%, rgba(7, 10, 20, 0) 42%);
-}
+/* 主题纹理统一由 --ml-tex-panel 提供；旧的三套单层渐变已并入变量。 */
 
 @supports ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
   #ml-root .ml-panel {
-    background-color: rgba(11, 13, 16, var(--ml-surface-alpha));
+    background-color: var(--ml-panel-bg);
     -webkit-backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
     backdrop-filter: blur(var(--ml-blur)) saturate(1.1);
   }
@@ -277,7 +385,8 @@
   inset: 0 0 auto 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--ml-accent), transparent);
-  opacity: .6;
+  opacity: .85;
+  box-shadow: 0 0 12px var(--ml-accent-soft);
 }
 
 #ml-root .ml-grip { display: none; }
@@ -288,6 +397,7 @@
   gap: 12px;
   padding: 14px 12px 10px 16px;
   flex: 0 0 auto;
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 72%);
 }
 
 #ml-root .ml-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -362,7 +472,7 @@
 #ml-root .ml-tab .ml-ico { width: 15px; height: 15px; opacity: .9; }
 #ml-root .ml-tab-label { font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
 #ml-root .ml-tab:hover { color: var(--ml-muted); background: rgba(255, 255, 255, .03); }
-#ml-root .ml-tab[aria-selected="true"] { color: var(--ml-accent); }
+#ml-root .ml-tab[aria-selected="true"] { color: var(--ml-accent); text-shadow: 0 0 10px var(--ml-accent-soft); }
 #ml-root .ml-tab[aria-selected="true"]::after {
   content: "";
   position: absolute;
@@ -372,6 +482,7 @@
   height: 2px;
   background: var(--ml-accent);
   border-radius: 2px;
+  box-shadow: 0 0 10px var(--ml-accent-soft);
   transform-origin: left;
   animation: ml-tabline .16s ease both;
 }
@@ -435,6 +546,15 @@
   inset: 7px;
   border-radius: 50%;
   background: radial-gradient(110% 100% at 50% 0%, #1B1D22 0%, var(--ml-bg-soft) 70%);
+}
+#ml-root .ml-ring::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 50%;
+  border: 1px solid var(--ml-accent-soft);
+  box-shadow: 0 0 12px var(--ml-accent-soft);
+  pointer-events: none;
 }
 #ml-root .ml-ring-core {
   position: absolute;
@@ -932,13 +1052,13 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
 /* 只叠加颜色、描边、静态网格与光晕；布局尺寸沿用上面的既有规格。 */
 
 #ml-root:is([data-theme="cyberpunk"], [data-theme="auto"]) .ml-panel {
-  background-color: rgba(5, 7, 15, var(--ml-surface-alpha));
-  background-image:
-    radial-gradient(120% 76% at 100% 0%, rgba(255, 61, 154, .11), transparent 54%),
-    linear-gradient(180deg, rgba(0, 229, 255, .075), transparent 28%),
-    repeating-linear-gradient(0deg, transparent 0 31px, rgba(0, 229, 255, .035) 31px 32px);
+  background-color: var(--ml-panel-bg);
+  background-image: var(--ml-tex-panel);
   border-color: rgba(0, 229, 255, .36);
-  box-shadow: var(--ml-shadow);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(214, 255, 255, .12),
+              inset 0 0 32px rgba(0, 229, 255, .06),
+              inset 0 0 0 1px rgba(255, 61, 154, .05);
 }
 
 #ml-root:is([data-theme="cyberpunk"], [data-theme="auto"]) .ml-panel::before {
@@ -1075,5 +1195,181 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
 #ml-root:is([data-theme="cyberpunk"], [data-theme="auto"]) .ml-orb[data-phase="dusk"] .ml-orb-flame {
   background: linear-gradient(180deg, #E9FFFF 0%, #00E5FF 44%, #FF3D9A 100%);
   filter: drop-shadow(0 0 8px rgba(0, 229, 255, .55));
+}
+
+/* ---------------------------------------------------------------- 原生选项入口
+ * 入口属于面板本身，不属于原生卡片层。关闭原生卡片后仍要留一个可点入口；
+ * 这里只给基础可读样式，原生开启时由 native.css 的主题规则覆盖。
+ * -------------------------------------------------------------------------- */
+
+.ml-native-entry-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #39414b;
+}
+
+.ml-native-entry {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #39414b;
+  border-radius: 8px;
+  background: #171c22;
+  position: relative;
+  color: #e3b25f;
+  font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans SC", "PingFang SC", sans-serif;
+  font-size: calc(13px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ml-native-entry:hover {
+  border-color: #e3b25f;
+  background: #1d232a;
+}
+
+/* ---------------------------------------------------------------- 主题纹理层
+ * 面板用 --ml-tex-panel，正文用 --ml-tex-body，卡片/控件用 --ml-tex-card。
+ * 所有纹理都放在背景层，不改变任何布局尺寸与文字对比度。
+ * -------------------------------------------------------------------------- */
+
+#ml-root .ml-body {
+  background-image: var(--ml-tex-body);
+}
+
+#ml-root .ml-stat,
+#ml-root .ml-slot,
+#ml-root .ml-quick {
+  background-image: var(--ml-tex-card);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06),
+              inset 0 -1px 0 rgba(0, 0, 0, .16),
+              0 1px 2px rgba(0, 0, 0, .12);
+}
+
+#ml-root .ml-stat.is-accent {
+  background-image: linear-gradient(135deg, var(--ml-accent-soft), rgba(255, 255, 255, 0) 62%), var(--ml-tex-card);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14),
+              inset 0 0 26px -8px var(--ml-accent-soft),
+              0 0 22px -14px var(--ml-accent);
+}
+
+#ml-root .ml-btn,
+#ml-root .ml-seg-btn {
+  background-image: var(--ml-tex-card);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05),
+              inset 0 -1px 0 rgba(0, 0, 0, .12);
+}
+
+#ml-root[data-theme="amber"] .ml-panel {
+  border-color: rgba(227, 178, 95, .34);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(255, 236, 205, .12),
+              inset 0 0 32px rgba(227, 178, 95, .06),
+              inset 0 0 0 1px rgba(227, 178, 95, .05);
+}
+#ml-root[data-theme="jade"] .ml-panel {
+  border-color: rgba(95, 191, 172, .34);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(220, 255, 247, .13),
+              inset 0 0 32px rgba(95, 191, 172, .07),
+              inset 0 0 0 1px rgba(95, 191, 172, .06);
+}
+#ml-root[data-theme="graphite"] .ml-panel {
+  border-color: rgba(201, 205, 212, .28);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(255, 255, 255, .16),
+              inset 0 -1px 0 rgba(0, 0, 0, .35),
+              inset 0 0 30px rgba(255, 255, 255, .035),
+              inset 0 0 0 1px rgba(201, 205, 212, .04);
+}
+#ml-root[data-theme="star"] .ml-panel {
+  border-color: rgba(143, 166, 255, .36);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(215, 226, 255, .14),
+              inset 0 0 40px rgba(111, 90, 255, .14);
+}
+
+#ml-root[data-theme="amber"] .ml-mark {
+  background: radial-gradient(70% 60% at 50% 40%, #FFF3D2 0%, #E3B25F 46%, rgba(227, 178, 95, 0) 72%);
+}
+#ml-root[data-theme="jade"] .ml-mark {
+  background: radial-gradient(70% 60% at 50% 40%, #E9FFF9 0%, #5FBFAC 46%, rgba(95, 191, 172, 0) 72%);
+  box-shadow: 0 0 12px rgba(95, 191, 172, .32), inset 0 0 0 1px rgba(255, 255, 255, .16);
+}
+#ml-root[data-theme="graphite"] .ml-mark {
+  background: conic-gradient(from 210deg at 50% 42%, #F4F6F8, #8B929C 28%, #2A2D33 58%, #D7DBE1 82%, #F4F6F8);
+  box-shadow: 0 0 10px rgba(201, 205, 212, .28), inset 0 0 0 1px rgba(255, 255, 255, .2);
+}
+#ml-root[data-theme="star"] .ml-mark {
+  background: radial-gradient(70% 60% at 50% 40%, #FFFFFF 0%, #8FA6FF 44%, rgba(111, 90, 255, 0) 72%);
+  box-shadow: 0 0 14px rgba(143, 166, 255, .4), inset 0 0 0 1px rgba(255, 255, 255, .18);
+}
+
+/* ---------------------------------------------------------------- 点击/按压反馈
+ * 纯 CSS 负责缩放与亮度，JS 只补一个从指针位置出发的短涟漪。
+ * 两者都受 prefers-reduced-motion 约束。
+ * -------------------------------------------------------------------------- */
+
+#ml-root .ml-press-host {
+  position: relative;
+  isolation: isolate;
+}
+
+#ml-root .ml-press-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--ml-press-glow);
+  background: transparent;
+  box-shadow: 0 0 0 1px var(--ml-press-ripple),
+              0 0 26px var(--ml-press-glow),
+              inset 0 0 12px var(--ml-press-ripple);
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  transform: translate(-50%, -50%) scale(.45);
+  opacity: .95;
+  animation: ml-press-ripple .46s cubic-bezier(.2, .8, .25, 1) forwards;
+}
+
+@keyframes ml-press-ripple {
+  0%   { opacity: .95; transform: translate(-50%, -50%) scale(.45); }
+  55%  { opacity: .9;  transform: translate(-50%, -50%) scale(1.9); }
+  100% { opacity: 0;   transform: translate(-50%, -50%) scale(3.4); }
+}
+
+#ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick) {
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .1s ease, filter .1s ease, box-shadow .1s ease,
+              background-color .12s ease, border-color .12s ease;
+}
+
+#ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick):active,
+#ml-root .ml-is-pressed {
+  transform: translateY(1px) scale(.972);
+  filter: brightness(1.14) saturate(1.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14),
+              0 2px 8px rgba(0, 0, 0, .3),
+              0 0 22px -7px var(--ml-press-glow);
+}
+
+#ml-root .ml-orb:active {
+  transform: scale(.94);
+  box-shadow: 0 0 0 4px var(--ml-press-glow), 0 18px 38px rgba(0, 0, 0, .5);
+}
+
+#ml-root .ml-native-entry:active {
+  transform: scale(.985);
+  filter: brightness(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ml-root .ml-press-ring { animation: none; opacity: 0; }
+  #ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick):active,
+  #ml-root .ml-is-pressed { transform: none; filter: none; box-shadow: none; }
+  #ml-root .ml-orb:active { transform: none; }
+  #ml-root .ml-native-entry:active { transform: none; }
 }
 

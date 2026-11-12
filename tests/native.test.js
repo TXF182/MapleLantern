@@ -132,6 +132,72 @@ test("图标 + 选项：选项被本地化包裹时也能并入同一张卡", as
   assert.equal(p.querySelectorAll("br").length, 0, "组前空行应被清掉");
 });
 
+test("图标 + 选项：图标与链接同在一个容器内时也能进同一张卡", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<div class="option-line"><img class="icon" src="popcorn.png"><br><a class="link-internal macro-link" data-passage="Cinema">(2) Cinema</a></div>' +
+    '<div class="option-line"><img class="icon" src="gamepad.png"><br><a class="link-internal macro-link" data-passage="Arcade">(3) Arcade</a></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const groups = p.querySelectorAll(".ml-option-group");
+  assert.equal(groups.length, 2, "同容器内的图标与链接都应打包");
+  for (const group of groups) {
+    assert.equal(group.querySelector("img.icon") !== null, true);
+    assert.equal(group.querySelector("a.macro-link") !== null, true);
+    assert.equal(group.children.length, 2, "卡片内只应保留图标与链接");
+  }
+  assert.equal(p.querySelector(".option-line"), null, "空容器应被移除");
+  assert.equal(p.querySelectorAll("br").length, 0, "容器内的换行不应留下空行");
+});
+
+test("正文选项：场景图标包在装饰层里时也能进同一张卡", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<span class="icon-container icon infront"><span><img class="icon" src="pond-grass.png"></span></span>' +
+    '<span class="water-outdoor-night"><img class="icon" src="pond-base.gif"></span>' +
+    '<a class="link-internal macro-link" data-passage="A">(1) Check your reflection</a>' +
+    '<div class="ml-option-group" data-ml-option-group="1"><img class="icon" src="swim.png"><a class="link-internal macro-link" data-passage="B">(2) Swim</a></div>' +
+    '<span class="icon-container icon infront"><span><img class="icon" src="waterfall-rock.png"></span></span>' +
+    '<span class="water-outdoor-night"><img class="icon" src="waterfall-base.gif"></span>' +
+    '<a class="link-internal macro-link" data-passage="C">(3) South to waterfall</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const groups = p.querySelectorAll(".ml-option-group");
+  assert.equal(groups.length, 3, "场景装饰层里的图标也应打包");
+  for (const group of groups) {
+    assert.equal(group.querySelector("img.icon") !== null, true);
+    assert.equal(group.querySelector("a.macro-link") !== null, true);
+    assert.equal(group.children.length, 2, "卡片内只应保留一个图标与一个链接");
+  }
+  assert.equal(p.querySelectorAll("span.water-outdoor-night").length, 0, "搬走图标后的空装饰层应被移除");
+  assert.equal(p.querySelectorAll(".icon-container").length, 0, "空图标容器不应继续占位");
+  assert.equal(p.querySelector('.ml-option-group a[data-passage="A"]') !== null, true);
+  assert.equal(p.querySelector('.ml-option-group a[data-passage="C"]') !== null, true);
+});
+
+test("正文选项：pointerdown 生成原生主题环并进入按压态", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<div class="option-line"><img class="icon" src="forest.png"><br><a class="link-internal macro-link" data-passage="Forest">(1) Forest</a></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  const group = p.querySelector(".ml-option-group");
+  assert.ok(group, "选项卡片应已生成");
+  group.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 44, right: 300, bottom: 44 });
+  group.querySelector("a.macro-link").dispatchEvent(
+    new w.MouseEvent("pointerdown", { bubbles: true, clientX: 40, clientY: 22, button: 0 })
+  );
+  assert.equal(group.classList.contains("mln-is-pressed"), true);
+  assert.equal(group.querySelectorAll(".mln-press-ring").length, 1);
+  assert.equal(group.querySelector(".mln-press-ring").getAttribute("style").includes("left: 40px"), true);
+});
+
 test("内层页：裸竖线清理，商店分类图标归入同一张卡", async () => {
   const { w } = createEnv();
   await tick(w);
@@ -176,12 +242,58 @@ test("宿主启用：原生层自动让位，不挂原生标记", async () => {
   assert.equal(w.document.querySelectorAll('#customOverlay [data-ml-entry="panel"]').length, 0);
 });
 
-test("原生开关关闭：不加标记、不留入口", async () => {
+test("原生开关关闭：不加原生标记，但选项里的灯台入口仍保留", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, native: false } });
   await tick(w);
   assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
   assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
-  assert.equal(w.document.querySelectorAll('#customOverlay [data-ml-entry="panel"]').length, 0);
+  openOptions(w);
+  await tick(w);
+  assert.equal(w.document.querySelectorAll('#customOverlay [data-ml-entry="panel"]').length, 1,
+    "关闭原生卡片后，玩家仍需要从选项进入灯台面板");
+});
+
+test("原生卡片关→开：选项弹层不关闭，入口不丢，页签容器不被重排", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  await tick(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const container = w.document.getElementById("customOverlayContainer");
+  const content = w.document.getElementById("customOverlayContent");
+  const tabs = w.document.createElement("div");
+  tabs.id = "overlayTabs";
+  tabs.innerHTML = '<button type="button">General</button><button type="button">Theme</button>';
+  w.document.getElementById("customOverlayTitle").appendChild(tabs);
+  const tabToggle = { on: false, toggle() { this.on = !this.on; } };
+  w.T = { tab: tabToggle };
+  assert.equal(overlay.classList.contains("hidden"), false);
+
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify({ v: 1, lang: "zh", motion: false, native: false }));
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
+  assert.equal(overlay.classList.contains("hidden"), false, "关原生卡片不应把选项弹层关掉");
+  assert.equal(container.parentNode, w.document.body, "弹层容器不应被搬回正文层");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1, "入口不应随原生卡片关闭被删");
+  assert.equal(content.firstElementChild && content.firstElementChild.className, "ml-native-entry-wrap");
+  const offEntry = overlay.querySelector('[data-ml-entry="panel"]');
+  offEntry.click();
+  assert.equal(w.document.getElementById("ml-panel").hidden, false, "关闭原生卡片后入口仍能打开面板");
+  w.MapleLantern.close();
+
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify({ v: 1, lang: "zh", motion: false, native: true }));
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on");
+  assert.equal(overlay.classList.contains("hidden"), false, "重新开启原生卡片不应关掉选项弹层");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1, "重新开启后入口仍在");
+  assert.equal(w.document.getElementById("overlayTabs"), tabs, "页签容器不应被重建");
+  assert.equal(w.T.tab, tabToggle, "T.tab 不应被本模组清掉");
+
+  tabs.querySelector("button").addEventListener("click", () => tabToggle.toggle());
+  tabs.querySelector("button").click();
+  assert.equal(tabToggle.on, true, "页签按钮仍能调用原版 T.tab.toggle()");
 });
 
 test("解析失败：条目保留、卡片标记仍在、不写假数值", async () => {
