@@ -3669,6 +3669,22 @@ html[data-ml-native="on"] #customOverlay .CEbuttonBar {
   background-repeat: no-repeat !important;
 }
 
+/* 1.20.4 把页签容器改成 grid 后，flex-wrap 无法阻止 5+2 折行；这里直接改回
+   flex。只作用于页签容器本身，内容区仍按各自的 block/grid 排列。 */
+html[data-ml-native="on"] #customOverlay #cheat_extended_options {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 6px !important;
+}
+
+/* 传送页：地点链接的最大宽度先收回内容区，避免长地名越出面板右缘；
+   行内列表由 JS 按实测结构收成纵向行。 */
+html[data-ml-native="on"] #customOverlay[data-mln-ce-page="teleport"] #customOverlayContent a {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-wrap: anywhere;
+}
+
 html[data-ml-native="on"] #customOverlay #cheat_extended_options ~ *,
 html[data-ml-native="on"] #customOverlay #CE_settingsDiv {
   box-sizing: border-box !important;
@@ -3769,16 +3785,23 @@ html[data-ml-native="on"] #customOverlay .CEDISPLAY button {
 }
 
 
-/* 手机端固定背景会在滚动时反复重绘整页渐变；改成随元素滚动，视觉层不变，
-   少一层视口锚定合成。桌面保留 fixed。 */
+/* 手机端背景必须锚定视口。1.1.11 为了少一层合成把它改成 scroll，实测在长
+   passage 滚到底时根元素的绘制区只有视口高，渐变截止后露出整段纯色断层；
+   CE 面板内部滚到底同样会截断。这里恢复 fixed（只保留一层视口锚定渐变），
+   并用 background-color 兜住 WebView 关闭 fixed 时的底色，不再出现空白段。 */
 @media (max-width: 899px) {
   html[data-ml-native="on"] {
-    background-attachment: scroll !important;
+    background-color: var(--mln-bg) !important;
+    background-attachment: fixed !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
   }
   html[data-ml-native="on"] #customOverlay#customOverlay,
   html[data-ml-native="on"] #customOverlayContent#customOverlayContent,
   html[data-ml-native="on"] #ui-dialog#ui-dialog,
   html[data-ml-native="on"] #ui-dialog-body#ui-dialog-body {
-    background-attachment: scroll !important;
+    background-attachment: fixed !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
   }
 }

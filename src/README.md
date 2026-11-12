@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.11）
+# 灯台 · Lantern（MapleLantern 1.1.12）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.12 视觉收口**：① 手机端根背景恢复视口锚定（`background-attachment: fixed`），长 passage 滚到底与 CE 面板内部滚到底都不再出现渐变截止后的整段纯色断层；面板同步恢复。② CE 1.20.4 七页签容器被改成 grid 导致 5+2 折行，这里改回 flex 等分单行。③ 传送页的地点行内列表按实测结构收成纵向行，每项占满一行，长地名不再贴右缘或越界。
 - **1.1.11 性能收口**：① 分组稳定后 `packStable` 直接跳过整轮 pack，含两次签名扫描与三轮全页遍历；用首个选项链接做锚点，`innerHTML` 直接替换时不会误判稳定。② CE 面板加 `ceDirty/ceReady/ceSig` 脏检查，正文 refresh 不再重复重排。③ 补扫压缩为「立即 + 140ms」固定拍，之后 600ms 起自适应、连续两拍无变化即停。④ `setAttr()` 同值不写：状态卡、左轨百分比、侧栏字号、标题锚点均先比对再写；200 选项页 20 次 apply 从 251ms 降到 64ms（jsdom 逻辑层）。
 - **1.1.10 二次收口**：① 修掉页签被“内容按钮通扫”二次改写（11px→13px、宽度 65→81）的回归，页签与关闭按钮加标记跳过；分类栏收窄 36px 给 ✖ 留真实缺口，右缘加 26px 渐隐提示横向滚动。② 平铺六胶囊解除 CE 固定 `width:100px`，`flex:1 1 0` 等分单行。③ 状态条箭头补充识别 `<div>/<span>` 叶子节点，统一 34×34。④ 分组后双向清理组前后空 `<p>`/`<br>`（含图标的段落不删），3px 间距不再被空段落撑大。
 - **1.1.9 Android 真机收口**：① 选项候补链接类名扩到 `a.link-internal`，并在 `passageend` 后补扫 1200/2400ms + 约 6s 的受控补扫 + `MutationObserver`；汉化或 TweeReplacer 晚一步重建链接时，`repairGroups()` / `adoptOrphanIcons()` 会把新链接接回原图标卡，图标不再单独浮在卡外；卡片间距 3px。② CE overlay 不再依赖 `:has()`：`watchOverlay()` 在面板异步挂载后重算，页签强制单行（旧版平铺等分、两层横向滚动且给关闭按钮留 36px），内容网格单列（用「纯箭头按钮」识别并跳过状态条），状态条箭头压到 34px，`#customOverlay` 手机端硬限 `calc(100vw - 16px)`，关闭按钮 28×28 不再被裁。③ 所有 `color-mix()` 前补 `rgba()` 兜底；旧 WebView 不支持混色时背景不会整条失效。④ 背景再加主题顶部光/底部回光/暗角与不透明底兜底，并降低弹层遮蔽（普通弹层 58% / 内容 62%，CE 60/64）。
@@ -22,7 +23,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.11-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.12-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -56,7 +57,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.11）
+## 原生 UI 替换层（1.1.12）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
@@ -130,12 +131,12 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 1.1.4 阶段留存的六主题原型截图：6/6 面板 380×620；按压涟漪实测 `ring:true`、空心主题色亮环不遮字
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`
-- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；体积与 SHA256 见 `dist\SHA256-1.1.11-theme.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；体积与 SHA256 见 `dist\SHA256-1.1.12-theme.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.11-theme.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.12-theme.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

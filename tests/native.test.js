@@ -454,27 +454,70 @@ test("只读：原生层全程不写 State.variables", async () => {
   assert.equal(getWrites(), 0, "出现了 State.variables 写入");
 });
 
-test("CE 平铺页签：六颗胶囊同一行等分，不被 CE 固定 100px 撑成两行", async () => {
+test("CE 平铺页签：七颗胶囊同一行等分，不被 1.20.4 的 grid 撑成两行", async () => {
   const { w } = createEnv();
   await tick(w);
   openOptions(w);
   const content = w.document.getElementById("customOverlayContent");
   content.innerHTML =
     '<div id="cheat_extended_options">' +
-    ['状态', '外观', 'NPC', '传送', '其它', '模组作弊'].map((t) => '<button>' + t + '</button>').join('') +
+    ['状态', '外观', 'NPC', '传送', '其它', '模组作弊', '生育扩展作弊'].map((t) => '<button>' + t + '</button>').join('') +
     '</div>';
   await tick(w, 320);
   const tabs = content.querySelector("#cheat_extended_options");
   assert.ok(tabs, "CE 面板应存在");
+  assert.equal(tabs.style.getPropertyValue("display"), "flex", "页签容器必须从 grid 改回 flex");
   assert.equal(tabs.style.getPropertyValue("flex-wrap"), "nowrap", "页签必须单行");
   const buttons = tabs.querySelectorAll("button");
-  assert.equal(buttons.length, 6);
+  assert.equal(buttons.length, 7);
   for (const b of buttons) {
     assert.equal(b.getAttribute("data-mln-tab"), "1", "页签应被标记，避免被内容按钮规则二次改写");
     assert.equal(b.style.getPropertyValue("width"), "auto", "固定 100px 必须被解除");
     assert.equal(b.style.getPropertyValue("font-size"), "11px");
     assert.match(b.style.getPropertyValue("flex"), /^1 1 0(px)?$/, "平铺页签应等分一行");
   }
+});
+
+test("CE 传送页：地点行内列表收成纵向行，长地名不再越出右缘", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    ['状态', '外观', 'NPC', '传送', '其它', '模组作弊', '生育扩展作弊']
+      .map((t) => '<button class="' + (t === "传送" ? "CEtabSelected" : "") + '">' + t + '</button>').join('') +
+    '</div>' +
+    '<div id="loc-list">' +
+    ['城镇地点', '孤儿院', '出租屋', '购物中心', '舞蹈室', '康努达塔斯街'].map((t) => '<a href="#">' + t + '</a>').join('') +
+    '</div>';
+  await tick(w, 320);
+  const overlay = w.document.getElementById("customOverlay");
+  const list = content.querySelector("#loc-list");
+  assert.equal(overlay.getAttribute("data-mln-ce-page"), "teleport", "传送页应打上页面标记");
+  assert.equal(list.style.getPropertyValue("display"), "flex");
+  assert.equal(list.style.getPropertyValue("flex-direction"), "column", "地点列表应收成纵向");
+  assert.equal(list.children[0].style.getPropertyValue("width"), "100%", "每个地点占满一行");
+});
+
+test("CE 传送页标记：切到非传送页签后必须摘掉，避免误伤其它页", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    '<button>状态</button><button class="CEtabSelected">传送</button>' +
+    '</div><div id="loc-list"><a>城镇地点</a><a>孤儿院</a><a>出租屋</a></div>';
+  await tick(w, 320);
+  const overlay = w.document.getElementById("customOverlay");
+  assert.equal(overlay.getAttribute("data-mln-ce-page"), "teleport");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    '<button class="CEtabSelected">状态</button><button>传送</button>' +
+    '</div><p>状态页</p>';
+  await tick(w, 320);
+  assert.equal(overlay.hasAttribute("data-mln-ce-page"), false, "离开传送页应移除标记");
 });
 test("性能：补扫停止后晚到 2 秒的链接仍由 MutationObserver 接回卡片", async () => {
   const { w } = createEnv();

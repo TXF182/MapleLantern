@@ -865,6 +865,22 @@
     imp(tabs, "overflow-x", "auto");
     imp(tabs, "-webkit-overflow-scrolling", "touch");
     var twoLevel = !!(tabs.querySelector(".CE-category-bar, .CE-subtab-bar, .CE-category, .CE-subtab"));
+    /* 1.20.4 的七页签改成 grid/固定列后仍会折成 5+2 两行。只设 flex-wrap 对
+       grid 无效，必须同时把容器改回 flex；平铺页签用等分，两层页签用横滚。 */
+    if (!twoLevel) {
+      imp(tabs, "display", "flex");
+      imp(tabs, "align-items", "stretch");
+      imp(tabs, "gap", "6px");
+    }
+    var selectedTab = tabs.querySelector(".CEtabSelected");
+    var selectedLabel = selectedTab ? (selectedTab.textContent || "").trim() : "";
+    if (overlay) {
+      if (selectedLabel.indexOf("传送") >= 0) {
+        overlay.setAttribute("data-mln-ce-page", "teleport");
+      } else if (overlay.getAttribute("data-mln-ce-page") === "teleport") {
+        overlay.removeAttribute("data-mln-ce-page");
+      }
+    }
     var tabButtons = tabs.querySelectorAll("button");
     for (var t = 0; t < tabButtons.length; t++) {
       var tb = tabButtons[t];
@@ -922,6 +938,44 @@
       imp(closeBtn, "line-height", "1");
       imp(closeBtn, "padding", "0");
       imp(closeBtn, "z-index", "20");
+    }
+    /* 传送页的地点列表在 1.20.4 里是“按行内文本自然换行”的链接组：三项一行，
+       行宽由文字长度决定，长地名贴到面板右缘、组间留大洞。这里只在该页把
+       含三个以上地点链接的容器收成纵向列表，每个直接子项占满一行；不改
+       页面级状态条，也不碰其它页签。 */
+    if (selectedLabel.indexOf("传送") >= 0 && content) {
+      var locText = (content.textContent || "").replace(/\s+/g, " ");
+      if (locText.indexOf("城镇地点") >= 0 || locText.indexOf("城镇街道") >= 0) {
+        var locNodes = content.querySelectorAll("*");
+        for (var ln = 0; ln < locNodes.length && ln < 300; ln++) {
+          var loc = locNodes[ln];
+          if (loc.children.length < 2) { continue; }
+          if (loc.querySelector("input, select, textarea")) { continue; }
+          var links = loc.querySelectorAll("a").length;
+          if (links < 3) { continue; }
+          /* 只收最内层列表：外层容器交给内层行自己排，避免把整个内容区
+             改成 flex 后影响别的块级装饰。 */
+          var hasInnerList = false;
+          for (var lk = 0; lk < loc.children.length; lk++) {
+            var kid = loc.children[lk];
+            if (kid.children.length >= 2 && kid.querySelectorAll("a").length >= 3) {
+              hasInnerList = true;
+              break;
+            }
+          }
+          if (hasInnerList) { continue; }
+          imp(loc, "display", "flex");
+          imp(loc, "flex-direction", "column");
+          imp(loc, "align-items", "stretch");
+          imp(loc, "gap", "6px");
+          for (var lc = 0; lc < loc.children.length; lc++) {
+            imp(loc.children[lc], "width", "100%");
+            imp(loc.children[lc], "max-width", "100%");
+            imp(loc.children[lc], "flex", "0 0 auto");
+            imp(loc.children[lc], "box-sizing", "border-box");
+          }
+        }
+      }
     }
     var scope = content || overlay;
     if (!scope) { return; }

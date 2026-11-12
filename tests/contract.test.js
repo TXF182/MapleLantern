@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.11");
+  assert.equal(boot.version, "1.1.12");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -181,8 +181,24 @@ test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留
   assert.match(nativeCss, /#customOverlay \.dol-shadow[\s\S]{0,300}background-image:\s*var\(--mln-overlay-texture\) !important/s);
   assert.match(nativeCss, /#cheat_extended_options ~ \* \.settingsGrid[\s\S]{0,300}grid-template-columns:\s*minmax\(0,\s*1fr\) !important/s);
   assert.match(nativeCss, /#customOverlay \.CEtab[\s\S]{0,300}flex-wrap:\s*nowrap !important/s);
+  assert.match(nativeCss, /#customOverlay #cheat_extended_options\s*\{[\s\S]{0,200}display:\s*flex !important/s,
+    "1.20.4 的 grid 页签必须改回 flex 才能单行");
+  assert.match(nativeCss, /data-mln-ce-page="teleport"/, "传送页需要独立标记，不能误伤其它页");
   assert.doesNotMatch(nativeCss, /#customOverlay:has\(#cheat_extended_options/,
     "CE 关键规则不得依赖 :has()");
+});
+
+test("1.1.12：移动端背景锚定视口，长页底部不再露出渐变截止段", () => {
+  assert.match(nativeCss,
+    /@media \(max-width: 899px\)[\s\S]*?html\[data-ml-native="on"\]\s*\{[\s\S]*?background-attachment:\s*fixed !important/s,
+    "根背景必须 fixed，否则滚动到长页末尾会只剩纯色");
+  assert.doesNotMatch(nativeCss, /background-attachment:\s*scroll !important/,
+    "scroll 会让根元素绘制区止于视口，产生截断");
+  assert.match(nativeCss, /background-color:\s*var\(--mln-bg\) !important/s,
+    "fixed 被旧 WebView 忽略时仍要有底色兜底");
+  assert.match(native, /selectedLabel\.indexOf\("传送"\) >= 0/);
+  assert.match(native, /setAttribute\("data-mln-ce-page", "teleport"\)/);
+  assert.match(native, /flex-direction", "column"/);
 });
 
 test("普通弹层：主题页纹理与半透明材质透出，不只是纯色底", () => {
