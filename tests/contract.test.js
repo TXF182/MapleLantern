@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.8");
+  assert.equal(boot.version, "1.1.9");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -175,19 +175,23 @@ test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际
 
 test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留主题材质", () => {
   assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\{", "s"));
-  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,500}background-color:\s*color-mix\(in srgb,\s*var\(--mln-bg\) 66%,\s*transparent\) !important/s);
-  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,500}background-image:\s*var\(--mln-page-texture\) !important/s);
-  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,900}\.dol-shadow[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*var\(--mln-surface\) 64%,\s*transparent\) !important/s);
-  assert.match(nativeCss, /:is\(#customOverlay:has\(#cheat_extended_options\)[\s\S]{0,900}\.dol-shadow[\s\S]{0,400}background-image:\s*var\(--mln-overlay-texture\) !important/s);
-  assert.match(nativeCss, /:has\(#cheat_extended_options\)[\s\S]{0,600}\.settingsGrid[\s\S]{0,200}grid-template-columns:\s*minmax\(0,\s*1fr\) !important/s);
-  assert.match(nativeCss, /:has\(#cheat_extended_options\)[\s\S]{0,600}\.CEtab[\s\S]{0,300}flex-wrap:\s*nowrap !important/s);
+  assert.match(nativeCss, /#customOverlay #cheat_extended_options[\s\S]{0,500}background-color:\s*rgba\(23, 28, 34, \.76\) !important/s);
+  assert.match(nativeCss, /#customOverlay #cheat_extended_options[\s\S]{0,500}background-image:\s*var\(--mln-overlay-texture\) !important/s);
+  assert.match(nativeCss, /#customOverlay \.dol-shadow[\s\S]{0,300}background-color:\s*rgba\(18, 22, 27, \.58\) !important/s);
+  assert.match(nativeCss, /#customOverlay \.dol-shadow[\s\S]{0,300}background-image:\s*var\(--mln-overlay-texture\) !important/s);
+  assert.match(nativeCss, /#cheat_extended_options ~ \* \.settingsGrid[\s\S]{0,300}grid-template-columns:\s*minmax\(0,\s*1fr\) !important/s);
+  assert.match(nativeCss, /#customOverlay \.CEtab[\s\S]{0,300}flex-wrap:\s*nowrap !important/s);
+  assert.doesNotMatch(nativeCss, /#customOverlay:has\(#cheat_extended_options/,
+    "CE 关键规则不得依赖 :has()");
 });
 
 test("普通弹层：主题页纹理与半透明材质透出，不只是纯色底", () => {
-  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-bg\) 68%,\s*transparent\)/);
+  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-bg\) 58%,\s*transparent\)/);
   assert.match(nativeCss, /background-image:\s*var\(--mln-overlay-texture\),\s*var\(--mln-page-texture\)/);
-  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-surface\) 78%,\s*transparent\)/);
+  assert.match(nativeCss, /background-color:\s*color-mix\(in srgb,\s*var\(--mln-surface\) 62%,\s*transparent\)/);
   assert.match(nativeCss, /#customOverlayContent[\s\S]{0,300}background-image:\s*var\(--mln-page-texture\),\s*var\(--mln-surface-texture\)/);
+  /* 旧 WebView 不支持 :has()/color-mix() 时的 rgba + 页纹理兜底。 */
+  assert.match(nativeCss, /#customOverlay:not\(\[data-overlay="modloader"\]\)\s*\{[\s\S]{0,200}background-color:\s*rgba\(11, 13, 16, \.58\)/);
 });
 
 test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，旧主题仍保留", () => {
@@ -198,8 +202,8 @@ test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，
   assert.match(css, /赛博朋克主题装饰/);
   assert.match(nativeCss, /data-ml-theme="cyberpunk"\]\s*\{[\s\S]*--mln-accent:\s*#00E5FF/);
   assert.match(nativeCss, /赛博朋克主题装饰/);
-  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlay:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#05070F 68%,\s*transparent\)/s);
-  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlayContent:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#080D19 78%,\s*transparent\)/s);
+  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlay:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#05070F 58%,\s*transparent\)/s);
+  assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlayContent:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#080D19 62%,\s*transparent\)/s);
   for (const old of ["amber", "jade", "graphite", "star"]) {
     assert.ok(core.includes("theme." + old), "旧主题 " + old + " 不应被删除");
   }
@@ -275,8 +279,7 @@ test("原生脚本：只读标记、无轮询、恒按开关挂载与幂等入�
   assert.ok(!/State\.variables\s*[.\[]\s*[A-Za-z_$][\w$]*\s*[+\-*/]?=([^=]|$)/g.test(native));
 });
 
-test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主不再关层", () => {
-  assert.ok(index.includes('.ml-option-group,a.link-internal.macro-link[data-ml-option=\\"1\\"]'),
+test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主不再关层", () => {  assert.ok(index.includes('.ml-option-group,a.link-internal.macro-link[data-ml-option=\\"1\\"]'),
     "正文选项必须进入 PRESS_SELECTOR");
   assert.match(index, /mln-press-ring/);
   assert.match(index, /mln-is-pressed/);
@@ -285,11 +288,43 @@ test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主
   assert.match(nativeCss, /\.mln-press-ring/);
   assert.match(nativeCss, /@keyframes mln-press-ripple/);
   assert.match(nativeCss, /html\[data-ml-native="on"\] body\s*\{[\s\S]*?background-color: transparent !important/);
-  assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image:\s*radial-gradient\(122% 102% at 50% 46%[\s\S]*?var\(--mln-page-texture\) !important/);
+  assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image:\s*radial-gradient\(132% 92% at 50% -14%[\s\S]*?var\(--mln-page-texture\) !important/);
   assert.match(nativeCss, /background-attachment: fixed/);
   assert.match(nativeCss, /radial-gradient\(3\.2px 3\.2px at 33% 15%/);
   assert.match(nativeCss, /br:has\(\+ a\.macro-link\)/);
   assert.ok(native.includes("var on = state.settings.native !== false;"),
     "检测到 DoLGameUI 不能把本包原生层整层关掉");
   assert.ok(!native.includes("state.settings.native !== false && !state.host"));
+});
+
+test("1.1.9：Android 真实 DOM 兜底——晚替换链接重组、CE 不超视口、无 :has/color-mix 也能生效", () => {
+  /* 选项：链接类名不保真、链接晚于图标重建时仍要回到同一张卡。 */
+  assert.match(native, /a\.link-internal\.macro-link, a\.macro-link, a\.link-internal/);
+  assert.match(native, /function repairGroups\(/);
+  assert.match(native, /MutationObserver/);
+  assert.match(native, /setTimeout\(schedule, 2400\)/);
+  /* CE：不依赖 :has() 的实体规则 + 视口硬约束 + 箭头回缩。 */
+  assert.match(nativeCss, /#customOverlay #cheat_extended_options/);
+  assert.doesNotMatch(nativeCss, /#customOverlay:has\(#cheat_extended_options/,
+    "CE 关键规则不得再依赖 :has()（Android WebView 可能整条丢弃）");
+  assert.match(nativeCss, /max-width: calc\(100vw - 16px\) !important/);
+  assert.match(nativeCss, /grid-template-columns: minmax\(0, 1fr\) !important/);
+  assert.match(nativeCss, /#cheat_extended_options:not\(\.CE-two-level-tabs\) > button/);
+  assert.match(native, /normalizeCheatLayout/);
+  assert.match(native, /\[<>‹›←→«»▲▼◀▶⏪⏩\]/);
+  /* CE 面板是点开 OPTIONS 后异步挂载的，必须单独观察 #customOverlay；否则
+     inline 约束根本不会在真实面板上执行，1.1.8 的溢出就是这样漏掉的。 */
+  assert.match(native, /function watchOverlay\(/);
+  assert.match(native, /overlayObserver/);
+  assert.match(native, /CE-close-btn/);
+  /* 图标与链接被拆散时，还要能从图标向后接回最近链接，并持续补扫数秒。 */
+  assert.match(native, /function adoptOrphanIcons\(/);
+  assert.match(native, /state\.sweep/);
+  /* 状态条与传送列表都可能是 grid：靠“纯箭头按钮”区分，避免把状态条压成一列。 */
+  assert.match(native, /arrowButton/);
+  /* 选项卡片间距收紧到 3px，避免“图标卡外 + 空行”撑出的大段间隔。 */
+  assert.match(nativeCss, /margin: 3px 0 !important/);
+  /* color-mix 前必须有 rgba 兜底，旧 WebView 才不是一整块实色。 */
+  assert.match(nativeCss, /background-color: rgba\(18, 22, 27, \.62\);\s*\n\s*background-color: color-mix/);
+  assert.match(nativeCss, /--mln-halo: rgba\(227, 178, 95, \.28\)/);
 });

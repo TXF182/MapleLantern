@@ -23,7 +23,11 @@
     pending: false,
     disposed: false,
     entry: null,
-    overlayHome: null
+    overlayHome: null,
+    packObserver: null,
+    overlayObserver: null,
+    sweep: null,
+    packTimer: null
   };
 
   function readSettings() {
@@ -412,6 +416,16 @@
     function blank(node) {
       return node && node.nodeType === 3 && !(node.nodeValue || "").trim();
     }
+    /* 本土化包裹可能插进 <span class="...">（空壳、无图无字）再放链接；
+       这类空壳不能挡住“图标就在链接前面”的判断。 */
+    function emptyShell(node) {
+      if (!node || node.nodeType !== 1) { return false; }
+      if (node.classList && (node.classList.contains("icon") || node.classList.contains("icon-container"))) { return false; }
+      if (node.tagName === "IMG") { return false; }
+      if ((node.textContent || "").trim()) { return false; }
+      if (node.querySelector && node.querySelector("img.icon, .icon")) { return false; }
+      return true;
+    }
     function iconImage(node) {
       if (!node || node.nodeType !== 1) { return null; }
       if (node.tagName === "IMG" && node.classList.contains("icon")) { return node; }
@@ -453,7 +467,8 @@
     }
     function iconBefore(node) {
       var prev = node.previousSibling;
-      while (prev && (blank(prev) || (prev.nodeType === 1 && prev.tagName === "BR"))) {
+      while (prev && (blank(prev) || (prev.nodeType === 1 && prev.tagName === "BR") ||
+             emptyShell(prev))) {
         prev = prev.previousSibling;
       }
       return iconImage(prev);
@@ -483,10 +498,104 @@
       }
       return true;
     }
+    /* 本地化/替换型模组可能在 passageend 之后重建链接，且不一定保留
+       macro-link 类名；把 link-internal 也纳入候选，才不至于在 Android 上
+       只剩图标留在卡外。没有图标的行内链接会在下面因 icon 为空直接跳过。 */
+    function optionLinks(passage) {
+      return passage.querySelectorAll("a.link-internal.macro-link, a.macro-link, a.link-internal");
+    }
+    function linkNode(node) {
+      if (!node || node.nodeType !== 1) { return null; }
+      if (node.tagName === "A" && node.classList &&
+          (node.classList.contains("link-internal") || node.classList.contains("macro-link"))) {
+        return node;
+      }
+      return null;
+    }
+    /* 图标已进组、链接被重建到组外时，把紧随其后的新链接接回该组，
+       避免“图标一张空卡、选项一张卡”的 Android 现象。 */
+    function repairGroups(passage) {
+      var groups = passage.querySelectorAll(".ml-option-group");
+      for (var g = 0; g < groups.length; g++) {
+        var group = groups[g];
+        if (group.querySelector("a.link-internal, a.macro-link")) { continue; }
+        var next = group.nextSibling;
+        while (next && (blank(next) || (next.nodeType === 1 && next.tagName === "BR"))) {
+          next = next.nextSibling;
+        }
+        var direct = linkNode(next);
+        var holder = null;
+        var heldLink = null;
+        if (!direct && next && next.nodeType === 1) {
+          var linksInNext = next.querySelectorAll("a.link-internal, a.macro-link");
+          if (linksInNext.length === 1 &&
+              (next.textContent || "").trim() === (linksInNext[0].textContent || "").trim()) {
+            holder = next;
+            heldLink = linksInNext[0];
+            direct = heldLink;
+          }
+        }
+        if (!direct) { continue; }
+        if (holder && heldLink) {
+          group.appendChild(heldLink);
+          if (holder.parentNode && !(holder.textContent || "").trim() && !holder.querySelector("img")) {
+            holder.parentNode.removeChild(holder);
+          }
+        } else {
+          group.appendChild(direct);
+        }
+        var after = group.nextSibling;
+        while (after && (blank(after) || (after.nodeType === 1 && after.tagName === "BR"))) {
+          var dead = after;
+          after = after.nextSibling;
+          if (dead.parentNode) { dead.parentNode.removeChild(dead); }
+        }
+      }
+    }
+    /* 汉化/宿主把图标与链接拆到同一层、但中间多了空壳包裹时，向前回溯会失败。
+       这里从图标向后找最近的一个选项链接，把它接进同一张卡；已被别的卡收走
+       的链接跳过，避免同一个选项出现两张卡。 */
+    function adoptOrphanIcons(passage) {
+      var icons = passage.querySelectorAll("img.icon, .icon-container");
+      var list = [];
+      for (var i = 0; i < icons.length; i++) {
+        var n = icons[i];
+        if (n.closest && n.closest(".ml-option-group")) { continue; }
+        if (n.parentNode && n.parentNode.closest && n.parentNode.closest(".icon-container")) { continue; }
+        list.push(n);
+      }
+      for (var k = 0; k < list.length; k++) {
+        var icon = list[k];
+        if (icon.closest && icon.closest(".ml-option-group")) { continue; }
+        if (!icon.parentNode) { continue; }
+        var next = icon.nextSibling;
+        var link = null;
+        for (var s = 0; next && s < 6; s++) {
+          if (next.nodeType === 1 && next.tagName === "A" && linkNode(next)) { link = next; break; }
+          if (next.nodeType === 3 && next.nodeValue && next.nodeValue.trim()) { break; }
+          if (next.nodeType === 1 && next.tagName !== "BR" && !emptyShell(next)) { break; }
+          next = next.nextSibling;
+        }
+        if (!link) { continue; }
+        if (link.closest && link.closest(".ml-option-group")) { continue; }
+        var wrap = doc.createElement("div");
+        wrap.className = "ml-option-group";
+        wrap.setAttribute("data-ml-option-group", "1");
+        icon.parentNode.insertBefore(wrap, icon);
+        wrap.appendChild(icon);
+        wrap.appendChild(link);
+        var before = wrap.previousSibling;
+        while (before && (blank(before) || (before.nodeType === 1 && before.tagName === "BR"))) {
+          var dead = before;
+          before = before.previousSibling;
+          if (dead.parentNode) { dead.parentNode.removeChild(dead); }
+        }
+      }
+    }
     var passages = root.querySelectorAll("#passages .passage");
     for (var i = 0; i < passages.length; i++) {
       var passage = passages[i];
-      var links = passage.querySelectorAll("a.link-internal.macro-link, a.macro-link");
+      var links = optionLinks(passage);
       for (var j = 0; j < links.length; j++) {
         var link = links[j];
         try {
@@ -584,6 +693,8 @@
         }
         } catch (err) { /* 单个选项结构异常时跳过它，不能让整页选项都留在卡外 */ }
       }
+      repairGroups(passage);
+      adoptOrphanIcons(passage);
     }
   }
 
@@ -598,8 +709,173 @@
     }
   }
 
-  function markPassages() {
-    var passages = doc.getElementById("passages");
+  /* CheatExtended 的面板不是本包渲染的，class/层级会随 fork 变化，不能靠
+     :has() 或固定 class 名做约束（Android WebView 可能整条丢弃 :has()）。
+     这里在面板打开时直接写 inline !important：先保证不超视口，再把页签收成
+     单行、把两列网格收成一列、把状态条两侧的巨大箭头压回 34px。 */
+  function normalizeCheatLayout() {
+    var tabs = doc.getElementById("cheat_extended_options");
+    if (!tabs) { return; }
+    var overlay = null;
+    try { overlay = tabs.closest("#customOverlay"); } catch (e) { overlay = null; }
+    if (!overlay) { overlay = doc.getElementById("customOverlay"); }
+    var content = doc.getElementById("customOverlayContent");
+    var vw = doc.documentElement.clientWidth || window.innerWidth || 390;
+    var imp = function (el, prop, val) {
+      if (!el || !el.style) { return; }
+      try { el.style.setProperty(prop, val, "important"); } catch (e) { /* 旧 WebView 忽略单条即可 */ }
+    };
+    var themeColor = function (name, fallback) {
+      try {
+        var v = window.getComputedStyle(doc.documentElement).getPropertyValue(name).trim();
+        return v || fallback;
+      } catch (e) { return fallback; }
+    };
+    var tint = function (hex, alpha) {
+      var h = String(hex || "").replace(/^#/, "");
+      if (h.length === 3) { h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2); }
+      if (h.length !== 6) { return "rgba(5, 7, 15, " + alpha + ")"; }
+      var r = parseInt(h.slice(0, 2), 16);
+      var g = parseInt(h.slice(2, 4), 16);
+      var b = parseInt(h.slice(4, 6), 16);
+      return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
+    };
+    if (vw <= 899) {
+      imp(overlay, "width", "auto");
+      imp(overlay, "max-width", "calc(100vw - 16px)");
+      imp(overlay, "box-sizing", "border-box");
+      imp(overlay, "overflow-x", "hidden");
+      imp(content, "width", "auto");
+      imp(content, "max-width", "100%");
+      imp(content, "box-sizing", "border-box");
+      imp(content, "overflow-x", "hidden");
+      imp(tabs, "width", "100%");
+      imp(tabs, "max-width", "100%");
+      imp(tabs, "box-sizing", "border-box");
+    }
+    /* 一部分 Android WebView 不支持 color-mix()，CSS 里的半透明会整条失效；
+       这里用主题 --mln-bg / --mln-surface 算成 rgba 直接写 inline。 */
+    var bg = themeColor("--mln-bg", "#0B0D10");
+    var surface = themeColor("--mln-surface", "#12161B");
+    if (overlay) {
+      imp(overlay, "background-color", tint(bg, 0.60));
+      imp(overlay, "background-image", "var(--mln-page-texture)");
+      imp(overlay, "background-size", "cover");
+      imp(overlay, "background-repeat", "no-repeat");
+      imp(overlay, "background-attachment", "fixed");
+    }
+    if (content) {
+      imp(content, "background-color", tint(surface, 0.64));
+      imp(content, "background-image", "var(--mln-page-texture), var(--mln-surface-texture)");
+      imp(content, "background-size", "cover");
+      imp(content, "background-repeat", "no-repeat");
+      imp(content, "background-attachment", "fixed");
+    }
+    imp(tabs, "flex-wrap", "nowrap");
+    imp(tabs, "overflow-x", "auto");
+    imp(tabs, "-webkit-overflow-scrolling", "touch");
+    var twoLevel = !!(tabs.querySelector(".CE-category-bar, .CE-subtab-bar, .CE-category, .CE-subtab"));
+    var tabButtons = tabs.querySelectorAll("button");
+    for (var t = 0; t < tabButtons.length; t++) {
+      var tb = tabButtons[t];
+      imp(tb, "width", "auto");
+      imp(tb, "min-width", "0");
+      imp(tb, "max-width", "100%");
+      imp(tb, "height", "34px");
+      imp(tb, "min-height", "34px");
+      imp(tb, "padding", "3px 5px");
+      imp(tb, "font-size", "11px");
+      imp(tb, "line-height", "1.2");
+      imp(tb, "white-space", "nowrap");
+      imp(tb, "border-radius", "8px");
+      /* 旧版平铺页签等分一行；两层页签保留可横向滚动，不被压成省略号。 */
+      imp(tb, "flex", twoLevel ? "0 0 auto" : "1 1 0");
+    }
+    /* CE 的关闭按钮绝对定位在右边缘，overlay 收窄后会被裁掉半个 ✖。 */
+    var closeBtn = (content && content.querySelector(".CE-close-btn")) || tabs.querySelector(".CE-close-btn");
+    /* 两层页签的第一行右端会被关闭按钮压住：给容器留出等宽内边距。 */
+    var catBar = tabs.querySelector(".CE-category-bar");
+    if (catBar) { imp(catBar, "padding-right", "36px"); }
+    if (closeBtn) {
+      imp(closeBtn, "right", "6px");
+      imp(closeBtn, "top", "5px");
+      imp(closeBtn, "width", "28px");
+      imp(closeBtn, "height", "28px");
+      imp(closeBtn, "min-width", "28px");
+      imp(closeBtn, "font-size", "14px");
+      imp(closeBtn, "line-height", "1");
+      imp(closeBtn, "padding", "0");
+      imp(closeBtn, "z-index", "20");
+    }
+    var scope = content || overlay;
+    if (!scope) { return; }
+    var buttons = scope.querySelectorAll("button");
+    for (var b = 0; b < buttons.length && b < 320; b++) {
+      var btn = buttons[b];
+      var label = (btn.textContent || "").trim();
+      imp(btn, "min-height", "32px");
+      imp(btn, "padding", "3px 7px");
+      imp(btn, "font-size", "13px");
+      imp(btn, "line-height", "1.2");
+      /* 状态条的 ◀ ◀ ▶ ▶ 原本继承超大字号，按钮被撑成一整块。 */
+      if (/^[<>‹›←→«»▲▼◀▶⏪⏩]+$/.test(label)) {
+        imp(btn, "width", "34px");
+        imp(btn, "min-width", "34px");
+        imp(btn, "max-width", "34px");
+        imp(btn, "height", "34px");
+        imp(btn, "padding", "0");
+        imp(btn, "font-size", "16px");
+      }
+    }
+    /* 只把“页面级分栏”收成一列：格子里直接放两个按钮的是状态条本体，
+       把它压成一列会把左右箭头叠到数值上方。 */
+    var nodes = scope.querySelectorAll("*");
+    for (var n = 0; n < nodes.length && n < 300; n++) {
+      var el = nodes[n];
+      if (el.tagName === "BUTTON") { continue; }
+      /* CE 的内部容器常带固定宽度（实测 teleport 列表 598px，父容器只有
+         374px）。不逐层收回 max-width，overlay 会把它裁在右边，箭头和地点
+         就会“超出边框”。min-width:0 允许 flex/grid 子项真正压缩。 */
+      imp(el, "max-width", "100%");
+      imp(el, "min-width", "0");
+      imp(el, "box-sizing", "border-box");
+      imp(el, "overflow-wrap", "anywhere");
+      var cs = null;
+      try { cs = window.getComputedStyle(el); } catch (e) { cs = null; }
+      if (!cs) { continue; }
+      var directButtons = 0;
+      for (var c = 0; c < el.children.length; c++) {
+        if (el.children[c].tagName === "BUTTON") { directButtons++; }
+      }
+      /* 状态条也常是 grid/flex：里面一定有 ◀ ▶ 这类纯箭头按钮。
+         只有“没有箭头按钮”的容器才是传送地点这类分栏列表，才收成一列；
+         否则会把左右箭头叠到数值上方/下方。 */
+      var arrowButton = false;
+      var bs = el.querySelectorAll("button");
+      for (var q = 0; q < bs.length && q < 24; q++) {
+        if (/^[<>‹›←→«»▲▼◀▶⏪⏩]+$/.test((bs[q].textContent || "").trim())) { arrowButton = true; break; }
+      }
+      var display = cs.display || "";
+      if (display.indexOf("grid") >= 0 && !arrowButton) {
+        var cols = cs.gridTemplateColumns || "";
+        if (cols && cols !== "none" && cols.split(" ").length > 1) {
+          imp(el, "grid-template-columns", "minmax(0, 1fr)");
+        }
+      }
+      if (parseFloat(cs.columnCount) > 1) { imp(el, "column-count", "1"); }
+      /* 传送地点这类 flex-wrap 列表：每项占满一行，避免两列参差。 */
+      if (display.indexOf("flex") >= 0 && cs.flexWrap === "wrap" && !arrowButton &&
+          el.children.length >= 4 &&
+          !el.querySelector("input, select, textarea")) {
+        for (var k = 0; k < el.children.length; k++) {
+          imp(el.children[k], "flex-basis", "100%");
+          imp(el.children[k], "max-width", "100%");
+        }
+      }
+    }
+  }
+
+  function markPassages() {    var passages = doc.getElementById("passages");
     if (!passages) { return; }
     /* 只标记，不替换链接；CSS 依据 .macro-link 区分正文选项与行内链接。 */
     var links = passages.querySelectorAll("a.link-internal.macro-link");
@@ -916,6 +1192,7 @@
     markSaveRows();
     fitSidebarLabels();
     markDialog();
+    normalizeCheatLayout();
   }
 
   function schedule() {
@@ -935,6 +1212,56 @@
     schedule();
     setTimeout(schedule, 140);
     setTimeout(schedule, 480);
+    /* 汉化 / TweeReplacer / 宿主会在 passageend 之后重建链接节点；
+       再补两拍，并配合 MutationObserver 兜底。 */
+    setTimeout(schedule, 1200);
+    setTimeout(schedule, 2400);
+    /* 安卓汉化包可能在数秒后才整段替换选项节点；继续低频补扫，
+       直到新链接稳定落位（约 6s），否则图标会停在卡外。 */
+    if (state.sweep) { clearTimeout(state.sweep); }
+    var ticks = 0;
+    var sweepOnce = function () {
+      state.sweep = null;
+      if (state.disposed) { return; }
+      schedule();
+      ticks++;
+      if (ticks < 10) { state.sweep = setTimeout(sweepOnce, 600); }
+    };
+    state.sweep = setTimeout(sweepOnce, 600);
+  }
+
+  function watchPassages() {
+    if (state.packObserver || typeof window.MutationObserver !== "function") { return; }
+    var host = doc.getElementById("passages");
+    if (!host) { return; }
+    var relevant = function (node) {
+      if (!node || node.nodeType !== 1) { return false; }
+      try {
+        if (node.matches && node.matches("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
+        if (node.querySelector && node.querySelector("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
+      } catch (e) { /* 选择器不支持时按无关处理 */ }
+      return false;
+    };
+    state.packObserver = new window.MutationObserver(function (records) {
+      if (state.disposed || !state.nativeOn) { return; }
+      var hit = false;
+      for (var r = 0; r < records.length && !hit; r++) {
+        var rec = records[r];
+        var target = rec.target;
+        if (target && target.nodeType === 1 && target.closest &&
+            target.closest(".ml-option-group")) { continue; }
+        var list = [];
+        if (rec.addedNodes) { for (var a = 0; a < rec.addedNodes.length; a++) { list.push(rec.addedNodes[a]); } }
+        if (rec.removedNodes) { for (var d = 0; d < rec.removedNodes.length; d++) { list.push(rec.removedNodes[d]); } }
+        for (var i = 0; i < list.length; i++) {
+          if (relevant(list[i])) { hit = true; break; }
+        }
+      }
+      if (!hit) { return; }
+      if (state.packTimer) { clearTimeout(state.packTimer); }
+      state.packTimer = setTimeout(schedule, 120);
+    });
+    state.packObserver.observe(host, { childList: true, subtree: true });
   }
 
   function onClick(e) {
@@ -954,6 +1281,23 @@
 
   function onReady() { schedule(); }
 
+  /* CE 面板是点开 OPTIONS 之后才异步挂进来的，正文观察器看不到它；
+     单独盯 #customOverlay 子树，面板一出现/换页签就重算一次几何。 */
+  function watchOverlay() {
+    if (state.overlayObserver || typeof window.MutationObserver !== "function") { return; }
+    var overlay = doc.getElementById("customOverlay");
+    if (!overlay) { return; }
+    state.overlayObserver = new window.MutationObserver(function () {
+      if (state.disposed || !state.nativeOn) { return; }
+      if (!doc.getElementById("cheat_extended_options")) { return; }
+      if (state.packTimer) { clearTimeout(state.packTimer); }
+      state.packTimer = setTimeout(function () {
+        try { normalizeCheatLayout(); } catch (e) { /* 面板结构异常时不拖垮主流程 */ }
+      }, 120);
+    });
+    state.overlayObserver.observe(overlay, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
+  }
+
   function bind() {
     doc.addEventListener("passageend", onPassage);
     doc.addEventListener("dol-ui-runtime-ready", schedule);
@@ -962,6 +1306,8 @@
     try {
       if (window.jQuery) { window.jQuery(doc).on(":passageend", onPassage); }
     } catch (e) { /* 原生事件兜底 */ }
+    watchPassages();
+    watchOverlay();
   }
 
   function unbind() {
@@ -972,6 +1318,10 @@
     try {
       if (window.jQuery) { window.jQuery(doc).off(":passageend", onPassage); }
     } catch (e) { /* ignore */ }
+    if (state.packTimer) { clearTimeout(state.packTimer); state.packTimer = null; }
+    if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
+    if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
+    if (state.sweep) { clearTimeout(state.sweep); state.sweep = null; }
   }
 
   function destroy() {
