@@ -83,6 +83,7 @@ async function dismissWelcome(page) {
       /我已知晓|I understand|知道了/i.test((n.textContent || "").trim()) && n.offsetParent);
     if (b) { b.click(); }
   });
+  await page.waitForTimeout(450);
 }
 
 
