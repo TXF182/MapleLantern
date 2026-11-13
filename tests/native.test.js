@@ -693,3 +693,25 @@ test("1.1.18：CE 关闭后 #customOverlay 的内联宽度必须还原", async (
   assert.equal(content.getAttribute("style"), originalContent,
     "CE 关闭后 content 必须回到打开前的 inline style");
 });
+
+test("1.1.19：CE 自己写入的 width:auto 关闭后也不能留在 overlay 上", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  w.innerWidth = 390;
+  openOptions(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const content = w.document.getElementById("customOverlayContent");
+  overlay.style.width = "auto";
+
+  const tabs = w.document.createElement("div");
+  tabs.id = "cheat_extended_options";
+  content.appendChild(tabs);
+  w.MapleLanternNative.refresh();
+  await tick(w, 200);
+
+  tabs.remove();
+  w.MapleLanternNative.refresh();
+  await tick(w, 200);
+  assert.equal(overlay.style.width, "", "CE 自带的 width:auto 也必须清掉");
+  assert.equal(overlay.style.maxWidth, "", "max-width 必须清掉");
+});

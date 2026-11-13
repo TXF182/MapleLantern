@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.18");
+  assert.equal(boot.version, "1.1.19");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -219,6 +219,8 @@ test("1.1.18：CE 关闭后必须还原 #customOverlay 内联样式", () => {
     "CE 关闭、隐藏或被主菜单复用时必须整体还原");
   assert.match(native, /removeAttribute\("style"\)/,
     "原始没有 style 的宿主要移除整个 style 属性，不能留空壳");
+  assert.match(native, /removeProperty\(CE_LAYOUT_PROPS\[p\]\)/,
+    "即使 CE 自己写过 width:auto，关闭时也要清掉布局属性");
   assert.match(native, /function isCePanelActive/,
     "必须同时判断页签存在与 overlay 是否 hidden");
   assert.match(native, /if \(!active\)[\s\S]{0,140}restoreCeStyle/,

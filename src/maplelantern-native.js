@@ -831,6 +831,10 @@
   /* CE 关闭后 #customOverlay 会被主菜单复用。先记下 CE 打开前的 inline style，
      关闭时整体还原，避免 width:auto / max-width 这些 !important 写入把主菜单
      压到屏幕左侧。只还原我们动过的两个宿主，不碰 CE 自己的其它节点。 */
+  /* 这几个是 CE 面板会写、主菜单复用同一宿主时最影响几何的布局属性。
+     即使 CE 在我们记录之前就写过 width:auto，关闭时也一并清掉，交给 CSS 重新算整宽。 */
+  var CE_LAYOUT_PROPS = ["width", "max-width", "box-sizing", "overflow-x"];
+
   function rememberCeStyle() {
     if (state.ceStyleHome) { return; }
     var overlay = doc.getElementById("customOverlay");
@@ -850,6 +854,9 @@
       if (!item || !item.el) { continue; }
       if (item.style === null) { item.el.removeAttribute("style"); }
       else { item.el.setAttribute("style", item.style); }
+      for (var p = 0; p < CE_LAYOUT_PROPS.length; p++) {
+        try { item.el.style.removeProperty(CE_LAYOUT_PROPS[p]); } catch (e) { /* 旧 WebView 忽略单条即可 */ }
+      }
     }
     state.ceStyleHome = null;
     state.ceReady = false;

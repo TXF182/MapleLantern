@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.18）
+# 灯台 · Lantern（MapleLantern 1.1.19）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.19 浮层复用二次收口**：1.1.18 已记录并还原 CE 打开前的完整 inline style；但 CE 若在记录前自己写了 `width:auto`，还原后这个值仍会留给主菜单。现在关闭时额外清掉 `width`、`max-width`、`box-sizing`、`overflow-x` 四个布局属性，让主菜单回到 CSS 的整宽布局；新增“CE 自带 width:auto”回归测试。
 - **1.1.18 浮层复用收口**：CE 面板打开时原生层会写 `#customOverlay` / `#customOverlayContent` 的 `width`、`max-width`、`overflow-x` 内联 `!important`；CE 关闭后同一个 `#customOverlay` 被主菜单复用，旧内联值残留，窗口被压到屏幕左侧且按钮命中区异常。现在打开前先记录原始 inline style，CE 关闭、隐藏或切走时整体还原；手机端宽度改为明确的 `calc(100vw - 16px)`，不再依赖 `width:auto` 收缩。新增契约断言锁住还原路径。
 - **1.1.17 电脑端 CE 状态页收口**：CE「状态」页沿用 `.settingsGrid`，桌面两列时格子内容会横向撑破邻格。现在格子按可容纳 520px 自适应，格子内卡片强制 `overflow:hidden`，`numberStepperContainer` 允许 `flex-wrap:wrap`，桌面箭头固定 28px、`margin/padding` 归零，中央数值区允许收缩并省略；新增契约断言与 1200px 两列几何验证（card gap 12px、零矩形重叠）。
 - **1.1.16 原生弹层点击收口**：`#customOverlayContainer` 由 PassageFooter 渲染在 `#passages` 内，旧 `#passages button` 规则会把 44px 触控尺寸与 `9px 14px` 内边距套到原版/枯木逢春作弊面板；`numberStepper` 内容区被压到 2px，视觉箭头溢出到命中区外，密集行互相覆盖，点「固定触发」这类小按钮会落到邻格。现在正文按钮规则排除整个弹层子树，并对非 CE 的 `.settingsGrid` 恢复 32px 紧凑几何、`padding:0` 与 `transform:none`，弹层内部只走已排除 CE 的专用规则；新增契约断言锁住这条。
@@ -29,7 +30,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.18-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.19-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
