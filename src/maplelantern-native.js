@@ -1232,8 +1232,40 @@
     } catch (e) { /* 面板未就绪时保持原界面 */ }
   }
 
+  /* 第三方模组的设置页会复用 #customOverlayContent。它们不是「选项主菜单」，
+     不能把「灯台」入口插进它们的控件流；否则 Dynamicest 的「极致动态」页与
+     前景背景的「DecoMod」页都会被多塞一个按钮，挤动它们的布局。 */
+  function thirdPartyOverlay(overlay) {
+    if (!overlay) { return ""; }
+    var content = overlay.querySelector("#customOverlayContent");
+    if (!content) { return ""; }
+    if (content.querySelector("#decoImageSelector, #decoImagePreset, #decoAutoBgSettings")) {
+      return "decorations";
+    }
+    if (content.querySelector("img[src*='img/dynamicest'], .dynamicest-settings-title")) {
+      return "dynamicest";
+    }
+    var heading = content.querySelector("h3");
+    if (heading && /极致动态/.test(heading.textContent || "")) { return "dynamicest"; }
+    return "";
+  }
+
+  function markThirdPartyOverlay(overlay) {
+    var kind = thirdPartyOverlay(overlay);
+    var content = overlay && overlay.querySelector("#customOverlayContent");
+    if (kind) {
+      setAttr(overlay, "data-ml-thirdparty", kind);
+      if (content) { setAttr(content, "data-ml-thirdparty", kind); }
+    } else {
+      if (overlay) { overlay.removeAttribute("data-ml-thirdparty"); }
+      if (content) { content.removeAttribute("data-ml-thirdparty"); }
+    }
+    return kind;
+  }
+
   function addEntry(overlay) {
     if (!overlay || overlay.classList.contains("hidden")) { return; }
+    if (thirdPartyOverlay(overlay)) { return; }
     var text = C.strings(state.lang)["native.entry"];
     var hint = C.strings(state.lang)["native.entryHint"];
     var existing = overlay.querySelector('[data-ml-entry="panel"]');
@@ -1274,6 +1306,7 @@
     var overlay = doc.getElementById("customOverlay");
     if (!overlay || overlay.classList.contains("hidden")) { return; }
     if (overlayKey(overlay) !== "options") { return; }
+    if (thirdPartyOverlay(overlay)) { return; }
     addEntry(overlay);
   }
 
@@ -1403,7 +1436,9 @@
     var overlay = doc.getElementById("customOverlay");
     if (!overlay) { return; }
     var key = overlayKey(overlay);
-    setAttr(overlay, "data-ml-overlay", key);    if (key === "options") { addEntry(overlay); }
+    setAttr(overlay, "data-ml-overlay", key);
+    var third = markThirdPartyOverlay(overlay);
+    if (key === "options" && !third) { addEntry(overlay); }
     if (key === "gameFeats") { armFeatsIntro(); }
     if (key === "statistics") { alignStatRows(overlay); }
   }
@@ -1458,7 +1493,7 @@
     restoreFeatsIntro();
     unpackOptions();
     doc.documentElement.style.removeProperty("--ml-caption-top");
-    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay], [data-ml-save-empty]");
+    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay], [data-ml-save-empty], [data-ml-thirdparty]");
     for (var i = 0; i < marked.length; i++) {
       marked[i].removeAttribute("data-ml-chip");
       marked[i].removeAttribute("data-ml-stat-card");
@@ -1472,6 +1507,7 @@
       marked[i].removeAttribute("data-ml-statmeters");
       marked[i].removeAttribute("data-ml-dialog");
       marked[i].removeAttribute("data-ml-overlay");
+      marked[i].removeAttribute("data-ml-thirdparty");
       marked[i].removeAttribute("data-ml-save-empty");
     }
     var railStats = doc.querySelectorAll("#mobileStats .stat");

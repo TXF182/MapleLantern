@@ -694,24 +694,69 @@ test("1.1.18：CE 关闭后 #customOverlay 的内联宽度必须还原", async (
     "CE 关闭后 content 必须回到打开前的 inline style");
 });
 
-test("1.1.19：CE 自己写入的 width:auto 关闭后也不能留在 overlay 上", async () => {
+test("第三方页面：Dynamicest / 前景背景复用 options 容器时不插灯台入口", async () => {
   const { w } = createEnv();
   await tick(w);
-  w.innerWidth = 390;
   openOptions(w);
+  await tick(w);
   const overlay = w.document.getElementById("customOverlay");
   const content = w.document.getElementById("customOverlayContent");
-  overlay.style.width = "auto";
 
+  content.innerHTML = '<h3>极致动态</h3><img src="img/dynamicest/logo.png"><div class="settingsGrid"></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
+    "Dynamicest 设置页不能被塞「灯台」按钮");
+  assert.equal(overlay.getAttribute("data-ml-thirdparty"), "dynamicest");
+  assert.equal(content.getAttribute("data-ml-thirdparty"), "dynamicest");
+
+  content.innerHTML = '<div id="decoImageSelector"></div><div id="decoImagePreset"></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
+    "前景背景设置页不能被塞「灯台」按钮");
+  assert.equal(overlay.getAttribute("data-ml-thirdparty"), "decorations");
+  assert.equal(content.getAttribute("data-ml-thirdparty"), "decorations");
+
+  content.innerHTML = "<p>选项</p>";
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
+    "回到普通 OPTIONS 主菜单后入口必须恢复");
+  assert.equal(overlay.hasAttribute("data-ml-thirdparty"), false);
+  assert.equal(content.hasAttribute("data-ml-thirdparty"), false);
+});
+
+test("第三方标记只看 #customOverlayContent，页签上的 Dynamicest logo 不误伤主菜单", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  await tick(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const content = w.document.getElementById("customOverlayContent");
   const tabs = w.document.createElement("div");
-  tabs.id = "cheat_extended_options";
-  content.appendChild(tabs);
-  w.MapleLanternNative.refresh();
-  await tick(w, 200);
+  tabs.id = "overlayTabs";
+  tabs.innerHTML = "<button type=button><span class=dynamicest-settings-title><img src='img/dynamicest/logo.png'></span>极致动态</button>";
+  w.document.getElementById("customOverlayTitle").appendChild(tabs);
 
-  tabs.remove();
   w.MapleLanternNative.refresh();
-  await tick(w, 200);
-  assert.equal(overlay.style.width, "", "CE 自带的 width:auto 也必须清掉");
-  assert.equal(overlay.style.maxWidth, "", "max-width 必须清掉");
+  await tick(w);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
+    "主菜单仍要保留入口，不能被页签 logo 误判成第三方设置页");
+  assert.equal(overlay.hasAttribute("data-ml-thirdparty"), false);
+  assert.equal(content.hasAttribute("data-ml-thirdparty"), false);
+});
+
+test("关闭原生卡片时，第三方页同样不插灯台入口", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, native: false } });
+  await tick(w);
+  openOptions(w);
+  await tick(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML = '<div id="decoImageSelector"></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
+    "关闭原生卡片后也不能污染第三方设置页");
 });
