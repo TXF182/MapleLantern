@@ -700,7 +700,7 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
-#ml-root .ml-bridge-open {
+#ml-root .ml-btn.ml-bridge-open {
   flex: none;
   min-height: 44px;
   padding: 0 12px;

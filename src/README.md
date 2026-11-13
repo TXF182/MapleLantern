@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.22）
+# 灯台 · Lantern（MapleLantern 1.1.23）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.23 联动按钮样式收口**：`#ml-root .ml-btn.ml-bridge-open` 提高特异性，避免后置 `.ml-btn` 的 `padding: 8px 14px` 覆盖联动按钮的 `0 12px`；44px 触控高度与紧凑行高保持不变。
 - **1.1.22 第三方只读联动**：读 `V.Dynamicest.Settings` 与 `foreground_image1` / `background_image1` 等公开字段，在「此刻」页显示摘要（动态提醒 / 时段条 / 透明度；前景 / 背景 / 自动背景），点击「打开设置」跳到 Dynamicest「极致动态」页或前景背景入口。没有第三方时整块隐藏；不写第三方状态。
 - **1.1.21 第三方层级与交互收口**：`#customOverlayContainer` 从 1200 降到 1000，Dynamicest 的 `#display-dynamicest`（1001）重新浮在弹层之上，弹层打开时不再吞掉动态提醒；新增契约断言锁住「容器 1000 / 内容 1201 / 提醒 1001」。联合冒烟增加 Dynamicest 复选框真实点击、前景背景 radio 真实点击与 `foreground_image1` 状态断言，并支持 `COMPAT_HOSTS=1` 的 6 包（含 StoneFreeHost + DoLGameUI）组合。
 - **1.1.20 第三方设置页兼容**：Dynamicest 3.3 的「极致动态」页与前景背景 5.12 的「DecoMod」页都会复用 OPTIONS 的 `#customOverlay` / `#customOverlayContent`。原生层现在只在真正的 OPTIONS 主菜单注入「灯台」入口；识别到 `#decoImageSelector` / `#decoImagePreset` / `#decoAutoBgSettings` 或 Dynamicest logo / 「极致动态」标题时，不往第三方控件流里插按钮，并在 overlay 上标记 `data-ml-thirdparty`。新增单测与实机联合冒烟。
@@ -33,7 +34,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.22-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.23-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21/1.1.22 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

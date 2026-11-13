@@ -15,7 +15,7 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.22-theme.mod.zip");
+const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.23-theme.mod.zip");
 const PROFILE = path.join(os.tmpdir(), "lantern-compat-profile-" + Date.now());
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const PACKS = [
@@ -160,12 +160,15 @@ async function dismissWelcome(page) {
     await page.waitForTimeout(450);
     const bridge = await page.evaluate(() => {
       const wrap = document.querySelector("#ml-pane .ml-bridge");
+      const btn = wrap && wrap.querySelector(".ml-bridge-open");
+      const cs = btn ? getComputedStyle(btn) : null;
       return {
         panelOpen: document.querySelector("#ml-root") && document.querySelector("#ml-root").getAttribute("data-open") === "1",
         hasBridge: !!wrap,
         text: wrap ? (wrap.textContent || "").replace(/\s+/g, " ").slice(0, 180) : null,
         rows: wrap ? wrap.querySelectorAll(".ml-bridge-row").length : 0,
-        buttons: wrap ? Array.from(wrap.querySelectorAll("[data-ml-bridge]")).map((n) => n.getAttribute("data-ml-bridge")) : []
+        buttons: wrap ? Array.from(wrap.querySelectorAll("[data-ml-bridge]")).map((n) => n.getAttribute("data-ml-bridge")) : [],
+        button: btn ? { h: Math.round(btn.getBoundingClientRect().height), pl: cs.paddingLeft, pr: cs.paddingRight } : null
       };
     });
     console.log("[3b] 联动摘要: " + JSON.stringify({ lanternOpen, ...bridge }));
@@ -309,6 +312,7 @@ async function dismissWelcome(page) {
       ["前景背景面板未丢失", deco.contentH > 0],
       ["前景背景页未被塞灯台入口", deco.entryCount === 0],
       ["灯台联动摘要可打开", !!lanternOpen && !!bridge.panelOpen && bridge.hasBridge === true && bridge.rows >= 2],
+      ["联动按钮保持 44px 与紧凑内距", !!bridge.button && bridge.button.h >= 44 && bridge.button.pl === "12px" && bridge.button.pr === "12px"],
       ["联动可跳转 Dynamicest", !!bridgeLinked && bridgeTarget.linked === true && bridgeTarget.panelClosed === true],
       ["无未捕获异常", pageErrors.length === 0]
     ];
