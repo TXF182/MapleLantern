@@ -73,12 +73,16 @@ async function enterGame(page) {
     if (inGame) { break; }
   }
 
+  await dismissWelcome(page);
+  await page.waitForTimeout(500);
+}
+
+async function dismissWelcome(page) {
   await page.evaluate(() => {
     const b = Array.from(document.querySelectorAll("button")).find((n) =>
       /我已知晓|I understand|知道了/i.test((n.textContent || "").trim()) && n.offsetParent);
     if (b) { b.click(); }
   });
-  await page.waitForTimeout(500);
 }
 
 
@@ -164,6 +168,7 @@ async function enterGame(page) {
         contentH: content.clientHeight, contentScroll: content.scrollHeight,
         entryCount: content.querySelectorAll('[data-ml-entry="panel"]').length,
         display: !!document.getElementById("display-dynamicest"),
+        displayParent: (document.getElementById("display-dynamicest") && document.getElementById("display-dynamicest").parentElement && (document.getElementById("display-dynamicest").parentElement.id || document.getElementById("display-dynamicest").parentElement.className)) || null,
         displayZ: (document.getElementById("display-dynamicest") && getComputedStyle(document.getElementById("display-dynamicest")).zIndex) || null,
         containerZ: getComputedStyle(document.getElementById("customOverlayContainer")).zIndex,
         overlay: { h: Math.round(overlay.getBoundingClientRect().height), overflow: getComputedStyle(overlay).overflow }
@@ -171,6 +176,7 @@ async function enterGame(page) {
     });
     console.log("[4] Dynamicest 设置页: " + JSON.stringify({ tab: dynTab, ...dyn }));
     fs.mkdirSync(SHOTS, { recursive: true });
+    await dismissWelcome(page);
     await page.screenshot({ path: path.join(SHOTS, "compat-dynamicest.png") });
     const dynClick = await page.evaluate(() => {
       const content = document.querySelector("#customOverlayContent");
@@ -229,6 +235,7 @@ async function enterGame(page) {
       };
     });
     console.log("[5] 前景背景设置页: " + JSON.stringify({ button: decoButton, ...deco }));
+    await dismissWelcome(page);
     await page.screenshot({ path: path.join(SHOTS, "compat-decorations.png") });
     const decoClick = await page.evaluate(() => {
       const selector = document.querySelector("#decoImageSelector");
