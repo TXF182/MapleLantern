@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.17");
+  assert.equal(boot.version, "1.1.18");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -210,6 +210,23 @@ test("1.1.14/1.1.17：CE 状态页两列选项不得横向压叠", () => {
   assert.match(nativeCss,
     /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.titlePercentage[\s\S]{0,200}flex:\s*1 1 60px !important/s,
     "中央数值区必须允许收缩并省略长数值，不得把两侧箭头挤出去");
+});
+
+test("1.1.18：CE 关闭后必须还原 #customOverlay 内联样式", () => {
+  assert.match(native, /function rememberCeStyle/,
+    "打开 CE 前必须记录 #customOverlay / #customOverlayContent 的原始 inline style");
+  assert.match(native, /function restoreCeStyle/,
+    "CE 关闭、隐藏或被主菜单复用时必须整体还原");
+  assert.match(native, /removeAttribute\("style"\)/,
+    "原始没有 style 的宿主要移除整个 style 属性，不能留空壳");
+  assert.match(native, /function isCePanelActive/,
+    "必须同时判断页签存在与 overlay 是否 hidden");
+  assert.match(native, /if \(!active\)[\s\S]{0,140}restoreCeStyle/,
+    "watchOverlay 发现 CE 不活跃时要立刻还原，不能直接 return");
+  assert.match(native, /imp\(overlay, "width", "calc\(100vw - 16px\)"\)/,
+    "手机端宽度必须是明确视口宽度，不能用 width:auto 收缩到左侧");
+  assert.doesNotMatch(native, /imp\(overlay, "width", "auto"\)/,
+    "width:auto 会在主菜单复用 overlay 时留下收缩态");
 });
 
 test("1.1.15：正文图标按钮不得被 background 简写清空图标", () => {

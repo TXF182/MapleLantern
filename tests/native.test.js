@@ -665,3 +665,31 @@ test("性能：状态卡同值不重复写，数值变化仍更新", async () =>
   assert.equal(card.getAttribute("data-ml-readout"), "12/100", "上限拼接必须保持");
   assert.equal(w.MapleLanternNative.stats().writes > steady.writes, true, "变化时应产生写入");
 });
+
+test("1.1.18：CE 关闭后 #customOverlay 的内联宽度必须还原", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  w.innerWidth = 390;
+  openOptions(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const content = w.document.getElementById("customOverlayContent");
+  const originalOverlay = overlay.getAttribute("style");
+  const originalContent = content.getAttribute("style");
+
+  const tabs = w.document.createElement("div");
+  tabs.id = "cheat_extended_options";
+  tabs.innerHTML = "<button class=\"CEtabSelected\">状态</button><button>模组作弊</button>";
+  content.appendChild(tabs);
+  w.MapleLanternNative.refresh();
+  await tick(w, 200);
+  assert.ok(overlay.getAttribute("style").includes("width"),
+    "CE 打开时应写入宽度约束");
+
+  tabs.remove();
+  w.MapleLanternNative.refresh();
+  await tick(w, 200);
+  assert.equal(overlay.getAttribute("style"), originalOverlay,
+    "CE 关闭后 overlay 必须回到打开前的 inline style");
+  assert.equal(content.getAttribute("style"), originalContent,
+    "CE 关闭后 content 必须回到打开前的 inline style");
+});

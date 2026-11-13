@@ -35,6 +35,7 @@
     ceDirty: true,
     ceReady: false,
     ceSig: "",
+    ceStyleHome: null,
     perf: { applies: 0, sweeps: 0, ceNorm: 0, packs: 0, writes: 0, writesSaved: 0 }
   };
 
@@ -827,16 +828,58 @@
     return null;
   }
 
+  /* CE 关闭后 #customOverlay 会被主菜单复用。先记下 CE 打开前的 inline style，
+     关闭时整体还原，避免 width:auto / max-width 这些 !important 写入把主菜单
+     压到屏幕左侧。只还原我们动过的两个宿主，不碰 CE 自己的其它节点。 */
+  function rememberCeStyle() {
+    if (state.ceStyleHome) { return; }
+    var overlay = doc.getElementById("customOverlay");
+    var content = doc.getElementById("customOverlayContent");
+    state.ceStyleHome = {
+      overlay: overlay ? { el: overlay, style: overlay.getAttribute("style") } : null,
+      content: content ? { el: content, style: content.getAttribute("style") } : null
+    };
+  }
+
+  function restoreCeStyle() {
+    var home = state.ceStyleHome;
+    if (!home) { return; }
+    var items = [home.overlay, home.content];
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      if (!item || !item.el) { continue; }
+      if (item.style === null) { item.el.removeAttribute("style"); }
+      else { item.el.setAttribute("style", item.style); }
+    }
+    state.ceStyleHome = null;
+    state.ceReady = false;
+    state.ceSig = "";
+  }
+
+  function isCePanelActive(tabs, overlay) {
+    if (!tabs || !overlay) { return false; }
+    if (overlay.hidden) { return false; }
+    try {
+      if (overlay.classList.contains("hidden")) { return false; }
+    } catch (e) { /* 旧 WebView 的 classList 异常时按可见处理 */ }
+    return true;
+  }
+
   function normalizeCheatLayout() {
     var tabs = doc.getElementById("cheat_extended_options");
-    if (!tabs) { state.ceReady = false; return; }
+    var overlay = null;
+    try { overlay = tabs ? tabs.closest("#customOverlay") : null; } catch (e) { overlay = null; }
+    if (!overlay) { overlay = doc.getElementById("customOverlay"); }
+    if (!isCePanelActive(tabs, overlay)) {
+      restoreCeStyle();
+      state.ceReady = false;
+      return;
+    }
+    rememberCeStyle();
     /* CE 只在面板结构真的变了才重排：换页签/开关/尺寸变化由 dirty 标记驱动，
        正文换页的十几次 apply 不再重复扫 300 个元素。 */
     if (state.ceReady && !state.ceDirty) { return; }
     state.perf.ceNorm++;
-    var overlay = null;
-    try { overlay = tabs.closest("#customOverlay"); } catch (e) { overlay = null; }
-    if (!overlay) { overlay = doc.getElementById("customOverlay"); }
     var content = doc.getElementById("customOverlayContent");
     var vw = doc.documentElement.clientWidth || window.innerWidth || 390;
     var imp = function (el, prop, val) {
@@ -859,7 +902,7 @@
       return "rgba(" + r + ", " + g + ", " + b + ", " + alpha + ")";
     };
     if (vw <= 899) {
-      imp(overlay, "width", "auto");
+      imp(overlay, "width", "calc(100vw - 16px)");
       imp(overlay, "max-width", "calc(100vw - 16px)");
       imp(overlay, "box-sizing", "border-box");
       imp(overlay, "overflow-x", "hidden");
@@ -1580,7 +1623,12 @@
     if (!overlay) { return; }
     state.overlayObserver = new window.MutationObserver(function () {
       if (state.disposed || !state.nativeOn) { return; }
-      if (!doc.getElementById("cheat_extended_options")) { return; }
+      var tabs = doc.getElementById("cheat_extended_options");
+      var active = isCePanelActive(tabs, doc.getElementById("customOverlay"));
+      if (!active) {
+        if (state.ceStyleHome || state.ceReady) { restoreCeStyle(); }
+        return;
+      }
       var sig = ceStructureSig();
       if (sig === state.ceSig) { return; }
       state.ceSig = sig;
@@ -1614,6 +1662,7 @@
       if (window.jQuery) { window.jQuery(doc).off(":passageend", onPassage); }
     } catch (e) { /* ignore */ }
     if (state.packTimer) { clearTimeout(state.packTimer); state.packTimer = null; }
+    restoreCeStyle();
     if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
     if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
     if (state.sweep) { clearTimeout(state.sweep); state.sweep = null; }
