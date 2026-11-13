@@ -1,4 +1,4 @@
-# 灯台 · Lantern（MapleLantern 1.1.12）
+# 灯台 · Lantern（MapleLantern 1.1.17）
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -8,6 +8,11 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
 - **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
 - **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **1.1.17 电脑端 CE 状态页收口**：CE「状态」页沿用 `.settingsGrid`，桌面两列时格子内容会横向撑破邻格。现在格子按可容纳 520px 自适应，格子内卡片强制 `overflow:hidden`，`numberStepperContainer` 允许 `flex-wrap:wrap`，桌面箭头固定 28px、`margin/padding` 归零，中央数值区允许收缩并省略；新增契约断言与 1200px 两列几何验证（card gap 12px、零矩形重叠）。
+- **1.1.16 原生弹层点击收口**：`#customOverlayContainer` 由 PassageFooter 渲染在 `#passages` 内，旧 `#passages button` 规则会把 44px 触控尺寸与 `9px 14px` 内边距套到原版/枯木逢春作弊面板；`numberStepper` 内容区被压到 2px，视觉箭头溢出到命中区外，密集行互相覆盖，点「固定触发」这类小按钮会落到邻格。现在正文按钮规则排除整个弹层子树，并对非 CE 的 `.settingsGrid` 恢复 32px 紧凑几何、`padding:0` 与 `transform:none`，弹层内部只走已排除 CE 的专用规则；新增契约断言锁住这条。
+- **1.1.15 图标按钮收口**：正文「换姿势」等原版图标按钮靠 `background-image` 画图标，本包通用 `#passages button` 之前用 `background` 简写，会把 image/size/position/repeat 一并清成 `none`，按钮只剩一个带焦点环的空框。现改为只设 `background-color`，hover 同样不再用简写，图标与原有尺寸/定位完整保留；新增契约断言锁住这条，防止回归。
+- **1.1.14 桌面收口**：CE「状态」页沿用 DoL 原版 `.settingsGrid` + `numberStepper`，桌面两列时每格只有半宽，六枚箭头在大字体/高缩放下横向撑破格子，右列左箭头侵入左列。现在格子按可容纳 460px 的宽度自适应（窄桌面自动降为单列），stepper 容器收回格子宽，箭头在桌面固定 30px（手机端仍保持 34px 触控区），并去掉按钮外距；新增契约断言与 900/960/1000/1100/1280/1600 六档几何验证。
+- **1.1.13 自查收口**：① 传送页按原始 `<<icon>><<link>>` 结构把相邻「图标 + 链接」包成一行，避免直接撑满子项导致图标与地名各占一行；分组标题仍保留。② 选中页签识别扩到 `.CEtabActive/.CEtabSel/.CEtabOn/[aria-selected]/[data-selected]`，class 改名时传送页标记仍能生效。③ 新增图标+链接平铺、标题保留、选中态兜底三条断言；100/100 单测。
 - **1.1.12 视觉收口**：① 手机端根背景恢复视口锚定（`background-attachment: fixed`），长 passage 滚到底与 CE 面板内部滚到底都不再出现渐变截止后的整段纯色断层；面板同步恢复。② CE 1.20.4 七页签容器被改成 grid 导致 5+2 折行，这里改回 flex 等分单行。③ 传送页的地点行内列表按实测结构收成纵向行，每项占满一行，长地名不再贴右缘或越界。
 - **1.1.11 性能收口**：① 分组稳定后 `packStable` 直接跳过整轮 pack，含两次签名扫描与三轮全页遍历；用首个选项链接做锚点，`innerHTML` 直接替换时不会误判稳定。② CE 面板加 `ceDirty/ceReady/ceSig` 脏检查，正文 refresh 不再重复重排。③ 补扫压缩为「立即 + 140ms」固定拍，之后 600ms 起自适应、连续两拍无变化即停。④ `setAttr()` 同值不写：状态卡、左轨百分比、侧栏字号、标题锚点均先比对再写；200 选项页 20 次 apply 从 251ms 降到 64ms（jsdom 逻辑层）。
 - **1.1.10 二次收口**：① 修掉页签被“内容按钮通扫”二次改写（11px→13px、宽度 65→81）的回归，页签与关闭按钮加标记跳过；分类栏收窄 36px 给 ✖ 留真实缺口，右缘加 26px 渐隐提示横向滚动。② 平铺六胶囊解除 CE 固定 `width:100px`，`flex:1 1 0` 等分单行。③ 状态条箭头补充识别 `<div>/<span>` 叶子节点，统一 34×34。④ 分组后双向清理组前后空 `<p>`/`<br>`（含图标的段落不删），3px 间距不再被空段落撑大。
@@ -23,7 +28,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.12-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.17-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -57,7 +62,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 通透度只改**表面遮蔽 / 模糊 / 边缘层次**三项，不改文字与按钮透明度；0 更沉稳、100 更通透。关掉玻璃模糊后再开，数值保留；「通透度回 60」只重置这一项。
 
-## 原生 UI 替换层（1.1.12）
+## 原生 UI 替换层（1.1.17）
 
 只挂标记与属性，不重建原版节点、不改原版事件，因此游戏推进/读档/换装时不会与 SugarCube 抢同一段内容。
 
@@ -131,12 +136,12 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 1.1.4 阶段留存的六主题原型截图：6/6 面板 380×620；按压涟漪实测 `ring:true`、空心主题色亮环不遮字
 - 设置页实测：切主题不重建、剧情推进不冲掉焦点；`backdrop-filter: blur(20px) saturate(1.1)` 在纯净档与宿主档一致
 - 剧情切换实战：`Start → Start2`，面板场景同步 `Start2`
-- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；体积与 SHA256 见 `dist\SHA256-1.1.12-theme.txt`
+- 包内 7 个条目，确定性命中（固定 mtime、正斜杠）；体积与 SHA256 见 `dist\SHA256-1.1.16-theme.txt`
 
 ```powershell
 node --test tests\*.test.js
 pwsh -NoProfile -File .\pack.ps1
-python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.12-theme.mod.zip
+python <dol-ui-design>\scripts\check_ui_mod.py dist\MapleLantern-1.1.17-theme.mod.zip
 node tools\game-smoke.js
 $env:HOST='1'; node tools\game-smoke.js
 ```

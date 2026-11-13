@@ -788,7 +788,7 @@
     var tabs = doc.getElementById("cheat_extended_options");
     if (!tabs) { return ""; }
     var content = doc.getElementById("customOverlayContent");
-    var selected = tabs.querySelector(".CEtabSelected");
+    var selected = findCeSelectedTab(tabs);
     return [
       tabs.childElementCount,
       tabs.querySelectorAll("button").length,
@@ -797,6 +797,34 @@
       content ? content.querySelectorAll("button, input, select").length : -1,
       content ? (content.textContent || "").replace(/\s+/g, " ").trim().slice(0, 60) : ""
     ].join("|");
+  }
+
+  function isCeIconNode(node) {
+    if (!node || node.nodeType !== 1) { return false; }
+    if (node.tagName === "IMG") { return true; }
+    try {
+      if (node.classList && node.classList.contains("icon-container")) { return true; }
+    } catch (e) { /* classList 异常时按普通节点处理 */ }
+    return !!(node.querySelector && node.querySelector("img.icon"));
+  }
+
+  function isCeAnchorNode(node) {
+    return !!(node && node.nodeType === 1 && node.tagName === "A");
+  }
+
+  function findCeSelectedTab(tabs) {
+    if (!tabs) { return null; }
+    var sel = tabs.querySelector(".CEtabSelected, .CEtabActive, .CEtabSel, .CEtabOn, [aria-selected=\"true\"], [data-selected=\"true\"]");
+    if (sel) { return sel; }
+    /* 选中态 class 可能挂在页签外层容器而不是按钮上；从 overlay 再找一次，
+       但必须仍是 button，避免把内容区标题误当页签。 */
+    var overlay = null;
+    try { overlay = tabs.closest("#customOverlay"); } catch (e) { overlay = null; }
+    if (overlay) {
+      var marked = overlay.querySelector(".CEtabSelected, .CEtabActive, .CEtabSel, .CEtabOn");
+      if (marked && marked.tagName === "BUTTON") { return marked; }
+    }
+    return null;
   }
 
   function normalizeCheatLayout() {
@@ -872,10 +900,11 @@
       imp(tabs, "align-items", "stretch");
       imp(tabs, "gap", "6px");
     }
-    var selectedTab = tabs.querySelector(".CEtabSelected");
+    var selectedTab = findCeSelectedTab(tabs);
     var selectedLabel = selectedTab ? (selectedTab.textContent || "").trim() : "";
+    var isTeleport = selectedLabel.indexOf("传送") >= 0;
     if (overlay) {
-      if (selectedLabel.indexOf("传送") >= 0) {
+      if (isTeleport) {
         overlay.setAttribute("data-mln-ce-page", "teleport");
       } else if (overlay.getAttribute("data-mln-ce-page") === "teleport") {
         overlay.removeAttribute("data-mln-ce-page");
@@ -943,7 +972,7 @@
        行宽由文字长度决定，长地名贴到面板右缘、组间留大洞。这里只在该页把
        含三个以上地点链接的容器收成纵向列表，每个直接子项占满一行；不改
        页面级状态条，也不碰其它页签。 */
-    if (selectedLabel.indexOf("传送") >= 0 && content) {
+    if (isTeleport && content) {
       var locText = (content.textContent || "").replace(/\s+/g, " ");
       if (locText.indexOf("城镇地点") >= 0 || locText.indexOf("城镇街道") >= 0) {
         var locNodes = content.querySelectorAll("*");
@@ -964,15 +993,36 @@
             }
           }
           if (hasInnerList) { continue; }
+          /* 1.20.4 的地点是 `<<icon>><<link>>` 交替平铺：如果直接把每个直接
+             子项都撑满一行，图标会和地名各占一行。先把相邻的「图标 + 链接」
+             包成一行，剩下的标题/纯文本仍按原顺序保留。 */
+          var pairKids = Array.prototype.slice.call(loc.children);
+          for (var lp = 0; lp + 1 < pairKids.length; lp++) {
+            var p1 = pairKids[lp];
+            var p2 = pairKids[lp + 1];
+            if (p1.parentNode !== loc || p2.parentNode !== loc) { continue; }
+            var iconFirst = isCeIconNode(p1) && isCeAnchorNode(p2);
+            var linkFirst = isCeAnchorNode(p1) && isCeIconNode(p2);
+            if (!iconFirst && !linkFirst) { continue; }
+            var row = doc.createElement("div");
+            row.className = "mln-ce-loc-row";
+            row.setAttribute("data-mln-ce-loc-row", "1");
+            loc.insertBefore(row, p1);
+            row.appendChild(p1);
+            row.appendChild(p2);
+            lp++;
+          }
           imp(loc, "display", "flex");
           imp(loc, "flex-direction", "column");
           imp(loc, "align-items", "stretch");
           imp(loc, "gap", "6px");
           for (var lc = 0; lc < loc.children.length; lc++) {
-            imp(loc.children[lc], "width", "100%");
-            imp(loc.children[lc], "max-width", "100%");
-            imp(loc.children[lc], "flex", "0 0 auto");
-            imp(loc.children[lc], "box-sizing", "border-box");
+            var lchild = loc.children[lc];
+            if (isCeIconNode(lchild)) { continue; }
+            imp(lchild, "width", "100%");
+            imp(lchild, "max-width", "100%");
+            imp(lchild, "flex", "0 0 auto");
+            imp(lchild, "box-sizing", "border-box");
           }
         }
       }

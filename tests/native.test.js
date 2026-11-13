@@ -500,6 +500,48 @@ test("CE 传送页：地点行内列表收成纵向行，长地名不再越出�
   assert.equal(list.children[0].style.getPropertyValue("width"), "100%", "每个地点占满一行");
 });
 
+test("CE 传送页：图标与链接交替平铺时按对子收成一行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    '<button>状态</button><button class="CEtabSelected">传送</button>' +
+    '</div>' +
+    '<div id="loc-list">' +
+    '<b>城镇地点</b>' +
+    '<span class="icon-container"><img class="icon" src="orphan.png"></span><a href="#">孤儿院</a>' +
+    '<span class="icon-container"><img class="icon" src="rent.png"></span><a href="#">出租屋</a>' +
+    '<span class="icon-container"><img class="icon" src="mall.png"></span><a href="#">购物中心</a>' +
+    '</div>';
+  await tick(w, 320);
+  const list = content.querySelector("#loc-list");
+  const rows = list.querySelectorAll('[data-mln-ce-loc-row="1"]');
+  assert.equal(rows.length, 3, "三组图标+链接应包成三行");
+  assert.ok(list.querySelector("b"), "分组标题必须保留在列表里");
+  for (const row of rows) {
+    assert.ok(row.querySelector("img.icon"), "每行必须保留图标");
+    assert.ok(row.querySelector("a"), "每行必须保留链接");
+  }
+  assert.equal(list.style.getPropertyValue("flex-direction"), "column");
+  const looseIcons = Array.from(list.children).filter((n) => !n.matches('[data-mln-ce-loc-row="1"]') && n.tagName === "IMG");
+  assert.equal(looseIcons.length, 0, "图标不得再作为列表的独立行");
+});
+
+test("CE 传送页标记：选中态不是 .CEtabSelected 时仍能识别", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  const content = w.document.getElementById("customOverlayContent");
+  content.innerHTML =
+    '<div id="cheat_extended_options">' +
+    '<button>状态</button><button aria-selected="true">传送</button>' +
+    '</div><div id="loc-list"><a>城镇地点</a><a>孤儿院</a><a>出租屋</a></div>';
+  await tick(w, 320);
+  assert.equal(w.document.getElementById("customOverlay").getAttribute("data-mln-ce-page"), "teleport");
+});
+
 test("CE 传送页标记：切到非传送页签后必须摘掉，避免误伤其它页", async () => {
   const { w } = createEnv();
   await tick(w);

@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.12");
+  assert.equal(boot.version, "1.1.17");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -188,6 +188,63 @@ test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留
     "CE 关键规则不得依赖 :has()");
 });
 
+test("1.1.14/1.1.17：CE 状态页两列选项不得横向压叠", () => {
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.settingsGrid[\s\S]{0,500}grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*520px\),\s*1fr\)\) !important/s,
+    "桌面格子必须按可容纳 520px 的宽度自适应，窄桌面自动降为单列");
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.numberStepperContainer[\s\S]{0,260}max-width:\s*100% !important[\s\S]{0,260}flex-wrap:\s*wrap !important/s,
+    "stepper 容器必须收回格子宽度，并允许箭头组换行而不是横向压到邻格");
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.numberStepper[\s\S]{0,300}flex:\s*0 0 28px !important[\s\S]{0,220}margin:\s*0 !important[\s\S]{0,120}padding:\s*0 !important/s,
+    "六枚箭头必须固定 28px 且不吃外距，否则会撑破半宽格子");
+  const stepper28 = nativeCss.indexOf("flex: 0 0 28px !important");
+  const desktopGate = nativeCss.lastIndexOf("@media (min-width: 900px)", stepper28);
+  assert.ok(stepper28 > -1 && desktopGate > -1 && stepper28 - desktopGate < 1200,
+    "28px 紧凑箭头必须收进桌面媒体查询，手机端保留 34px 触控区");
+  assert.ok(nativeCss.indexOf("@media (max-width: 899px)") > stepper28,
+    "28px 规则不得落进手机媒体块");
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.settingsGrid > \*[\s\S]{0,200}overflow:\s*hidden !important/s,
+    "格子内每个选项卡必须被裁在自己的格子里");
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.titlePercentage[\s\S]{0,200}flex:\s*1 1 60px !important/s,
+    "中央数值区必须允许收缩并省略长数值，不得把两侧箭头挤出去");
+});
+
+test("1.1.15：正文图标按钮不得被 background 简写清空图标", () => {
+  const base = nativeCss.match(/html\[data-ml-native="on"\] #passages \.passage button\s*\{([^}]*)\}/);
+  assert.ok(base, "必须能定位正文按钮基础规则");
+  assert.match(base[1], /background-color:\s*var\(--mln-surface-2\)/,
+    "正文按钮必须用 background-color 设底色");
+  assert.doesNotMatch(base[1], /background\s*:\s*var/,
+    "background 简写会同时清掉 background-image/size/position，图标按钮会变成空框");
+  const hover = nativeCss.match(/html\[data-ml-native="on"\] #passages \.passage button:hover\s*\{([^}]*)\}/);
+  assert.ok(hover, "必须能定位正文按钮 hover 规则");
+  assert.match(hover[1], /background-color:\s*var\(--mln-surface-3\)/);
+  assert.doesNotMatch(hover[1], /background\s*:\s*var/,
+    "hover 也不能用简写，否则按下/悬停时图标再次消失");
+});
+
+test("1.1.16/1.1.17：正文按钮规则不得接管原生弹层，紧凑 settingsGrid 恢复原版几何", () => {
+  const scoped = (nativeCss.match(/#passages \.passage button/g) || []).length;
+  assert.equal(scoped, 6, "基础/hover/active/focus-visible 与赛博朋克两条都必须收在 .passage 内");
+  assert.doesNotMatch(nativeCss, /#passages button\s*\{/,
+    "不能再有裸 #passages button 规则：customOverlayContainer 就在 PassageFooter 里；正文规则必须收在 .passage");
+  assert.match(nativeCss,
+    /\.settingsGrid button[\s\S]{0,220}min-height:\s*32px !important/s,
+    "枯木逢春/原版作弊页的紧凑按钮不能被 44px 触控规则撑高");
+  assert.match(nativeCss,
+    /\.settingsGrid \.numberStepper[\s\S]{0,320}padding:\s*0 !important/s,
+    "numberStepper 箭头必须恢复原版 32px 紧凑内边距");
+  assert.match(nativeCss,
+    /\.settingsGrid \.numberStepper[\s\S]{0,320}width:\s*32px !important/s,
+    "numberStepper 箭头宽度必须封回 32px");
+  assert.match(nativeCss,
+    /#customOverlayContainer button:active\s*\{[\s\S]{0,160}transform:\s*none !important/s,
+    "弹层按钮按下不得缩放：触摸边缘点击会因缩小被判为移出而丢 click");
+});
+
 test("1.1.12：移动端背景锚定视口，长页底部不再露出渐变截止段", () => {
   assert.match(nativeCss,
     /@media \(max-width: 899px\)[\s\S]*?html\[data-ml-native="on"\]\s*\{[\s\S]*?background-attachment:\s*fixed !important/s,
@@ -198,6 +255,9 @@ test("1.1.12：移动端背景锚定视口，长页底部不再露出渐变截�
     "fixed 被旧 WebView 忽略时仍要有底色兜底");
   assert.match(native, /selectedLabel\.indexOf\("传送"\) >= 0/);
   assert.match(native, /setAttribute\("data-mln-ce-page", "teleport"\)/);
+  assert.match(native, /data-mln-ce-loc-row/);
+  assert.match(native, /function findCeSelectedTab/);
+  assert.match(nativeCss, /data-mln-ce-loc-row="1"/);
   assert.match(native, /flex-direction", "column"/);
 });
 

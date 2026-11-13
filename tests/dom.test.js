@@ -280,3 +280,14 @@ test("设置页：原生卡片与悬浮灯台两个总开关", async () => {
   await new Promise((r) => setTimeout(r, 40));
   assert.equal(w.document.querySelector("#stats [data-ml-chip]"), null, "关闭原生卡片后不残留标记");
 });
+
+test("按压：pointerdown 在按钮上生成短涟漪并临时标记按压态", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
+  w.MapleLantern.open();
+  const btn = w.document.querySelector("#ml-panel .ml-tab");
+  btn.getBoundingClientRect = () => ({ left: 0, top: 0, width: 120, height: 44, right: 120, bottom: 44 });
+  btn.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 30, clientY: 20, button: 0 }));
+  assert.equal(btn.classList.contains("ml-is-pressed"), true);
+  assert.equal(btn.querySelectorAll(".ml-press-ring").length, 1);
+  assert.equal(btn.querySelector(".ml-press-ring").getAttribute("style").includes("left: 30px"), true);
+});
