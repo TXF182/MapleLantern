@@ -646,6 +646,66 @@
   background: var(--ml-track);
   overflow: hidden;
 }
+
+/* 第三方联动：只读摘要 + 打开原设置入口 */
+#ml-root .ml-bridge {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ml-line);
+  border-radius: var(--ml-radius);
+  background: var(--ml-bg-soft);
+}
+#ml-root .ml-bridge-h {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+#ml-root .ml-bridge-title {
+  font-size: calc(10.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-accent);
+  letter-spacing: .1em;
+  flex: none;
+}
+#ml-root .ml-bridge-note {
+  min-width: 0;
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ml-root .ml-bridge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ml-line);
+}
+#ml-root .ml-bridge-row + .ml-bridge-row { margin-top: 8px; }
+#ml-root .ml-bridge-main {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+#ml-root .ml-bridge-name {
+  font-size: calc(11.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-text);
+}
+#ml-root .ml-bridge-meta {
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  color: var(--ml-muted);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#ml-root .ml-bridge-open {
+  flex: none;
+  min-height: 44px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
 #ml-root .ml-stat {
   background: var(--ml-bg-soft);
   border: 1px solid var(--ml-line);

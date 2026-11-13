@@ -15,7 +15,7 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.21-theme.mod.zip");
+const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.22-theme.mod.zip");
 const PROFILE = path.join(os.tmpdir(), "lantern-compat-profile-" + Date.now());
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const PACKS = [
@@ -149,6 +149,42 @@ async function dismissWelcome(page) {
     }, null, { timeout: 10000 });
     await page.waitForTimeout(300);
 
+    /* 联动：从 OPTIONS 顶部「灯台」入口开面板，读第三方摘要，再点「打开设置」跳转。 */
+    const lanternOpen = await page.evaluate(() => {
+      const b = Array.from(document.querySelectorAll("#customOverlayContent button, #customOverlay button")).find((n) =>
+        /^(灯台|Lantern)$/i.test((n.textContent || "").trim()) && n.offsetParent !== null);
+      if (!b) { return false; }
+      b.click();
+      return true;
+    });
+    await page.waitForTimeout(450);
+    const bridge = await page.evaluate(() => {
+      const wrap = document.querySelector("#ml-pane .ml-bridge");
+      return {
+        panelOpen: document.querySelector("#ml-root") && document.querySelector("#ml-root").getAttribute("data-open") === "1",
+        hasBridge: !!wrap,
+        text: wrap ? (wrap.textContent || "").replace(/\s+/g, " ").slice(0, 180) : null,
+        rows: wrap ? wrap.querySelectorAll(".ml-bridge-row").length : 0,
+        buttons: wrap ? Array.from(wrap.querySelectorAll("[data-ml-bridge]")).map((n) => n.getAttribute("data-ml-bridge")) : []
+      };
+    });
+    console.log("[3b] 联动摘要: " + JSON.stringify({ lanternOpen, ...bridge }));
+    const bridgeLinked = await page.evaluate(() => {
+      const b = document.querySelector("#ml-pane [data-ml-bridge='dynamicest']");
+      if (!b) { return false; }
+      b.click();
+      return true;
+    });
+    await page.waitForTimeout(700);
+    const bridgeTarget = await page.evaluate(() => {
+      const content = document.querySelector("#customOverlayContent");
+      return {
+        linked: !!content && /极致动态|Dynamicest/i.test(content.textContent || ""),
+        panelClosed: document.querySelector("#ml-root") && document.querySelector("#ml-root").getAttribute("data-open") === "0"
+      };
+    });
+    console.log("[3c] 联动跳转: " + JSON.stringify({ bridgeLinked, ...bridgeTarget }));
+
     const dynTab = await page.evaluate(() => {
       const tabs = document.querySelector("#customOverlay #overlayTabs");
       const b = tabs && Array.from(tabs.querySelectorAll("button")).find((n) => /极致动态|Dynamicest/i.test(n.textContent || ""));
@@ -272,6 +308,8 @@ async function dismissWelcome(page) {
       ["前景背景写入 foreground_image1", !!decoClick && String(decoClick.foreground1) === "1"],
       ["前景背景面板未丢失", deco.contentH > 0],
       ["前景背景页未被塞灯台入口", deco.entryCount === 0],
+      ["灯台联动摘要可打开", !!lanternOpen && !!bridge.panelOpen && bridge.hasBridge === true && bridge.rows >= 2],
+      ["联动可跳转 Dynamicest", !!bridgeLinked && bridgeTarget.linked === true && bridgeTarget.panelClosed === true],
       ["无未捕获异常", pageErrors.length === 0]
     ];
     let ok = true;

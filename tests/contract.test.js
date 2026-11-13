@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.21");
+  assert.equal(boot.version, "1.1.22");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -341,6 +341,15 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
   assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
 });
 
+
+test("1.1.22：第三方联动只读摘要 + 独立设置入口", () => {
+  assert.match(index, /function renderBridge\(/);
+  assert.match(index, /data-ml-bridge/);
+  assert.match(index, /function openThirdParty\(/);
+  assert.match(css, /#ml-root \.ml-bridge-open \{/);
+  assert.match(css, /min-height: 44px;/);
+  assert.doesNotMatch(index, /State\.variables\s*\.\s*Dynamicest|State\.variables\s*\.\s*foreground_image1\s*=/, "只能读第三方状态，不能写");
+});
 
 test("1.1.21：弹层容器的层级必须低于 Dynamicest 浮动提醒", () => {
   const block = nativeCss.match(/html\[data-ml-native="on"\] #customOverlayContainer\s*\{[^}]*\}/);

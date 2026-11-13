@@ -12,7 +12,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.1.21";
+  var VERSION = "1.1.22";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
   var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star"];
@@ -68,6 +68,15 @@
       "tab.system": "系统", "tab.settings": "设置",
       "now.progress": "今日已过", "now.money": "金钱", "now.scene": "场景", "now.phase": "时段",
       "now.quick": "身心速览",
+      "bridge.title": "联动",
+      "bridge.note": "只读第三方状态，不在这里改它们",
+      "bridge.open": "打开设置",
+      "bridge.openFail": "没找到对应设置入口，请从选项手动打开",
+      "bridge.dyn": "极致动态",
+      "bridge.deco": "前景背景",
+      "bridge.dynMeta": "动态提醒 {flash} · 时段条 {bar} · 透明度 {opacity}%",
+      "bridge.decoMeta": "前景 {fg} · 背景 {bg} · 自动背景 {auto}",
+      "bridge.on": "开", "bridge.off": "关", "bridge.none": "无", "bridge.uninit": "待初始化",
       "now.clockHint": "本地日程", "now.noTime": "读不到时间",
       "phase.night": "深夜", "phase.dawn": "清晨", "phase.day": "白昼", "phase.dusk": "黄昏",
       "phase.unknown": "未知",
@@ -117,6 +126,15 @@
       "tab.system": "System", "tab.settings": "Settings",
       "now.progress": "Day elapsed", "now.money": "Money", "now.scene": "Scene", "now.phase": "Phase",
       "now.quick": "Vitals",
+      "bridge.title": "Links",
+      "bridge.note": "Read-only third-party status; change their settings there",
+      "bridge.open": "Open settings",
+      "bridge.openFail": "Settings entry not found; open it from Options manually",
+      "bridge.dyn": "Dynamic",
+      "bridge.deco": "Decorations",
+      "bridge.dynMeta": "Alerts {flash} · Time bar {bar} · Opacity {opacity}%",
+      "bridge.decoMeta": "Foreground {fg} · Background {bg} · Auto background {auto}",
+      "bridge.on": "on", "bridge.off": "off", "bridge.none": "none", "bridge.uninit": "not initialized",
       "now.clockHint": "Local schedule", "now.noTime": "Time unavailable",
       "phase.night": "Night", "phase.dawn": "Dawn", "phase.day": "Day", "phase.dusk": "Dusk",
       "phase.unknown": "Unknown",
@@ -336,6 +354,47 @@
     return { pct: pct, over: v > mx };
   }
 
+  /* 第三方联动：只读取公开的存档字段，不写任何第三方状态。 */
+  function readThirdParty(vars) {
+    if (!isObj(vars)) { return null; }
+    var dyn = isObj(vars.Dynamicest) ? vars.Dynamicest : null;
+    var dynSet = dyn && isObj(dyn.Settings) ? dyn.Settings : null;
+    var hasDeco = ["foreground_image1", "background_image1", "show_foreground1", "show_background1", "decoAutoBgEnabled", "decoImageZ", "decoPresets"].some(function (key) {
+      return Object.prototype.hasOwnProperty.call(vars, key);
+    });
+    if (!dyn && !hasDeco) { return null; }
+
+    var out = {};
+    if (dyn) {
+      out.dynamicest = {
+        installed: true, initialized: !!dynSet,
+        flash: dynSet ? !!dynSet.DynamicestFlash : null,
+        timebar: dynSet ? !!dynSet.DynamicestTimeBar : null,
+        penetrate: dynSet ? !!dynSet.DynamicestDisplayPenetrate : null,
+        top: dynSet ? num(dynSet.DynamicestDisplayTop) : null,
+        scale: dynSet ? num(dynSet.DynamicestDisplayScale) : null,
+        opacity: dynSet ? num(dynSet.DynamicestDisplayOpacity) : null
+      };
+    }
+    if (hasDeco) {
+      out.decorations = {
+        installed: true, initialized: Object.prototype.hasOwnProperty.call(vars, "foreground_image1"),
+        foreground: decoValue(vars.foreground_image1),
+        background: decoValue(vars.background_image1),
+        showForeground: !!vars.show_foreground1,
+        showBackground: !!vars.show_background1,
+        autoBackground: !!vars.decoAutoBgEnabled,
+        autoActive: !!vars.decoAutoBgActive
+      };
+    }
+    return out;
+  }
+
+  function decoValue(value) {
+    if (value === undefined || value === null || value === "" || value === "none") { return null; }
+    return String(value);
+  }
+
   /* 只读状态桥。env 由调用方从游戏里取，core 自己不去碰全局。 */
   function readModel(env) {
     env = isObj(env) ? env : {};
@@ -393,6 +452,7 @@
       missingVitals: missing,
       worn: worn,
       wornCount: wornCount,
+      thirdParty: readThirdParty(vars),
       degraded: !vars || missing > 0 || !clock
     };
   }
@@ -469,6 +529,7 @@
     dayProgress: dayProgress,
     ratio: ratio,
     readModel: readModel,
+    readThirdParty: readThirdParty,
     contrast: contrast,
     luminance: luminance,
     paletteFor: paletteFor,

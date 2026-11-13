@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.1.21");
+  assert.equal(C.VERSION, "1.1.22");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "settings"]);
   assert.equal(C.THEMES.length, 6);
@@ -166,6 +166,35 @@ test("readModel：worn 不预置时判空，不抛异常", () => {
   assert.equal(m.missingVitals, 4);
 });
 
+test("readThirdParty：只读 Dynamicest / 前景背景公开字段，不伪造缺失状态", () => {
+  const vars = {
+    Dynamicest: { Settings: { DynamicestFlash: false, DynamicestTimeBar: true, DynamicestDisplayOpacity: 0.6 } },
+    foreground_image1: 1, background_image1: "none",
+    show_foreground1: true, decoAutoBgEnabled: true, decoAutoBgActive: false
+  };
+  const tp = C.readThirdParty(vars);
+  assert.equal(tp.dynamicest.installed, true);
+  assert.equal(tp.dynamicest.initialized, true);
+  assert.equal(tp.dynamicest.flash, false);
+  assert.equal(tp.dynamicest.timebar, true);
+  assert.equal(tp.dynamicest.opacity, 0.6);
+  assert.equal(tp.decorations.foreground, "1");
+  assert.equal(tp.decorations.background, null);
+  assert.equal(tp.decorations.showForeground, true);
+  assert.equal(tp.decorations.autoBackground, true);
+  assert.equal(tp.decorations.autoActive, false);
+
+  const m = C.readModel({ vars, passage: "School Hallway" });
+  assert.equal(m.thirdParty.dynamicest.opacity, 0.6);
+  assert.equal(m.thirdParty.decorations.foreground, "1");
+});
+
+test("readThirdParty：两个第三方都缺失时返回 null，不增加空面板", () => {
+  assert.equal(C.readThirdParty(null), null);
+  assert.equal(C.readThirdParty({ money: 1 }), null);
+  assert.equal(C.readModel({ vars: { money: 1 } }).thirdParty, null);
+});
+
 test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () => {
   for (const name of ["cyberpunk", "amber", "jade", "graphite"]) {
     const p = C.paletteFor(name);
@@ -178,7 +207,7 @@ test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () =>
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.1.21");
+  assert.equal(d.version, "1.1.22");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);

@@ -96,13 +96,26 @@
   }
 
   function readModel() {
-    return C.readModel({
+    var model = C.readModel({
       vars: getVars(),
       time: (typeof window.Time === "object" && window.Time) || null,
       constants: (typeof window.Constants === "object" && window.Constants) || null,
       passage: getPassage(),
       lang: state.lang
     });
+    try {
+      var bridge = model.thirdParty || {};
+      if (typeof window.Dynamicest === "object" && window.Dynamicest) {
+        bridge.dynamicest = bridge.dynamicest || { installed: true, initialized: false, flash: null, timebar: null, opacity: null };
+        bridge.dynamicest.installed = true;
+      }
+      if (typeof window.decoZ === "function" || typeof window.decoFillDefaults === "function") {
+        bridge.decorations = bridge.decorations || { installed: true, initialized: false, foreground: null, background: null, autoBackground: false };
+        bridge.decorations.installed = true;
+      }
+      model.thirdParty = (bridge.dynamicest || bridge.decorations) ? bridge : null;
+    } catch (e) { model.thirdParty = null; }
+    return model;
   }
 
   function readHost() {
@@ -578,11 +591,115 @@
       pane.appendChild(quick);
     }
 
+    renderBridge(pane, model.thirdParty);
+
     if (model.degraded) {
       var warn = el("p", "ml-note is-warn");
       warn.textContent = s["misc.degraded"];
       pane.appendChild(warn);
     }
+  }
+
+  function renderBridge(pane, bridge) {
+    if (!bridge) { return; }
+    var s = C.strings(state.lang);
+    var rows = [];
+    var dyn = bridge.dynamicest;
+    var deco = bridge.decorations;
+    if (dyn && dyn.installed) {
+      var dynMeta = dyn.initialized
+        ? C.fmt(s["bridge.dynMeta"], {
+            flash: onOff(dyn.flash), bar: onOff(dyn.timebar),
+            opacity: dyn.opacity === null || dyn.opacity === undefined ? "?" : Math.round(Math.max(0, Math.min(1, dyn.opacity)) * 100)
+          })
+        : s["bridge.uninit"];
+      rows.push(bridgeRow("dynamicest", s["bridge.dyn"], dynMeta, s));
+    }
+    if (deco && deco.installed) {
+      var decoMeta = deco.initialized
+        ? C.fmt(s["bridge.decoMeta"], {
+            fg: deco.foreground || s["bridge.none"],
+            bg: deco.background || s["bridge.none"],
+            auto: onOff(deco.autoBackground)
+          })
+        : s["bridge.uninit"];
+      rows.push(bridgeRow("decorations", s["bridge.deco"], decoMeta, s));
+    }
+    if (!rows.length) { return; }
+
+    var wrap = el("div", "ml-bridge", { "aria-label": s["bridge.title"] });
+    var head = el("div", "ml-bridge-h");
+    var title = el("span", "ml-bridge-title"); title.textContent = s["bridge.title"];
+    var note = el("span", "ml-bridge-note"); note.textContent = s["bridge.note"];
+    head.appendChild(title); head.appendChild(note); wrap.appendChild(head);
+    rows.forEach(function (row) { wrap.appendChild(row); });
+    pane.appendChild(wrap);
+    pane.addEventListener("click", function (ev) {
+      var node = ev.target;
+      while (node && node !== pane) {
+        var kind = node.getAttribute && node.getAttribute("data-ml-bridge");
+        if (kind) { ev.preventDefault(); openThirdParty(kind); return; }
+        node = node.parentNode;
+      }
+    });
+  }
+
+  function bridgeRow(kind, name, meta, s) {
+    var row = el("div", "ml-bridge-row");
+    var main = el("div", "ml-bridge-main");
+    var k = el("span", "ml-bridge-name"); k.textContent = name;
+    var v = el("span", "ml-bridge-meta"); v.textContent = meta;
+    main.appendChild(k); main.appendChild(v);
+    var btn = el("button", "ml-btn ml-bridge-open", { type: "button", "data-ml-bridge": kind });
+    btn.textContent = s["bridge.open"];
+    row.appendChild(main); row.appendChild(btn);
+    return row;
+  }
+
+  function onOff(value) {
+    if (value === null || value === undefined) { return "?"; }
+    return value ? C.strings(state.lang)["bridge.on"] : C.strings(state.lang)["bridge.off"];
+  }
+
+  function findOptionsButton() {
+    var nodes = doc.querySelectorAll("button,input[type=button]");
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var label = n.tagName === "INPUT" ? n.value : (n.textContent || "");
+      if (/^(选项|Options)$/i.test(label.trim()) && n.offsetParent !== null) { return n; }
+    }
+    return null;
+  }
+
+  function findOverlayButton(kind) {
+    var overlay = doc.getElementById("customOverlay");
+    if (!overlay) { return null; }
+    var rx = kind === "dynamicest" ? /极致动态|Dynamicest/i : /前景背景|DecoMod/i;
+    var nodes = overlay.querySelectorAll("button,input[type=button]");
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      var label = n.tagName === "INPUT" ? n.value : (n.textContent || "");
+      if (rx.test(label) && n.offsetParent !== null) { return n; }
+    }
+    return null;
+  }
+
+  function openThirdParty(kind) {
+    var existing = findOverlayButton(kind);
+    if (existing) {
+      closePanel("bridge");
+      setTimeout(function () { existing.click(); }, 260);
+      return;
+    }
+    var options = findOptionsButton();
+    if (!options) { toast(text("bridge.openFail")); return; }
+    closePanel("bridge");
+    try { options.click(); } catch (e) { toast(text("bridge.openFail")); return; }
+    setTimeout(function () {
+      var target = findOverlayButton(kind);
+      if (target) { target.click(); }
+      else { toast(text("bridge.openFail")); }
+    }, 450);
   }
 
   function barTone(key) {
