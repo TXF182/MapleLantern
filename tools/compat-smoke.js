@@ -15,14 +15,17 @@ const ROOT = path.join(__dirname, "..");
 const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
-const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.20-theme.mod.zip");
+const ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.1.21-theme.mod.zip");
 const PROFILE = path.join(os.tmpdir(), "lantern-compat-profile-" + Date.now());
 const SHOTS = path.join(ROOT, "prototype", "shots");
 const PACKS = [
   "C:/Users/27352/Downloads/Dynamicest-v3.3.mod.zip",
   "C:/Users/27352/Doubao/chats/2026-10-19/new-chat/DoL-Project/game/decorations前景背景5.12.zip",
   "C:/Users/27352/Doubao/chats/2026-10-19/new-chat/DoL-Project/game/maplebirch-0.5.12.13-v5.6.2.mod.zip"
-];
+].concat(process.env.COMPAT_HOSTS === "1" ? [
+  "C:/Users/27352/Downloads/StoneFreeHost-0.1.5-experimental.mod (1).zip",
+  "C:/Users/27352/Downloads/DoLGameUI-4.2.0.mod.zip"
+] : []);
 
 const EDGES = [
   "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
@@ -31,6 +34,53 @@ const EDGES = [
 const EDGE = EDGES.find((p) => fs.existsSync(p));
 
 function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%23"); }
+
+/* 统一“进入实际游戏”的路径：年龄门、Start Game!、框架欢迎页依次处理。
+   重载页面后也必须再走一遍，否则会停在 DoLGameUI / 开场层。 */
+async function enterGame(page) {
+  await page.evaluate(() => {
+    const dlg = document.querySelector("#ui-dialog");
+    if (!dlg || !dlg.classList.contains("open")) { return; }
+    const cb = dlg.querySelector('input[type="checkbox"]');
+    if (cb) { cb.checked = true; cb.dispatchEvent(new Event("change", { bubbles: true })); }
+    const enter = Array.from(dlg.querySelectorAll("button")).find((b) => /enter|进入/i.test(b.textContent || ""));
+    if (enter) { enter.click(); }
+  });
+  await page.waitForFunction(() => {
+    const d = document.querySelector("#ui-dialog");
+    return d && !d.classList.contains("open");
+  }, null, { timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(350);
+
+  for (let i = 0; i < 5; i++) {
+    const clicked = await page.evaluate(() => {
+      const b = Array.from(document.querySelectorAll("button")).find((n) =>
+        /start game|开始游戏|进入游戏/i.test((n.textContent || "").trim()) &&
+        n.offsetParent && !n.disabled);
+      if (!b) { return false; }
+      b.click();
+      return true;
+    });
+    if (!clicked) { break; }
+    await page.waitForTimeout(700);
+    const inGame = await page.evaluate(() => {
+      const p = document.querySelector("#passages .passage");
+      const body = document.body.innerText || "";
+      const start = /Start Game!|开始游戏/i.test(body) && !p;
+      const menu = !!document.querySelector("#overlayButtons, #menu");
+      return !!p && !start && menu;
+    });
+    if (inGame) { break; }
+  }
+
+  await page.evaluate(() => {
+    const b = Array.from(document.querySelectorAll("button")).find((n) =>
+      /我已知晓|I understand|知道了/i.test((n.textContent || "").trim()) && n.offsetParent);
+    if (b) { b.click(); }
+  });
+  await page.waitForTimeout(500);
+}
+
 
 (async () => {
   if (!EDGE) { throw new Error("找不到 msedge.exe"); }
@@ -68,44 +118,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     await page.goto(fileUrl(GAME), { waitUntil: "domcontentloaded", timeout: 180000 });
     await page.waitForSelector("#ml-root", { timeout: 180000 });
     console.log("[2] 游戏与 MapleLantern 已启动");
-    await page.evaluate(() => {
-      const dlg = document.querySelector("#ui-dialog");
-      if (!dlg || !dlg.classList.contains("open")) { return; }
-      const cb = dlg.querySelector('input[type="checkbox"]');
-      if (cb) { cb.checked = true; cb.dispatchEvent(new Event("change", { bubbles: true })); }
-      const enter = Array.from(dlg.querySelectorAll("button")).find((b) => /enter|进入/i.test(b.textContent || ""));
-      if (enter) { enter.click(); }
-    });
-    await page.waitForFunction(() => {
-      const d = document.querySelector("#ui-dialog");
-      return d && !d.classList.contains("open");
-    }, null, { timeout: 15000 }).catch(() => {});
-    await page.waitForTimeout(350);
-
-    /* 从开场页进入实际游戏：前景背景入口只挂在游戏内主菜单。 */
-    for (let i = 0; i < 4; i++) {
-      const clicked = await page.evaluate(() => {
-        const b = Array.from(document.querySelectorAll("button")).find((n) =>
-          /start game|开始游戏|进入游戏/i.test((n.textContent || "").trim()) &&
-          n.offsetParent && !n.disabled);
-        if (!b) { return false; }
-        b.click();
-        return true;
-      });
-      if (!clicked) { break; }
-      await page.waitForTimeout(700);
-      const inGame = await page.evaluate(() => !!document.querySelector("#passages .passage") &&
-        !/Start Game!/i.test(document.body.innerText || ""));
-      if (inGame) { break; }
-    }
-
-    /* 框架首次启动会弹「我已知晓」；先关掉它，才能看到下面真正的第三方设置页。 */
-    await page.evaluate(() => {
-      const b = Array.from(document.querySelectorAll("button")).find((n) =>
-        /我已知晓|I understand|知道了/i.test((n.textContent || "").trim()) && n.offsetParent);
-      if (b) { b.click(); }
-    });
-    await page.waitForTimeout(500);
+    await enterGame(page);
 
     const mods = await page.evaluate(() => ({
       mods: window.modDataZipList || [],
@@ -150,29 +163,29 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
         controls: buttons.map((b) => ({ tag: b.tagName, type: b.getAttribute("type"), text: (b.textContent || b.getAttribute("value") || "").trim(), disabled: b.disabled, h: Math.round(b.getBoundingClientRect().height) })),
         contentH: content.clientHeight, contentScroll: content.scrollHeight,
         entryCount: content.querySelectorAll('[data-ml-entry="panel"]').length,
+        display: !!document.getElementById("display-dynamicest"),
+        displayZ: (document.getElementById("display-dynamicest") && getComputedStyle(document.getElementById("display-dynamicest")).zIndex) || null,
+        containerZ: getComputedStyle(document.getElementById("customOverlayContainer")).zIndex,
         overlay: { h: Math.round(overlay.getBoundingClientRect().height), overflow: getComputedStyle(overlay).overflow }
       };
     });
     console.log("[4] Dynamicest 设置页: " + JSON.stringify({ tab: dynTab, ...dyn }));
     fs.mkdirSync(SHOTS, { recursive: true });
     await page.screenshot({ path: path.join(SHOTS, "compat-dynamicest.png") });
+    const dynClick = await page.evaluate(() => {
+      const content = document.querySelector("#customOverlayContent");
+      const cb = content && content.querySelector('input[type="checkbox"]');
+      if (!cb) { return null; }
+      const before = cb.checked;
+      cb.click();
+      return { before, after: cb.checked, changed: cb.checked !== before };
+    });
+    console.log("[4b] Dynamicest 复选框交互: " + JSON.stringify(dynClick));
 
     /* 第二个模组从主菜单入口进：重载页面拿到干净的主菜单，不复用手动隐藏的弹层。 */
     await page.goto(fileUrl(GAME), { waitUntil: "domcontentloaded", timeout: 180000 });
     await page.waitForSelector("#ml-root", { timeout: 180000 });
-    await page.evaluate(() => {
-      const dlg = document.querySelector("#ui-dialog");
-      if (!dlg || !dlg.classList.contains("open")) { return; }
-      const cb = dlg.querySelector('input[type="checkbox"]');
-      if (cb) { cb.checked = true; cb.dispatchEvent(new Event("change", { bubbles: true })); }
-      const enter = Array.from(dlg.querySelectorAll("button")).find((b) => /enter|进入/i.test(b.textContent || ""));
-      if (enter) { enter.click(); }
-    });
-    await page.waitForFunction(() => {
-      const d = document.querySelector("#ui-dialog");
-      return d && !d.classList.contains("open");
-    }, null, { timeout: 15000 }).catch(() => {});
-    await page.waitForTimeout(350);
+    await enterGame(page);
     await page.evaluate(() => {
       const candidates = Array.from(document.querySelectorAll("#overlayButtons button, #menu button, #ui-bar button"));
       const b = candidates.find((n) => /选项|Options/i.test((n.textContent || "").trim()));
@@ -217,6 +230,21 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
     });
     console.log("[5] 前景背景设置页: " + JSON.stringify({ button: decoButton, ...deco }));
     await page.screenshot({ path: path.join(SHOTS, "compat-decorations.png") });
+    const decoClick = await page.evaluate(() => {
+      const selector = document.querySelector("#decoImageSelector");
+      const radios = selector ? Array.from(selector.querySelectorAll('input[type="radio"]')) : [];
+      const target = radios.find((r) => /^(1|一)$/.test((r.parentElement && r.parentElement.textContent || "").trim())) || radios[1];
+      if (!target) { return null; }
+      const before = target.checked;
+      target.click();
+      const state = window.SugarCube && window.SugarCube.State && window.SugarCube.State.variables;
+      return {
+        before, after: target.checked, changed: target.checked !== before,
+        value: (target.parentElement && target.parentElement.textContent || "").trim(),
+        foreground1: state ? state.foreground_image1 : null
+      };
+    });
+    console.log("[5b] 前景背景 radio 交互: " + JSON.stringify(decoClick));
 
     const checks = [
       ["两个模组已装载", mods.dynamicest === true && decoButton.found === true],
@@ -224,12 +252,16 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["Dynamicest 设置页可由页签打开", dynTab && dyn.clicked],
       ["Dynamicest 被识别为第三方页", dyn.data.third === "dynamicest" && dyn.data.contentThird === "dynamicest"],
       ["Dynamicest 控件可点击（未 disabled）", dyn.controls.length > 0 && dyn.controls.every((c) => !c.disabled)],
+      ["Dynamicest 复选框状态可变更", !!dynClick && dynClick.changed === true],
       ["Dynamicest 面板未丢失", dyn.contentH > 0],
       ["Dynamicest 页未被塞灯台入口", dyn.entryCount === 0],
+      ["Dynamicest 浮动提醒不被弹层遮挡", !!dyn.display && Number(dyn.displayZ) >= Number(dyn.containerZ)],
       ["前景背景入口存在", decoButton.found === true],
       ["前景背景设置页含三个区块", deco.hasSelector && deco.hasPreset && deco.hasAuto],
       ["前景背景被识别为第三方页", deco.data && deco.data.third === "decorations" && deco.data.contentThird === "decorations"],
       ["前景背景控件可点击（未 disabled）", deco.controls.length > 0 && deco.controls.every((c) => !c.disabled)],
+      ["前景背景 radio 状态可变更", !!decoClick && decoClick.changed === true],
+      ["前景背景写入 foreground_image1", !!decoClick && String(decoClick.foreground1) === "1"],
       ["前景背景面板未丢失", deco.contentH > 0],
       ["前景背景页未被塞灯台入口", deco.entryCount === 0],
       ["无未捕获异常", pageErrors.length === 0]

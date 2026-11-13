@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.20");
+  assert.equal(boot.version, "1.1.21");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -341,6 +341,16 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
   assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
 });
 
+
+test("1.1.21：弹层容器的层级必须低于 Dynamicest 浮动提醒", () => {
+  const block = nativeCss.match(/html\[data-ml-native="on"\] #customOverlayContainer\s*\{[^}]*\}/);
+  assert.ok(block, "必须存在 #customOverlayContainer 规则");
+  assert.match(block[0], /z-index:\s*1000\b/,
+    "弹层容器不能高于 Dynamicest 的 #display-dynamicest（1001），否则提醒会被全屏遮罩盖住");
+  assert.doesNotMatch(block[0], /z-index:\s*1200\b/);
+  assert.match(nativeCss, /z-index:\s*1201/,
+    "弹层内容自身仍要在容器内保持在遮罩之上");
+});
 
 test("原生样式：所有规则都以原生开启属性为前导，且不动 #ml-root", () => {
   const selectors = strip(nativeCss).match(/[^{}]+(?=\{)/g) || [];
