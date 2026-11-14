@@ -26,6 +26,8 @@
     overlayHome: null,
     packObserver: null,
     overlayObserver: null,
+    zoomObserver: null,
+    zoom: 1,
     sweep: null,
     packTimer: null,
     packChanged: false,
@@ -77,6 +79,30 @@
 
   /* --------------------------------------------------------- #stats 四格 */
 
+  /* DoL 的「游戏缩放」是 body.style.zoom（不是 transform，也不是改 #passages 宽高）。
+     getBoundingClientRect() 返回的是已乘过 zoom 的视觉坐标，而 CSS top / height 吃的是
+     父容器本地像素；85% 下直接把 163.2 写进 --ml-caption-top，会被 zoom 二次缩成 138.5，
+     顶部状态卡就压到立绘上。这里按元素自身「视觉高 / 布局高」求出有效缩放再换算。 */
+  function zoomFactor() {
+    var img = doc.getElementById("img");
+    var z = 1;
+    if (img && img.offsetHeight > 0) {
+      var rect = img.getBoundingClientRect();
+      var ratio = rect.height / img.offsetHeight;
+      if (isFinite(ratio) && ratio > 0) { z = ratio; }
+    }
+    if (!isFinite(z) || z <= 0) {
+      var inline = parseFloat(doc.body && doc.body.style ? doc.body.style.zoom : "");
+      if (isFinite(inline) && inline > 0) { z = inline > 2 ? inline / 100 : inline; }
+    }
+    if (!isFinite(z) || z <= 0) {
+      var computed = window.getComputedStyle ? window.getComputedStyle(doc.body).zoom : "";
+      z = parseFloat(computed);
+    }
+    /* DoL 允许 50–200；越界值只可能来自异常读数，宁可回 1 也不要把锚点写飞。 */
+    return (isFinite(z) && z >= 0.4 && z <= 4) ? z : 1;
+  }
+
   function markCaptionAnchor() {
     var bar = doc.getElementById("ui-bar");
     var img = doc.getElementById("img");
@@ -87,7 +113,11 @@
     var barTop = bar.getBoundingClientRect().top;
     var imgBottom = img.getBoundingClientRect().bottom;
     if (!isFinite(barTop) || !isFinite(imgBottom) || imgBottom <= barTop) { return; }
-    var top = Math.max(0, Math.round(imgBottom - barTop)) + "px";
+    /* zoom 只在 bind / resize / body[style] 变化时更新；markCaptionAnchor 是高频路径，
+       不能每次 apply 都 getComputedStyle，否则 200 选项页会多出上百毫秒。 */
+    var z = state.zoom;
+    var local = (imgBottom - barTop) / ((isFinite(z) && z > 0) ? z : 1);
+    var top = Math.max(0, Math.round(local)) + "px";
     var root = doc.documentElement;
     if (root.style.getPropertyValue("--ml-caption-top") !== top) {
       root.style.setProperty("--ml-caption-top", top);
@@ -1580,6 +1610,7 @@
   function onPassage() {
     state.stableTicks = 0;
     state.packStable = false;
+    state.zoom = zoomFactor();
     schedule();
     setTimeout(schedule, 140);
     if (state.sweep) { clearTimeout(state.sweep); }
@@ -1655,6 +1686,7 @@
   /* 尺寸变了 CE 的 100vw / 单列判断必须重算；只在 resize 这一路标脏。 */
   function onResize() {
     state.ceDirty = true;
+    state.zoom = zoomFactor();
     schedule();
   }
 
@@ -1684,6 +1716,24 @@
     state.overlayObserver.observe(overlay, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "hidden"] });
   }
 
+  /* zoom() 只改 body.style.zoom，不派发 resize；实测 100→85 后若不等下一 passage，
+     锚点会停在 192（此时正确），但只要任一 refresh 把它重算成 163 就永久压图。
+     监听 body style，仅在有效缩放真的变化时重算一次，避免普通 style 写入触发全量 apply。 */
+  function watchZoom() {
+    if (state.zoomObserver || typeof window.MutationObserver !== "function") { return; }
+    var body = doc.body;
+    if (!body) { return; }
+    state.zoom = zoomFactor();
+    state.zoomObserver = new window.MutationObserver(function () {
+      if (state.disposed || !state.nativeOn) { return; }
+      var next = zoomFactor();
+      if (!isFinite(next) || Math.abs(next - state.zoom) < 0.005) { return; }
+      state.zoom = next;
+      onResize();
+    });
+    state.zoomObserver.observe(body, { attributes: true, attributeFilter: ["style"] });
+  }
+
   function bind() {
     doc.addEventListener("passageend", onPassage);
     doc.addEventListener("dol-ui-runtime-ready", schedule);
@@ -1694,6 +1744,7 @@
     } catch (e) { /* 原生事件兜底 */ }
     watchPassages();
     watchOverlay();
+    watchZoom();
   }
 
   function unbind() {
@@ -1708,6 +1759,7 @@
     restoreCeStyle();
     if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
     if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
+    if (state.zoomObserver) { state.zoomObserver.disconnect(); state.zoomObserver = null; }
     if (state.sweep) { clearTimeout(state.sweep); state.sweep = null; }
   }
 

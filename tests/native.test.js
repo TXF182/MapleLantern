@@ -41,6 +41,62 @@ test("默认：原生卡片开启，悬浮球关闭，钱/时间/星期与 7 行
   assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-stat-key"), "trauma");
 });
 
+test("缩放 85%：--ml-caption-top 按元素本地像素归一化，不写视觉坐标", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const body = w.document.body;
+  const bar = w.document.getElementById("ui-bar");
+  const img = w.document.createElement("div");
+  img.id = "img";
+  const caption = w.document.createElement("div");
+  caption.id = "storyCaptionDiv";
+  body.appendChild(img);
+  bar.appendChild(caption);
+  body.classList.add("has-images");
+
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 192 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 163.2, height: 163.2, width: 183.6 });
+  bar.getBoundingClientRect = () => ({ top: 0, bottom: 2354, height: 2354, width: 238 });
+  body.style.zoom = "0.85";
+  w.dispatchEvent(new w.Event("resize"));
+
+  w.MapleLanternNative.refresh();
+  await tick(w, 60);
+  assert.equal(
+    w.document.documentElement.style.getPropertyValue("--ml-caption-top"),
+    "192px",
+    "163.2 是 body zoom 后的视觉高度，本地 top 必须还原成 192，否则会被再缩一次"
+  );
+});
+
+test("body zoom 变化会触发一次重算，不必等下一次 passage", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const body = w.document.body;
+  const bar = w.document.getElementById("ui-bar");
+  const img = w.document.createElement("div");
+  img.id = "img";
+  const caption = w.document.createElement("div");
+  caption.id = "storyCaptionDiv";
+  body.appendChild(img);
+  bar.appendChild(caption);
+  body.classList.add("has-images");
+
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 192 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 192, height: 192, width: 216 });
+  bar.getBoundingClientRect = () => ({ top: 0, bottom: 2354, height: 2354, width: 280 });
+  w.MapleLanternNative.refresh();
+  await tick(w, 60);
+  const before = w.MapleLanternNative.stats().applies;
+
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 163.2, height: 163.2, width: 183.6 });
+  body.style.zoom = "0.85";
+  await tick(w, 90);
+
+  assert.ok(w.MapleLanternNative.stats().applies > before, "body[style] 的 zoom 变化没有触发 apply");
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-caption-top"), "192px");
+});
+
 test("正文空行：起始空行移除，连续 <br> 折叠为一行", async () => {
   const { w } = createEnv();
   await tick(w);
