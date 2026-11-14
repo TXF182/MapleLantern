@@ -507,12 +507,46 @@ html[data-ml-native="on"] #storyCaptionContent {
 html[data-ml-native="on"] body.has-images #storyCaptionDiv {
   position: absolute !important;
   top: var(--ml-caption-top, 192px) !important;
-  left: 24px !important;
-  width: 280px !important;
+  /* 原版几何就是 left:0 + width:280；旧的 left:24 会把 #ui-bar 撑到
+     scrollWidth 304，24px 内容（状态卡右缘）被裁掉。宽度改 100%：
+     窄屏侧栏 216px 时同样不溢出。 */
+  left: 0 !important;
+  width: 100% !important;
   height: calc(100% - var(--ml-caption-top, 192px) - 24px) !important;
   margin: 0 !important;
   flex: 0 0 auto;
   overflow: hidden;
+}
+
+html[data-ml-native="on"] body.has-images #storyCaptionContent {
+  width: 100% !important;
+}
+
+/* 390px 级窄屏：展开侧栏宽 17.5em，而原版 <=632px 只给 #story 3em
+   左边距，主内容会被压在侧栏下面，只剩右侧一条可见。展开态改为从
+   侧栏右缘起排；stowed 仍走原版 3em，不改变收起行为。 */
+@media screen and (max-width: 632px) {
+  html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
+    margin-left: 17.5em !important;
+  }
+}
+
+/* 420px 以下：侧栏固定为立绘原始宽度 216px，立绘左右缘同时贴边，
+   不再产生左右留白；正文从 216px 起排，320/360/390 均适配。 */
+@media screen and (max-width: 420px) {
+  html[data-ml-native="on"] #ui-bar#ui-bar {
+    width: 216px !important;
+  }
+  html[data-ml-native="on"] #ui-bar#ui-bar.stowed {
+    left: -184px !important;
+  }
+  html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
+    margin-left: 216px !important;
+  }
+  /* 立绘宽 216 与侧栏同宽：left:0 右缘自然落在 216，左右均无空。 */
+  html[data-ml-native="on"] body.has-images #img {
+    left: 0 !important;
+  }
 }
 
 html[data-ml-native="on"] body.has-images #stats {
@@ -3086,19 +3120,10 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
   }
 }
 
-@media (max-width: 340px) {
-  html[data-ml-native="on"] #ui-bar#ui-bar {
-    width: 248px !important;
-  }
-  html[data-ml-native="on"] #ui-bar#ui-bar.stowed {
-    left: -216px !important;
-  }
-}
-
 @media (max-width: 420px) {
   html[data-ml-native="on"] #stats#stats .centered-elements {
-    grid-template-columns: 36px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr) !important;
-    gap: 5px;
+    grid-template-columns: 32px minmax(0, 1fr) 40px 38px !important;
+    gap: 3px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div {
     min-height: 52px;

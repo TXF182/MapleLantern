@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.1.24");
+  assert.equal(C.VERSION, "1.1.25");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "settings"]);
   assert.equal(C.THEMES.length, 6);
@@ -207,7 +207,7 @@ test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () =>
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.1.24");
+  assert.equal(d.version, "1.1.25");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);
