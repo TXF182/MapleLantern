@@ -1,6 +1,10 @@
-# 灯台 · Lantern（MapleLantern 1.1.25）
+# 灯台 · Lantern（MapleLantern 1.1.30）
 
-- **1.1.25 移动端窄屏分栏收口**：390/360/320 三档统一 `≤420px` 规则——侧栏固定 216px（=立绘原始宽），收起位移 -184px 保留 32px 把手；立绘 `left:0`，左右缘同时贴边；`#story` 从 216px 起排，正文宽 158/128/88px。顶栏四格改 `32px / 弹性金额 / 40px 时间 / 38px 星期`、gap 3px，`07:00` 与 `£x.xx` 均不截断；`#storyCaptionDiv` 改为 `left:0 + width:100%`，消除 `#ui-bar` 24px 横向溢出。
+- **1.1.30 窄屏顶栏不再换行**：`£9,474.99` 金额格原 `white-space:normal` + `overflow-wrap:anywhere` 允许逐字断行，`星期日` 日期格因 `flex-direction:column` 被图标挤成两行。窄屏金额改 `white-space:nowrap` + `clamp()` 字号，日期格改横排并隐藏日历图标。
+- **1.1.28 人物不再被侧栏边界切掉**：原生 `#img canvas` 固定 256×256、`left:-32px`，容器只有 216px，左右各裁 32px，人物右半边正好落在侧栏边界外，看起来像被右侧背景盖住。`≤480px` 改为 canvas `width:100%; height:auto; left:0`，按容器宽度等比缩放，整张画面收进 216px；`#img` 仍是原生 216×192。
+- **1.1.27 立绘锚点直接吃布局高**：`--ml-caption-top` 以前是 `(#img 视觉底边 - 栏顶) ÷ zoom`，Android WebView 的 zoom 读数只要偏一点，就会把 192 写成 163/181px，正文上沿提前盖住立绘下缘，看起来像人物区域被截断。现在直接读 `#img.offsetHeight`（192px 布局像素），不做任何除法；`≤480px` 再显式锁 `#img height/min-height:192px`，缩放切换的中间态也压不矮。
+- **1.1.26 窄屏数值与选项排版**：`≤480px` 下 `#statmeters` 从 184px 放开到 200px，标签列 54→46px、右留白 68→70px，七行进度条轨道从 32px 回到 64px；顶栏四格 `28px / 弹性 / 46px / 44px`，窄屏隐藏时间格时钟图标，`09:06`、中文「星期日」与 `£9,474.99` 均不换行不裁切；`#story` 右外边距归零、`#passages .passage` 内边距 16→8px、选项图标列 28→20px，360 下中文选项文字列从约 37px 提到约 86px，不再每 2 字断行；图标是选项卡兄弟节点时自动取消图标列。
+- **1.1.25 移动端窄屏分栏收口**：390/360/320 三档统一 `≤480px` 规则——侧栏固定 216px（=立绘原始宽），收起位移 -184px 保留 32px 把手；立绘 `left:0`，左右缘同时贴边；`#story` 从 216px 起排。`#storyCaptionDiv` 改为 `left:0 + width:100%`，消除 `#ui-bar` 24px 横向溢出。
 
 Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原生 UI 替换层** UI 模组。
 
@@ -37,7 +41,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.25-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21/1.1.22/1.1.23/1.1.24 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.1.30-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21/1.1.22/1.1.23/1.1.24/1.1.25/1.1.26/1.1.27/1.1.28/1.1.29 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -85,7 +89,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
 | `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡，展开体按「标签 : 值」拆成两栏行并带 160ms 逐行淡入；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
-| `#ui-bar` 窄屏档 | 无标记，`@media (max-width:420px)` | 侧栏固定 216px（=立绘原始宽），收起位移 -184px，保留 32px 把手；立绘 `left:0`，左右缘同时贴边；正文从 216px 起排（390/360/320 分别 158/128/88px）；金钱/时间/星期四格改 `32px / 弹性 / 40px / 38px`、gap 3px，时间与金额不再截断 |
+| `#ui-bar` 窄屏档 | 无标记，`@media (max-width:480px)` | 侧栏固定 216px（=立绘原始宽），收起位移 -184px，保留 32px 把手；立绘 `left:0`，左右缘同时贴边；正文从 216px 起排（390/360/320 分别 158/128/88px）；金钱/时间/星期四格改 `32px / 弹性 / 40px / 38px`、gap 3px，时间与金额不再截断 |
 | 衣柜内层（`Wardrobe`） | `data-ml-option` + `tidySeparators` | warmth 50px 条压成 16px 圆角条，温度说明独立卡；`Close wardrobe` / `Strip all` 等动作两列，裸 `\|` 全清；`#listoutfits` 双列、四张 outfit 卡左对齐等宽 |
 | 商店目录（`Clothing Shop`） | `markShopCats` | 15 组「图标 + 文字」收进两列胶囊卡，去掉原版 `<br><br>` 撑出的断行；warmth / 说明卡与衣柜同材质 |
 | 商店列表（`View All` 等） | `markShopCats` + `markEmptyDetails` + `tidyShopText` + `markShopTools` | `Back to shop` 取消原版绝对定位与气泡描边，回到正常流；分类图标去斜切、44×44 方卡；商品行成网格卡：48×48 图标 + 名称 + 右上价签胶囊 + 三行 stats-ball；空 `.clothing-details` 隐去；中文环境把原版硬编码 `Filters` / `Opt.` / `Legend` 换成「筛选 / 选项 / 图例」，已本地化的原文保持不动 |

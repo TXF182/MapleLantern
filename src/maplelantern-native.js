@@ -104,19 +104,17 @@
   }
 
   function markCaptionAnchor() {
-    var bar = doc.getElementById("ui-bar");
     var img = doc.getElementById("img");
     var caption = doc.getElementById("storyCaptionDiv");
-    if (!bar || !img || !caption || !doc.body || !doc.body.classList.contains("has-images")) {
+    if (!img || !caption || !doc.body || !doc.body.classList.contains("has-images")) {
       return;
     }
-    var barTop = bar.getBoundingClientRect().top;
-    var imgBottom = img.getBoundingClientRect().bottom;
-    if (!isFinite(barTop) || !isFinite(imgBottom) || imgBottom <= barTop) { return; }
-    /* zoom 只在 bind / resize / body[style] 变化时更新；markCaptionAnchor 是高频路径，
-       不能每次 apply 都 getComputedStyle，否则 200 选项页会多出上百毫秒。 */
-    var z = state.zoom;
-    var local = (imgBottom - barTop) / ((isFinite(z) && z > 0) ? z : 1);
+    /* 直接读布局高度，不读 getBoundingClientRect().bottom：
+       后者已乘过 body zoom，再用 zoomFactor() 反推除数，Android WebView 的
+       zoom 读数只要偏一点，就会把 192 写成 163/181，正文上沿提前盖住立绘下缘。
+       offsetHeight 是未缩放的布局像素，正好就是 CSS top 需要的值。 */
+    var layout = img.offsetHeight;
+    var local = (isFinite(layout) && layout > 0) ? layout : 192;
     var top = Math.max(0, Math.round(local)) + "px";
     var root = doc.documentElement;
     if (root.style.getPropertyValue("--ml-caption-top") !== top) {
