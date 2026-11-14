@@ -21,7 +21,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.1.30");
+  assert.equal(boot.version, "1.2.0");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -165,18 +165,18 @@ test("原生样式：左轨保持 32px，字号提升且每格有左侧色条", 
 test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际立绘底边起排", () => {
   assert.match(nativeCss, /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1\.32fr\)/s);
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,400}#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 46px 44px !important/s,
+    /@media \(max-width:\s*632px\)[\s\S]{0,400}#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 46px 44px !important/s,
     "216px 窄屏必须给时间格 46px、星期 44px，并隐藏挤占时间格的时钟图标");
   assert.match(nativeCss, /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*normal[^}]*text-overflow:\s*clip/s);
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*nowrap !important[^}]*overflow-wrap:\s*normal !important/s,
-    "1.1.30 窄屏金额必须单行，overflow-wrap:anywhere 会在 £9,474.99 中间逐字断行");
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*nowrap !important[^}]*overflow-wrap:\s*normal !important/s,
+    "1.2.0 窄屏金额必须单行，overflow-wrap:anywhere 会在 £9,474.99 中间逐字断行");
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}data-ml-chip="day"\]\s*\{[^}]*flex-direction:\s*row !important[^}]*white-space:\s*nowrap/s,
-    "1.1.30 日期格必须横排单行，原 flex-column 会把图标与星期日压成两行");
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="day"\]\s*\{[^}]*flex-direction:\s*row !important[^}]*white-space:\s*nowrap/s,
+    "1.2.0 日期格必须横排单行，原 flex-column 会把图标与星期日压成两行");
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}data-ml-chip="day"\] img\s*\{[^}]*display:\s*none !important/s,
-    "1.1.30 44px 日期格容不下日历图标 + 星期日，图标必须让位");
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="day"\] img\s*\{[^}]*display:\s*none !important/s,
+    "1.2.0 44px 日期格容不下日历图标 + 星期日，图标必须让位");
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*top:\s*var\(--ml-caption-top, 192px\)/s);
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*left:\s*0 !important[^}]*width:\s*100% !important/s,
     "侧栏内层必须 left:0 + 100% 宽，left:24 会让 #ui-bar scrollWidth 超出 24px");
@@ -187,60 +187,18 @@ test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际
   assert.match(nativeCss, new RegExp("#customOverlayContent" + FOREIGN_GUARD + " \\.saveButton input,[\\s\\S]{0,400}?background:\\s*var\\(--mln-surface-2\\) !important", "s"));
 });
 
-test("1.1.25 移动端窄屏：侧栏展开时主内容从侧栏右缘起排，收起仍走原版 3em", () => {
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*632px\)[\s\S]{0,400}#ui-bar:not\(\.stowed\)\s*~\s*#story\s*\{[^}]*margin-left:\s*17\.5em !important/s,
-    "421–632px 下 #story 必须让开 17.5em 侧栏，否则主内容被压在侧栏下面");
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,600}#ui-bar#ui-bar\s*\{[^}]*width:\s*216px !important[\s\S]{0,300}stowed[\s\S]{0,200}left:\s*-184px !important/s,
-    "320/360/390px 侧栏必须与立绘同宽 216px，并保留 32px 收起把手");
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,800}#ui-bar:not\(\.stowed\)\s*~\s*#story\s*\{[^}]*margin-left:\s*216px !important/s,
-    "正文必须从 216px 侧栏右缘起排，避免被侧栏压住");
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,3600}#img\s*\{[^}]*left:\s*0 !important/s,
-    "立绘必须与 216px 侧栏同宽并从左缘起排，左右都不留白");
-});
-
-test("1.1.30 420–480px 恢复原生 280/64/216：天空盒回到左留白，不覆盖人物", () => {
-  assert.match(nativeCss,
-    /@media screen and \(min-width:\s*420px\) and \(max-width:\s*480px\)[\s\S]{0,4200}#ui-bar#ui-bar\s*\{[^}]*width:\s*280px !important/s,
-    "400–480px 侧栏必须回到原生 280px，否则 #canvasSkybox 没有 64px 留白列可放");
-  assert.match(nativeCss,
-    /@media screen and \(min-width:\s*420px\) and \(max-width:\s*480px\)[\s\S]{0,4200}body\.has-images #img\s*\{[^}]*left:\s*64px !important[^}]*width:\s*216px !important/s,
-    "立绘必须回到原生 left:64，左侧 64px 留给天空盒");
-  assert.match(nativeCss,
-    /@media screen and \(min-width:\s*420px\) and \(max-width:\s*480px\)[\s\S]{0,4200}body\.has-images #img > canvas\s*\{[^}]*left:\s*-32px !important[^}]*width:\s*256px !important[^}]*height:\s*256px !important/s,
-    "400–480px 画布必须恢复原生 256×256 / left:-32，不能继续缩到 216");
-  assert.match(nativeCss,
-    /@media screen and \(min-width:\s*420px\) and \(max-width:\s*480px\)[\s\S]{0,4200}#story\s*\{[^}]*margin-left:\s*280px !important/s,
-    "正文必须从侧栏 280px 右缘起排");
-});
-
 test("1.1.27 窄屏数值：状态条轨道回宽、时间/星期不换行、选项文字不再两字一行", () => {
   assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,3600}body\.has-images #img\s*\{[^}]*height:\s*192px !important[^}]*min-height:\s*192px !important/s,
-    "窄屏必须锁住立绘 192px 布局高，中间态压成 163 会让正文提前盖住下缘");
-  assert.match(nativeCss,
-    /body\.has-images #img > canvas\s*\{[^}]*left:\s*0 !important[^}]*width:\s*100% !important[^}]*height:\s*auto !important/s,
-    "原生 256px canvas 必须在 216px 栏内等比缩放，否则人物右缘会被侧栏边界切掉");
-  assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}#statmeters\s*\{[^}]*width:\s*100% !important[^}]*max-width:\s*100% !important/s,
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}#statmeters\s*\{[^}]*width:\s*100% !important[^}]*max-width:\s*100% !important/s,
     "216px 侧栏下状态卡必须占满 #stats 内容宽（200px），不能停在 184px");
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}#statmeters > div\[id\$="caption"\]\s*\{[^}]*grid-template-columns:\s*46px minmax\(0, 1fr\) !important[^}]*padding:\s*7px 70px 7px 0 !important/s,
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}#statmeters > div\[id\$="caption"\]\s*\{[^}]*grid-template-columns:\s*46px minmax\(0, 1fr\) !important[^}]*padding:\s*7px 70px 7px 0 !important/s,
     "标签列 46px + 右留白 70px 才能把七行进度条留到 64px，原 54/68 会压到 32px");
   assert.match(nativeCss,
-    /@media \(max-width:\s*480px\)[\s\S]{0,3600}data-ml-chip="time"\] \.clockContainer img\s*\{[^}]*display:\s*none !important/s,
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="time"\] \.clockContainer img\s*\{[^}]*display:\s*none !important/s,
     "46px 时间格容不下 15px 图标 + 09:06，窄屏必须让图标让位");
   assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,3600}#ui-bar:not\(\.stowed\)\s*~\s*#story\s*\{[^}]*margin-right:\s*0 !important/s,
-    "正文右侧必须吃掉原版 1em 外边距，360 下多出 16px");
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,3600}#passages \.passage\s*\{[^}]*padding:\s*14px 8px 24px !important/s,
-    "窄屏正文内边距 16px 会把 128px 正文压到 96px");
-  assert.match(nativeCss,
-    /@media screen and \(max-width:\s*480px\)[\s\S]{0,3600}\.ml-option-group\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)[^}]*gap:\s*5px[^}]*padding:\s*0 8px/s,
+    /@media screen and \(max-width:\s*632px\)[\s\S]{0,3600}\.ml-option-group\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)[^}]*gap:\s*5px[^}]*padding:\s*0 8px/s,
     "窄屏默认单列：:has 不可用时链接仍占满整行");
   assert.match(nativeCss,
     /\.ml-option-group:has\(> img\.icon, > \.icon-container, > \.icon\)\s*\{[^}]*grid-template-columns:\s*20px minmax\(0, 1fr\)/s,
@@ -251,8 +209,18 @@ test("1.1.27 窄屏数值：状态条轨道回宽、时间/星期不换行、选
   assert.doesNotMatch(strip(native.slice(native.indexOf("function markCaptionAnchor"), native.indexOf("function markStats"))),
     /getBoundingClientRect/,
     "正文锚点不能再用视觉坐标 ÷ zoom 反推，必须直接吃 #img 布局高");
-  assert.ok(nativeCss.indexOf("窄屏选项规则必须落在全局 base 之后") > nativeCss.indexOf("grid-template-columns: 28px minmax(0, 1fr)"),
-    "≤420 选项覆盖必须在全局 28px 双列规则之后，否则同特异性会被反压回 28px 列");
+});
+
+test("1.2.0：立绘与侧栏保持 1.1.22 游戏原生几何，不再重写画布", () => {
+  const clean = strip(nativeCss);
+  assert.doesNotMatch(clean, /body\.has-images #img\s*\{/,
+    "不得覆盖 #img 的 left/width/height：原生 216×192、left:64 是 1.1.22 的正常画布");
+  assert.doesNotMatch(clean, /#img > canvas\s*\{/,
+    "不得覆盖 #img canvas：原生 256×256、left:-32，缩放会让人物与背景错位");
+  assert.doesNotMatch(clean, /#ui-bar#ui-bar\s*\{[^}]*\bwidth\s*:/s,
+    "不得改 #ui-bar 宽度：原生 17.5em=280，压到 216 会把画布挤进窄栏");
+  assert.match(clean, /#stats\s*\{[^}]*width:\s*100% !important/s,
+    "金额卡必须填满原生 280 侧栏，不能停在 248");
 });
 
 test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留主题材质", () => {

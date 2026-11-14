@@ -368,7 +368,7 @@ html[data-ml-native="on"] #story-caption {
 
 html[data-ml-native="on"] #stats {
   display: block !important;
-  width: 248px !important;
+  width: 100% !important;
   max-width: 100% !important;
   height: auto !important;
   min-height: 72px;
@@ -528,109 +528,6 @@ html[data-ml-native="on"] body.has-images #storyCaptionContent {
 @media screen and (max-width: 632px) {
   html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
     margin-left: 17.5em !important;
-  }
-}
-
-/* 480px 以下：侧栏固定为立绘原始宽度 216px，立绘左右缘同时贴边，
-   不再产生左右留白；正文从 216px 起排，320/360/390 均适配。 */
-@media screen and (max-width: 480px) {
-  html[data-ml-native="on"] #ui-bar#ui-bar {
-    width: 216px !important;
-  }
-  html[data-ml-native="on"] #ui-bar#ui-bar.stowed {
-    left: -184px !important;
-  }
-  html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
-    margin-left: 216px !important;
-    margin-right: 0 !important;
-  }
-  /* 216px 侧栏在 360 下只给正文 144px：原版 16px 内边距 + 28px 图标列
-     会把选项文字列压到约 37px（每 2 字换行）。窄屏收紧内边距与图标列。 */
-  html[data-ml-native="on"] #passages .passage {
-    padding: 14px 8px 24px !important;
-  }
-  html[data-ml-native="on"] #passages .passage .ml-option-group {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 5px;
-    padding: 0 8px;
-  }
-  /* 只有组内确实有图标时才分两列。默认单列还有一层兜底：若宿主
-     WebView 不支持 :has，组内只剩链接时文字仍能占满整行，不会掉进
-     20px 图标列按两字一行排。 */
-  html[data-ml-native="on"] #passages .passage .ml-option-group:has(> img.icon, > .icon-container, > .icon) {
-    grid-template-columns: 20px minmax(0, 1fr);
-  }
-  html[data-ml-native="on"] #passages .passage .ml-option-group > img.icon {
-    width: 20px;
-    height: 20px;
-    max-width: 20px;
-    max-height: 20px;
-  }
-  html[data-ml-native="on"] #passages .passage .ml-option-group > .icon-container,
-  html[data-ml-native="on"] #passages .passage .ml-option-group > .icon {
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px !important;
-    min-height: 20px !important;
-    max-width: 20px !important;
-    max-height: 20px !important;
-  }
-  html[data-ml-native="on"] #passages .passage .ml-option-group > .icon-container img {
-    width: 20px;
-    height: 20px;
-    max-width: 20px;
-    max-height: 20px;
-  }
-  /* 立绘宽 216 与侧栏同宽：left:0 右缘自然落在 216，左右均无空。 */
-  html[data-ml-native="on"] body.has-images #img {
-    left: 0 !important;
-    /* 原生就是 216×192。这里显式锁高，防止宿主或缩放的中间态把立绘
-       区域压成 163px，正文锚点也就不会提前贴上来。 */
-    height: 192px !important;
-    min-height: 192px !important;
-  }
-  /* 原生 canvas 是 256×256、left:-32；容器只有 216，左右各裁 32px，
-     人物右缘正好被侧栏边界切掉。按容器宽度等比缩放并去掉负偏移，
-     整张画面（含人物）收进 216，不再依赖裁切。 */
-  html[data-ml-native="on"] body.has-images #img > canvas {
-    left: 0 !important;
-    width: 100% !important;
-    height: auto !important;
-  }
-}
-
-/* 420–480px：回到原生几何。原生侧栏 17.5em=280，立绘 216 放在 left:64，
-   左侧 64px 留给 #canvasSkybox 天空盒；正文从 280 起排。1.1.25 把侧栏压到
-   216、#img 挪到 left:0 后，天空盒（z5，宽 64）正好压在人物画布左侧，
-   人物被“侧边栏背景”截掉。这里恢复原生 280/64/216，天空盒回到留白列，
-   不再覆盖人物；390 及以下仍保留 216 方案，避免正文只剩 110px。 */
-@media screen and (min-width: 420px) and (max-width: 480px) {
-  html[data-ml-native="on"] #ui-bar#ui-bar {
-    width: 280px !important;
-  }
-  /* 旧全局规则把 #stats 锁死在 248px；280 栏下会留下 32px 空白。 */
-  html[data-ml-native="on"] #stats#stats {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  html[data-ml-native="on"] #ui-bar#ui-bar.stowed {
-    left: -248px !important;
-  }
-  html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
-    margin-left: 280px !important;
-    margin-right: 0 !important;
-  }
-  html[data-ml-native="on"] body.has-images #img {
-    left: 64px !important;
-    width: 216px !important;
-    height: 192px !important;
-    min-height: 192px !important;
-  }
-  html[data-ml-native="on"] body.has-images #img > canvas {
-    left: -32px !important;
-    width: 256px !important;
-    height: 256px !important;
-    max-width: none !important;
   }
 }
 
@@ -3205,7 +3102,7 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 632px) {
   html[data-ml-native="on"] #stats#stats .centered-elements {
     grid-template-columns: 28px minmax(0, 1fr) 46px 44px !important;
     gap: 3px;
@@ -4082,10 +3979,10 @@ html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#custom
   }
 }
 
-/* 420 以下窄屏选项规则必须落在全局 base 之后：同特异性下由后出现者胜。
+/* 632 以下窄屏选项规则必须落在全局 base 之后：同特异性下由后出现者胜。
    放在全局 .ml-option-group（28px 图标列 + padding 0 12px）之前时，
    会被后者反压回去，实测 360 下链接只剩 28px 宽，选项仍按 2~3 字断行。 */
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 632px) {
   html[data-ml-native="on"] #passages .passage .ml-option-group {
     grid-template-columns: minmax(0, 1fr) !important;
     gap: 5px !important;
