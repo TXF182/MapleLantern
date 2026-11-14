@@ -7,6 +7,7 @@ const path = require("path");
 
 const SRC = path.join(__dirname, "..", "src");
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
+const fx = fs.readFileSync(path.join(SRC, "effects.css"), "utf8");
 const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
 const native = fs.readFileSync(path.join(SRC, "maplelantern-native.js"), "utf8");
 const nativeCss = fs.readFileSync(path.join(SRC, "maplelantern-native.css"), "utf8");
@@ -21,13 +22,13 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.2.0");
+  assert.equal(boot.version, "1.3.0");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
   assert.deepEqual(boot.scriptFileList, ["core.js", "maplelantern-native.js", "render.js"], "core 必须先于 native/render");
-  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css"]);
+  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式");
   for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
@@ -95,9 +96,13 @@ test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
   }
 });
 
-test("主题纹理：6 套主题都有独立背景变量，面板/正文/卡片三层落点", () => {
-  for (const theme of ["amber", "cyberpunk", "jade", "graphite", "star"]) {
-    assert.match(css, new RegExp('data-theme="' + theme + '"'), "缺少主题块: " + theme);
+test("主题纹理：9 套主题都有独立背景变量，面板/正文/卡片三层落点", () => {
+  for (const theme of ["amber", "cyberpunk", "jade", "graphite", "star", "fog", "school", "paper"]) {
+    assert.match(css, new RegExp('data-theme="' + theme + '"'), "缺少面板主题块: " + theme);
+    /* 琥珀是原生层默认根变量，不另写 [data-ml-theme="amber"] 块。 */
+    assert.match(nativeCss, theme === "amber"
+      ? /html\[data-ml-native="on"\]\s*\{/
+      : new RegExp('data-ml-theme="' + theme + '"'), "缺少原生主题块: " + theme);
   }
   assert.match(css, /--ml-tex-panel:/);
   assert.match(css, /--ml-tex-body:/);
@@ -113,8 +118,8 @@ test("主题纹理：6 套主题都有独立背景变量，面板/正文/卡片�
 
 test("按压反馈：CSS 按压/涟漪 + JS 指针入口 + 减少动效兜底", () => {
   assert.match(css, /\.ml-press-ring\s*\{[^}]*z-index:\s*1/s);
-  assert.match(css, /@keyframes ml-press-ripple\s*\{[\s\S]*?scale\(3\.4\)/);
-  assert.match(css, /@keyframes ml-press-ripple/);
+  assert.match(fx, /@keyframes ml-press-ripple\s*\{[\s\S]*?scale\(3\.4\)/);
+  assert.match(fx, /@keyframes ml-press-ripple/);
   assert.match(css, /:active,[\s\S]*?\.ml-is-pressed/s);
   assert.match(css, /prefers-reduced-motion: reduce\)[\s\S]*?\.ml-press-ring\s*\{\s*animation:\s*none/s);
   assert.match(index, /PRESS_SELECTOR/);
@@ -136,6 +141,30 @@ test("增强：卡片内缘光、表盘外环、双层涟漪与更长清理窗�
   assert.match(nativeCss, /scale\(\.972\)/);
   assert.match(nativeCss, /rgb\(190 255 240 \/ 6%\)/);
   assert.match(nativeCss, /#customOverlayTitle,[\s\S]*?background-image:\s*linear-gradient\(180deg,\s*var\(--mln-glow\)/s);
+});
+
+test("三套主题动效：环境光、侧栏光带、页签淡入、环形呼吸与三层关断", () => {
+  for (const theme of ["fog", "school", "paper"]) {
+    assert.match(css, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,320}--ml-ambient-a'), "缺少面板环境光变量: " + theme);
+    assert.match(nativeCss, new RegExp('data-ml-theme="' + theme + '"\\][\\s\\S]{0,420}--mln-bar-ambient'), "缺少原生侧栏光带变量: " + theme);
+  }
+  assert.match(fx, /@keyframes ml-panel-ambient\s*\{/);
+  assert.match(css, /#ml-root\[data-theme="fog"\] \.ml-panel::after,[\s\S]*?animation:\s*ml-panel-ambient/s);
+  assert.match(fx, /@keyframes ml-pane-in\s*\{/);
+  assert.match(css, /#ml-root \.ml-pane\s*\{[^}]*animation:\s*ml-pane-in/s);
+  assert.match(fx, /@keyframes ml-ring-breathe\s*\{/);
+  assert.match(fx, /@keyframes mln-bar-drift\s*\{/);
+  assert.match(nativeCss, /background-image:\s*var\(--mln-bar-ambient\),\s*var\(--mln-bar-texture\) !important/);
+  assert.match(nativeCss, /background-size:\s*230% 100%,\s*230% 100%,\s*100% 100%,\s*100% 100%,\s*100% 100% !important/);
+  assert.match(nativeCss, /\[data-ml-theme="fog"\] #ui-bar#ui-bar,[\s\S]*?animation:\s*mln-bar-drift/s);
+  assert.match(nativeCss, /\[data-ml-motion="off"\] #ui-bar#ui-bar,[\s\S]*?animation:\s*none !important/s);
+  assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#ui-bar#ui-bar,[\s\S]*?animation:\s*none !important/s);
+});
+
+test("320/390 窄屏：5 个页签等分，不得把最后一页裁出面板", () => {
+  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab\s*\{[^}]*flex:\s*1 1 0[^}]*min-width:\s*0/s);
+  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tabs\s*\{[^}]*gap:\s*0[^}]*padding:\s*0 6px/s);
+  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab-label\s*\{[^}]*font-size:\s*calc\(11px/s);
 });
 
 test("v1.1 性能/精美：通透度变量、dvh、滚动containment、passage 单飞", () => {
@@ -166,7 +195,7 @@ test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际
   assert.match(nativeCss, /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1\.32fr\)/s);
   assert.match(nativeCss,
     /@media \(max-width:\s*632px\)[\s\S]{0,400}#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 46px 44px !important/s,
-    "216px 窄屏必须给时间格 46px、星期 44px，并隐藏挤占时间格的时钟图标");
+    "632px 窄屏必须给时间格 46px、星期 44px，并隐藏挤占时间格的时钟图标");
   assert.match(nativeCss, /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*normal[^}]*text-overflow:\s*clip/s);
   assert.match(nativeCss,
     /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*nowrap !important[^}]*overflow-wrap:\s*normal !important/s,
@@ -190,7 +219,7 @@ test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际
 test("1.1.27 窄屏数值：状态条轨道回宽、时间/星期不换行、选项文字不再两字一行", () => {
   assert.match(nativeCss,
     /@media \(max-width:\s*632px\)[\s\S]{0,3600}#statmeters\s*\{[^}]*width:\s*100% !important[^}]*max-width:\s*100% !important/s,
-    "216px 侧栏下状态卡必须占满 #stats 内容宽（200px），不能停在 184px");
+    "632px 窄屏下状态卡必须占满 #stats 内容宽，不能停在 184px");
   assert.match(nativeCss,
     /@media \(max-width:\s*632px\)[\s\S]{0,3600}#statmeters > div\[id\$="caption"\]\s*\{[^}]*grid-template-columns:\s*46px minmax\(0, 1fr\) !important[^}]*padding:\s*7px 70px 7px 0 !important/s,
     "标签列 46px + 右留白 70px 才能把七行进度条留到 64px，原 54/68 会压到 32px");
@@ -354,6 +383,40 @@ test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，
   }
 });
 
+test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设置项与双 CSS 入口齐全", () => {
+  for (const name of ["fog", "school", "paper"]) {
+    assert.match(core, new RegExp(name + ":\\s*\\{"), "缺少调色板: " + name);
+    assert.match(core, new RegExp('"theme\\.' + name + '"'), "缺少中文主题名: " + name);
+    assert.match(index, new RegExp('value: "' + name + '", label: s\\["theme\\.' + name + '"\\]'), "缺少设置项: " + name);
+    assert.match(css, new RegExp('#ml-root\\[data-theme="' + name + '"\\]'), "缺少面板主题块: " + name);
+    assert.match(nativeCss, new RegExp('data-ml-theme="' + name + '"\\]\\s*\\{'), "缺少原生主题块: " + name);
+  }
+  assert.equal((core.match(/theme\.fog/g) || []).length >= 2, true, "中英文都要有雾港");
+  assert.equal((core.match(/theme\.school/g) || []).length >= 2, true, "中英文都要有旧校舍");
+  assert.equal((core.match(/theme\.paper/g) || []).length >= 2, true, "中英文都要有纸灯");
+  assert.match(nativeCss, /data-ml-theme="paper"\] #mobileStats \.stat\.red\s*\{[^}]*#9E2F25/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.gold\s*\{[^}]*#6F5210/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.teal\s*\{[^}]*#0E5F5F/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.gold\s*\{[^}]*#6F5210/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.link-external\s*\{[^}]*#2C4F85/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #ui-bar a\.link-external\s*\{[^}]*#2C4F85/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #menu a\s*\{[^}]*var\(--mln-text\)/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #ui-bar \.macro-button\s*\{[^}]*background:\s*var\(--mln-surface-2\)/s);
+  assert.ok(nativeCss.includes('.gold { color: #6F5210; }'));
+  assert.ok(nativeCss.includes('.linkBlue { color: #2C4F85; }'));
+  assert.ok(nativeCss.includes('a.link-external { color: #2C4F85; }'));
+  assert.ok(nativeCss.includes('#customOverlay:not([data-overlay="modloader"]):not(:has('));
+  assert.match(nativeCss, /data-ml-theme="fog"\] #history-backward/);
+  assert.match(nativeCss, /data-ml-theme="school"\] #history-backward/);
+  assert.match(nativeCss, /data-ml-theme="fog"\] #passages \.passage \.red\s*\{[^}]*#E58C7F/s);
+  assert.match(nativeCss, /data-ml-theme="school"\] #passages \.passage \.red\s*\{[^}]*#E08373/s);
+  assert.match(nativeCss, /data-ml-theme="fog"\] #gameVersionDisplay/);
+  assert.match(nativeCss, /data-ml-theme="school"\] #gameVersionDisplay/);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #gameVersionDisplay/);
+  assert.match(index, /"ml-seg--themes"/);
+  assert.match(css, /\.ml-seg--themes\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
+});
+
 test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {
   assert.match(index, /apiVersion !== 1/);
   assert.ok(!/setInterval/.test(index), "不允许常驻轮询");
@@ -378,13 +441,14 @@ test("层叠：z-index 89900 低于 SugarCube 浮层（100000）", () => {
 
 test("原型：先 CSS 后脚本，core 先于 render", () => {
   const link = html.indexOf("../src/style.css");
+  const fxLink = html.indexOf("../src/effects.css");
   const c = html.indexOf("../src/core.js");
   const i = html.indexOf("../src/render.js");
-  assert.ok(link > 0 && c > link && i > c, "加载顺序必须是 css -> core -> render");
+  assert.ok(link > 0 && fxLink > link && c > fxLink && i > c, "加载顺序必须是 css -> effects -> core -> render");
 });
 
 test("体积预算：UI 包源码应远小于 1MB", () => {
-  for (const f of ["core.js", "maplelantern-native.js", "render.js", "style.css", "maplelantern-native.css", "boot.json"]) {
+  for (const f of ["core.js", "maplelantern-native.js", "render.js", "style.css", "maplelantern-native.css", "effects.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
     assert.ok(size < 200 * 1024, f + " 过大: " + size);
   }
@@ -450,7 +514,7 @@ test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主
   assert.match(nativeCss, /\.ml-option-group > img\.icon/);
   assert.match(nativeCss, /grid-template-columns: 28px minmax\(0, 1fr\)/);
   assert.match(nativeCss, /\.mln-press-ring/);
-  assert.match(nativeCss, /@keyframes mln-press-ripple/);
+  assert.match(fx, /@keyframes mln-press-ripple/);
   assert.match(nativeCss, /html\[data-ml-native="on"\] body\s*\{[\s\S]*?background-color: transparent !important/);
   assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image:\s*radial-gradient\(132% 92% at 50% -14%[\s\S]*?var\(--mln-page-texture\) !important/);
   assert.match(nativeCss, /background-attachment: fixed/);
@@ -507,4 +571,77 @@ test("CE 页签不被内容按钮通扫覆盖，关闭按钮不被二次改尺�
   /* 组前后空 <p> 会把 3px 间距重新撑大；必须双向清理且不得删掉含图标的段落。 */
   assert.match(native, /var after = wrap\.nextSibling/);
   assert.match(native, /querySelector\("img\.icon, \.icon-container, a\.link-internal, a\.macro-link"\)/);
+});
+
+test("effects.css：动效令牌/keyframes/工具类独立分区，组件文件不再内联 keyframes", () => {
+  for (const name of ["ml-breathe", "ml-tabline", "ml-hairline", "ml-panel-ambient",
+    "ml-pane-in", "ml-ring-breathe", "ml-press-ripple", "mln-bar-drift",
+    "mln-passage-in", "mln-overlay-in", "mln-stat-row-in", "mln-press-ripple",
+    "ml-ambient-drift", "ml-dust-drift", "ml-scan-sweep", "ml-star-twinkle",
+    "ml-fog-band", "ml-paper-fiber", "ml-ink-ripple", "ml-static-flicker", "ml-ember-pulse", "ml-fog-breathe", "ml-star-meteor", "ml-head-sweep"]) {
+    assert.match(fx, new RegExp("@keyframes " + name + "\\s*\\{"), name + " 必须在 effects.css");
+  }
+  assert.doesNotMatch(css, /@keyframes\s+(ml|mln)-/, "style.css 不应再内联动效 keyframes");
+  assert.doesNotMatch(nativeCss, /@keyframes\s+(ml|mln)-/, "native.css 不应再内联动效 keyframes");
+  assert.match(fx, /--ml-fx-dur-pane:/);
+  assert.match(fx, /--ml-fx-dur-ripple:/);
+  assert.match(fx, /--ml-fx-ease-out:/);
+  for (const cls of ["ml-fx-pane", "ml-fx-hairline", "ml-fx-breathe", "ml-fx-drift"]) {
+    assert.match(fx, new RegExp("#ml-root \\." + cls), cls + " 必须作为可复用工具类存在");
+  }
+});
+
+test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空与三层关断", () => {
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+    assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,180}--ml-fx-ambient-a'),
+      "缺少环境粒子变量: " + theme);
+  }
+  assert.match(fx, /#ml-root \.ml-ambient\s*\{[^}]*z-index:\s*0[^}]*pointer-events:\s*none[^}]*contain:\s*layout paint style/s,
+    "环境层必须在 root 底层、不可点击且开启 containment");
+  assert.match(fx, /#ml-root \.ml-ambient__wisp:nth-child\(8\)/,
+    "桌面必须保留 8 颗粒子锚点");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__wisp:nth-child\(n \+ 6\)\s*\{[^}]*display:\s*none/s,
+    "≤600px 必须减到 5 颗，避免手机 GPU 过载");
+  assert.match(fx, /#ml-root\[data-motion="off"\] \.ml-ambient[\s\S]*?display:\s*none !important/s,
+    "玩家关动效时环境层必须整层隐藏，不能留下静态雾团");
+  assert.match(fx, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ml-ambient\s*\{[^}]*display:\s*none !important/s,
+    "系统减少动态时环境层必须整层隐藏");
+  assert.match(fx, /html\[data-dol-midnight\]:not\(\[data-dgu-visualMotion\]\) #ml-root \.ml-ambient/,
+    "宿主关闭动效时环境层必须跟随关断");
+  assert.match(fx, /#ml-root\[data-open="1"\] \.ml-ambient\s*\{[^}]*calc\(var\(--ml-fx-ambient-opacity[^}]*\.55\)/s,
+    "面板打开时环境层必须降亮到 55%，把注意力收回面板");
+  assert.match(fx, /#ml-root\[data-theme="star"\] \.ml-ambient::after/, "星空必须有低频流星层");
+  assert.match(fx, /@keyframes ml-star-meteor/, "流星必须有 keyframes");
+  assert.match(fx, /#ml-root \.ml-head::after/, "面板标题栏必须有一次性扫光层");
+  assert.match(fx, /@keyframes ml-head-sweep/, "面板扫光必须有 keyframes");
+  assert.match(css, /#ml-root\[data-open="1"\] \.ml-head::after[\s\S]*?animation:\s*ml-head-sweep/s,
+    "面板打开时必须触发一次性扫光");
+  assert.match(fx, /html\[data-ml-motion="off"\] #ml-root \.ml-head::after[\s\S]*?animation:\s*none !important/s,
+    "宿主关闭动效时扫光必须关断");
+  assert.match(fx, /#ml-root\[data-theme="fog"\] \.ml-ambient::after/, "雾港必须有第二层呼吸雾带");
+  assert.match(fx, /@keyframes ml-fog-breathe/, "雾港呼吸雾带必须有 keyframes");
+  assert.match(index, /"ml-ambient"/);
+  assert.match(index, /"ml-ambient__wisp"/);
+  assert.match(index, /jitterAmbient\(ambient\)/, "每次挂载必须做一次边缘随机抖动，避免雾团固定不动");
+  assert.match(index, /--ml-wisp-delay/, "随机抖动必须写入粒子相位变量");
+  assert.match(index, /els\.ambient\.hidden = !state\.settings\.motion/,
+    "动效关闭时环境层必须从渲染树移除");
+});
+
+test("effects.css：组件引用的 keyframes/token 全部有定义，且原生 CSS 仍在原型加载链中", () => {
+  const cleanFx = strip(fx);
+  const keyframes = new Set(Array.from(cleanFx.matchAll(/@keyframes\s+([\w-]+)/g), (m) => m[1]));
+  const tokens = new Set(Array.from(cleanFx.matchAll(/(--ml-fx-[\w-]+)\s*:/g), (m) => m[1]));
+  for (const file of [strip(css), strip(nativeCss)]) {
+    for (const m of file.matchAll(/animation:\s*([\w-]+)/g)) {
+      if (m[1] === "none" || m[1] === "var") continue;
+      assert.ok(keyframes.has(m[1]), "组件引用了未定义的 keyframe: " + m[1]);
+    }
+    for (const m of file.matchAll(/var\((--ml-fx-[\w-]+)/g)) {
+      assert.ok(tokens.has(m[1]), "组件引用了未定义的动效 token: " + m[1]);
+    }
+  }
+  const nativeLink = html.indexOf("../src/maplelantern-native.css");
+  const fxLink = html.indexOf("../src/effects.css");
+  assert.ok(nativeLink > 0 && fxLink > nativeLink, "原生 CSS 必须先于 effects.css 加载");
 });

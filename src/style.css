@@ -223,6 +223,145 @@
   --ml-press-ripple: rgba(205, 218, 255, .22);
 }
 
+#ml-root[data-theme="fog"] {
+  --ml-bg: #0B1418;
+  --ml-bg-soft: #111D23;
+  --ml-bg-raise: #17262E;
+  --ml-line: rgba(231, 182, 107, .18);
+  --ml-line-strong: rgba(231, 182, 107, .32);
+  --ml-text: #E9F2F3;
+  --ml-muted: #A6B8BD;
+  --ml-faint: #7B9096;
+  --ml-accent: #E7B66B;
+  --ml-accent-soft: rgba(231, 182, 107, .16);
+  --ml-accent-ink: #191207;
+  --ml-jade: #79C9BE;
+  --ml-rose: #C9867B;
+  --ml-danger: #D8665B;
+  --ml-track: rgba(231, 182, 107, .09);
+  --ml-radius: 12px;
+  --ml-card-radius: 14px;
+  --ml-panel-radius: 16px;
+  --ml-panel-bg: rgba(11, 20, 24, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(168deg, rgba(214, 232, 235, .055) 0%, transparent 28%, transparent 70%, rgba(7, 12, 14, .12) 100%),
+    radial-gradient(120% 78% at 12% 0%, rgba(231, 182, 107, .16), transparent 56%),
+    radial-gradient(95% 62% at 92% 100%, rgba(121, 201, 190, .08), transparent 64%),
+    repeating-linear-gradient(96deg, rgba(214, 232, 235, .02) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(3deg, rgba(231, 182, 107, .018) 0 1px, transparent 1px 9px);
+  --ml-tex-body:
+    radial-gradient(100% 70% at 50% 0%, rgba(231, 182, 107, .05), transparent 70%),
+    linear-gradient(180deg, rgba(214, 232, 235, .025), transparent 42%),
+    repeating-linear-gradient(92deg, rgba(214, 232, 235, .014) 0 1px, transparent 1px 11px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(231, 182, 107, .08), transparent 58%),
+    radial-gradient(120% 80% at 0% 0%, rgba(214, 232, 235, .045), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(214, 232, 235, .012) 0 1px, transparent 1px 6px);
+  --ml-press-glow: rgba(231, 182, 107, .46);
+  --ml-press-ripple: rgba(255, 238, 204, .2);
+  --ml-ambient-a: rgba(121, 201, 190, .16);
+  --ml-ambient-b: rgba(231, 182, 107, .10);
+  --ml-ambient-speed: 26s;
+}
+
+#ml-root[data-theme="school"] {
+  --ml-bg: #12110D;
+  --ml-bg-soft: #1A1813;
+  --ml-bg-raise: #232016;
+  --ml-line: rgba(201, 174, 114, .16);
+  --ml-line-strong: rgba(201, 174, 114, .30);
+  --ml-text: #ECE5D4;
+  --ml-muted: #AAA18C;
+  --ml-faint: #8A8170;
+  --ml-accent: #C9AE72;
+  --ml-accent-soft: rgba(201, 174, 114, .14);
+  --ml-accent-ink: #1B1508;
+  --ml-jade: #7F9C84;
+  --ml-rose: #B56E63;
+  --ml-danger: #D05B4E;
+  --ml-track: rgba(201, 174, 114, .08);
+  --ml-radius: 6px;
+  --ml-card-radius: 8px;
+  --ml-panel-radius: 10px;
+  --ml-panel-bg: rgba(18, 17, 13, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    linear-gradient(90deg, transparent 0 34%, rgba(201, 174, 114, .035) 34.4%, transparent 34.8%, transparent 67%, rgba(201, 174, 114, .025) 67.4%, transparent 67.8%),
+    radial-gradient(120% 82% at 10% 0%, rgba(201, 174, 114, .14), transparent 58%),
+    radial-gradient(90% 60% at 100% 100%, rgba(127, 156, 132, .07), transparent 64%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .010) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 4px);
+  --ml-tex-body:
+    linear-gradient(180deg, rgba(201, 174, 114, .045), transparent 32%, transparent 76%, rgba(0, 0, 0, .12)),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .05) 0 1px, transparent 1px 6px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(201, 174, 114, .07), transparent 58%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .10) 0 1px, transparent 1px 5px);
+  --ml-press-glow: rgba(201, 174, 114, .42);
+  --ml-press-ripple: rgba(255, 244, 214, .18);
+  --ml-ambient-a: rgba(201, 174, 114, .16);
+  --ml-ambient-b: rgba(127, 156, 132, .09);
+  --ml-ambient-speed: 31s;
+}
+
+#ml-root[data-theme="paper"] {
+  --ml-bg: #F1E7D3;
+  --ml-bg-soft: #E7D8BF;
+  --ml-bg-raise: #FBF4E6;
+  --ml-line: rgba(42, 33, 24, .16);
+  --ml-line-strong: rgba(42, 33, 24, .28);
+  --ml-text: #2A2118;
+  --ml-muted: #6D5F50;
+  --ml-faint: #756451;
+  --ml-accent: #A9362A;
+  --ml-accent-soft: rgba(169, 54, 42, .12);
+  --ml-accent-ink: #FFF8EC;
+  --ml-jade: #486F61;
+  --ml-rose: #9B5149;
+  --ml-danger: #8E2A21;
+  --ml-track: rgba(42, 33, 24, .10);
+  --ml-radius: 12px;
+  --ml-card-radius: 14px;
+  --ml-panel-radius: 16px;
+  --ml-panel-bg: rgba(251, 244, 230, var(--ml-surface-alpha));
+  --ml-tex-panel:
+    radial-gradient(120% 80% at 12% 0%, rgba(169, 54, 42, .07), transparent 56%),
+    radial-gradient(90% 60% at 100% 100%, rgba(120, 95, 64, .08), transparent 64%),
+    repeating-linear-gradient(92deg, rgba(90, 70, 45, .025) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(2deg, rgba(169, 54, 42, .018) 0 1px, transparent 1px 8px);
+  --ml-tex-body:
+    radial-gradient(100% 70% at 50% 0%, rgba(169, 54, 42, .035), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(90, 70, 45, .018) 0 1px, transparent 1px 6px);
+  --ml-tex-card:
+    linear-gradient(135deg, rgba(169, 54, 42, .055), transparent 58%),
+    repeating-linear-gradient(0deg, rgba(90, 70, 45, .014) 0 1px, transparent 1px 5px);
+  --ml-press-glow: rgba(169, 54, 42, .34);
+  --ml-press-ripple: rgba(169, 54, 42, .12);
+  --ml-ambient-a: rgba(255, 250, 238, .52);
+  --ml-ambient-b: rgba(169, 54, 42, .06);
+  --ml-ambient-speed: 22s;
+  --ml-shadow: 0 24px 64px rgba(72, 50, 28, .28), 0 2px 8px rgba(72, 50, 28, .14);
+}
+
+/* 纸灯是唯一的亮色主题：白高光在米白纸面上会发灰，改成暖纸高光。 */
+#ml-root[data-theme="paper"] .ml-seg-btn[aria-checked="true"] {
+  border-color: rgba(169, 54, 42, .45);
+}
+
+#ml-root[data-theme="paper"] .ml-stat,
+#ml-root[data-theme="paper"] .ml-slot,
+#ml-root[data-theme="paper"] .ml-quick {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .58),
+              inset 0 -1px 0 rgba(90, 70, 45, .10),
+              0 1px 2px rgba(90, 70, 45, .10);
+}
+
+#ml-root[data-theme="paper"] .ml-orb::before {
+  background: radial-gradient(120% 100% at 50% 18%, #FFF8E8 0%, #EFE1C8 62%, #D9C3A1 100%);
+  border-color: rgba(169, 54, 42, .42);
+  box-shadow: 0 0 0 1px rgba(74, 52, 30, .18), 0 8px 22px rgba(74, 52, 30, .22), inset 0 1px 0 rgba(255, 255, 255, .75);
+}
+
 #ml-root *,
 #ml-root *::before,
 #ml-root *::after { box-sizing: border-box; }
@@ -288,7 +427,7 @@
   background: radial-gradient(60% 55% at 50% 72%, #FFF3D2 0%, #E9BD6B 42%, #B9772A 78%, rgba(185, 119, 42, 0) 100%);
   filter: drop-shadow(0 0 6px rgba(227, 178, 95, .45));
   z-index: 2;
-  animation: ml-breathe 4.2s ease-in-out infinite;
+  animation: ml-breathe var(--ml-fx-dur-orb) ease-in-out infinite;
 }
 
 #ml-root .ml-orb[data-phase="night"] .ml-orb-flame { filter: drop-shadow(0 0 6px rgba(120, 160, 220, .45)); background: radial-gradient(60% 55% at 50% 72%, #E8F0FF 0%, #9DBBE8 45%, #4E6C9E 80%, rgba(78, 108, 158, 0) 100%); }
@@ -314,10 +453,7 @@
 #ml-root .ml-orb:active { transform: scale(.97); }
 #ml-root[data-dragging="1"] .ml-orb { transition: none; filter: brightness(1.12); }
 
-@keyframes ml-breathe {
-  0%, 100% { transform: translateX(-50%) scale(1); opacity: .95; }
-  50% { transform: translateX(-50%) scale(1.06); opacity: 1; }
-}
+/* keyframes 见 effects.css */
 
 /* ---------------------------------------------------------------- 遮罩与面板 */
 
@@ -353,7 +489,7 @@
   opacity: 0;
   transform: translateY(10px) scale(.98);
   transform-origin: 50% 100%;
-  transition: opacity .18s ease, transform .18s cubic-bezier(.2, .8, .2, 1);
+  transition: opacity .2s ease, transform var(--ml-fx-dur-panel) var(--ml-fx-ease-out), background-color .34s ease, border-color .34s ease;
 }
 /* 主题纹理统一由 --ml-tex-panel 提供；旧的三套单层渐变已并入变量。 */
 
@@ -387,6 +523,34 @@
   background: linear-gradient(90deg, transparent, var(--ml-accent), transparent);
   opacity: .85;
   box-shadow: 0 0 12px var(--ml-accent-soft);
+  animation: ml-hairline var(--ml-fx-dur-hairline) ease-in-out infinite;
+}
+
+/* 三套主题的环境光：低透明度、只动 transform/opacity，不触发布局。 */
+#ml-root[data-theme="fog"] .ml-panel::after,
+#ml-root[data-theme="school"] .ml-panel::after,
+#ml-root[data-theme="paper"] .ml-panel::after {
+  content: "";
+  position: absolute;
+  inset: -28% -22%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(34% 30% at 22% 20%, var(--ml-ambient-a), transparent 74%),
+    radial-gradient(30% 26% at 80% 78%, var(--ml-ambient-b), transparent 76%);
+  opacity: .44;
+  transform: translate3d(-3.5%, -2%, 0) scale(1.03);
+  animation: ml-panel-ambient var(--ml-ambient-speed, 26s) ease-in-out infinite alternate;
+}
+
+/* 环境光层在内容之下；只抬层级，不改任何盒模型。 */
+#ml-root .ml-panel > .ml-grip,
+#ml-root .ml-panel > .ml-head,
+#ml-root .ml-panel > .ml-tabs,
+#ml-root .ml-panel > .ml-body,
+#ml-root .ml-panel > .ml-foot {
+  position: relative;
+  z-index: 1;
 }
 
 #ml-root .ml-grip { display: none; }
@@ -398,6 +562,27 @@
   padding: 14px 12px 10px 16px;
   flex: 0 0 auto;
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 72%);
+}
+
+/* 面板打开时一次 320ms 细光沿：在标题栏从左扫到右，不新增节点、不挡点击。 */
+#ml-root .ml-head::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(100deg,
+    transparent 8%,
+    rgba(255, 255, 255, .10) 34%,
+    rgba(255, 255, 255, .22) 50%,
+    var(--ml-accent-soft) 56%,
+    transparent 82%);
+}
+#ml-root .ml-head > * { position: relative; z-index: 1; }
+#ml-root[data-open="1"] .ml-head::after {
+  animation: ml-head-sweep var(--ml-fx-dur-sweep) linear both;
 }
 
 #ml-root .ml-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
@@ -439,9 +624,10 @@
   justify-content: center;
   border-radius: 10px;
   color: var(--ml-muted);
-  transition: background-color .14s ease, color .14s ease;
+  transition: background-color .14s ease, color .14s ease, transform .12s ease;
 }
-#ml-root .ml-icon:hover { background: var(--ml-bg-raise); color: var(--ml-text); }
+#ml-root .ml-icon:hover { background: var(--ml-bg-raise); color: var(--ml-text); transform: translateY(-1px); }
+#ml-root .ml-icon:active { transform: scale(.96); }
 #ml-root .ml-ico { display: inline-flex; width: 18px; height: 18px; flex: 0 0 auto; }
 #ml-root .ml-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
@@ -471,6 +657,14 @@
 }
 #ml-root .ml-tab .ml-ico { width: 15px; height: 15px; opacity: .9; }
 #ml-root .ml-tab-label { font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+
+/* 320/390：5 个页签等分容器，避免最后一页被横向裁掉；图标与字号同步收一档。 */
+@media (max-width: 430px) {
+  #ml-root .ml-tabs { gap: 0; padding: 0 6px; }
+  #ml-root .ml-tab { flex: 1 1 0; min-width: 0; padding: 0 4px; gap: 4px; }
+  #ml-root .ml-tab .ml-ico { width: 13px; height: 13px; }
+  #ml-root .ml-tab-label { font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+}
 #ml-root .ml-tab:hover { color: var(--ml-muted); background: rgba(255, 255, 255, .03); }
 #ml-root .ml-tab[aria-selected="true"] { color: var(--ml-accent); text-shadow: 0 0 10px var(--ml-accent-soft); }
 #ml-root .ml-tab[aria-selected="true"]::after {
@@ -484,9 +678,10 @@
   border-radius: 2px;
   box-shadow: 0 0 10px var(--ml-accent-soft);
   transform-origin: left;
-  animation: ml-tabline .16s ease both;
+  animation: ml-tabline var(--ml-fx-dur-fast) ease both;
 }
-@keyframes ml-tabline { from { transform: scaleX(.2); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
+
+/* ml-hairline / ml-panel-ambient / ml-pane-in / ml-ring-breathe 见 effects.css */
 
 #ml-root .ml-body {
   flex: 1 1 auto;
@@ -502,7 +697,7 @@
 #ml-root .ml-body::-webkit-scrollbar { width: 6px; height: 6px; }
 #ml-root .ml-body::-webkit-scrollbar-track { background: transparent; }
 #ml-root .ml-body::-webkit-scrollbar-thumb { background: rgba(227, 178, 95, .34); border-radius: 3px; }
-#ml-root .ml-pane { outline: none; }
+#ml-root .ml-pane { outline: none; animation: ml-pane-in var(--ml-fx-dur-pane) var(--ml-fx-ease-pane) both; }
 
 #ml-root .ml-foot {
   display: flex;
@@ -555,6 +750,7 @@
   border: 1px solid var(--ml-accent-soft);
   box-shadow: 0 0 12px var(--ml-accent-soft);
   pointer-events: none;
+  animation: ml-ring-breathe var(--ml-fx-dur-ring) ease-in-out infinite;
 }
 #ml-root .ml-ring-core {
   position: absolute;
@@ -795,6 +991,21 @@
 }
 #ml-root .ml-slot-v.is-empty { color: var(--ml-faint); }
 
+/* 只给桌面/指针设备加悬浮抬升；触屏不会留下 sticky hover。 */
+@media (hover: hover) {
+  #ml-root .ml-stat,
+  #ml-root .ml-slot,
+  #ml-root .ml-quick {
+    transition: transform .16s ease, border-color .16s ease, background-color .3s ease, color .3s ease;
+  }
+  #ml-root .ml-stat:hover,
+  #ml-root .ml-slot:hover,
+  #ml-root .ml-quick:hover {
+    transform: translateY(-2px);
+    border-color: var(--ml-line-strong);
+  }
+}
+
 #ml-root .ml-note {
   margin: 10px 0 0;
   font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
@@ -840,10 +1051,15 @@
   background: var(--ml-bg-soft);
   color: var(--ml-text);
   font-size: calc(12.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
-  transition: background-color .14s ease, border-color .14s ease, transform .12s ease;
+  transition: background-color .14s ease, border-color .14s ease, transform .12s ease, box-shadow .18s ease;
 }
-#ml-root .ml-btn:hover { background: var(--ml-bg-raise); border-color: var(--ml-accent); }
-#ml-root .ml-btn:active { transform: scale(.98); }
+#ml-root .ml-btn:hover {
+  background: var(--ml-bg-raise);
+  border-color: var(--ml-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 7px 18px -12px var(--ml-press-glow);
+}
+#ml-root .ml-btn:active { transform: translateY(0) scale(.98); box-shadow: none; }
 #ml-root .ml-btn-wide { width: 100%; }
 #ml-root .ml-btn-quiet { background: transparent; color: var(--ml-muted); border-color: var(--ml-line); }
 #ml-root .ml-btn-quiet:hover { color: var(--ml-text); background: var(--ml-bg-soft); }
@@ -861,6 +1077,8 @@
 #ml-root .ml-field:first-child { padding-top: 2px; }
 #ml-root .ml-field-k { font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-muted); letter-spacing: .1em; }
 #ml-root .ml-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+#ml-root .ml-seg--themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+#ml-root .ml-seg--themes .ml-seg-btn { padding-inline: 6px; text-align: center; }
 #ml-root .ml-seg-btn {
   min-height: 44px;
   padding: 8px 12px;
@@ -869,12 +1087,20 @@
   background: var(--ml-bg-soft);
   color: var(--ml-muted);
   font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
-  transition: color .14s ease, border-color .14s ease, background-color .14s ease;
+  transition: color .14s ease, border-color .14s ease, background-color .14s ease, transform .12s ease, box-shadow .18s ease;
 }
+#ml-root .ml-seg-btn:hover {
+  color: var(--ml-text);
+  border-color: var(--ml-accent);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px -10px var(--ml-press-glow);
+}
+#ml-root .ml-seg-btn:active { transform: translateY(0) scale(.97); box-shadow: none; }
 #ml-root .ml-seg-btn[aria-checked="true"] {
   color: var(--ml-accent);
   border-color: rgba(227, 178, 95, .45);
   background: var(--ml-accent-soft);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 0 1px var(--ml-accent-soft);
 }
 #ml-root .ml-scale { display: flex; align-items: center; gap: 14px; min-height: 44px; }
 #ml-root .ml-slider {
@@ -1391,14 +1617,10 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
   mix-blend-mode: screen;
   transform: translate(-50%, -50%) scale(.45);
   opacity: .95;
-  animation: ml-press-ripple .46s cubic-bezier(.2, .8, .25, 1) forwards;
+  animation: ml-press-ripple var(--ml-fx-dur-ripple) var(--ml-fx-ease-ripple) forwards;
 }
 
-@keyframes ml-press-ripple {
-  0%   { opacity: .95; transform: translate(-50%, -50%) scale(.45); }
-  55%  { opacity: .9;  transform: translate(-50%, -50%) scale(1.9); }
-  100% { opacity: 0;   transform: translate(-50%, -50%) scale(3.4); }
-}
+/* ml-press-ripple 见 effects.css */
 
 #ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick) {
   -webkit-tap-highlight-color: transparent;

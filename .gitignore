@@ -3,3 +3,4 @@ prototype/shots/
 node_modules/
 *.log
 .selfcheck/
+tools/_*.js

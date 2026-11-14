@@ -25,6 +25,8 @@ html[data-ml-native="on"] {
   --mln-halo: rgba(227, 178, 95, .28);
   --mln-halo2: rgba(176, 108, 52, .20);
   --mln-deep: rgba(6, 4, 2, .52);
+  --mln-bar-ambient: none;
+  --mln-bar-speed: 26s;
   --mln-overlay-texture:
     linear-gradient(172deg, rgb(255 242 216 / 4%), transparent 36%, transparent 68%, rgb(120 66 28 / 7%)),
     radial-gradient(110% 80% at 10% 0%, rgb(227 178 95 / 10%), transparent 58%),
@@ -303,6 +305,235 @@ html[data-ml-native="on"][data-ml-theme="star"] {
     radial-gradient(5.4px 5.4px at 28% 76%, rgb(255 255 255 / 90%) 0, rgb(188 204 255 / 44%) 44%, transparent 100%);
 }
 
+html[data-ml-native="on"][data-ml-theme="fog"] {
+  --mln-bg: #0B1418;
+  --mln-surface: #111D23;
+  --mln-surface-2: #17262E;
+  --mln-surface-3: #1D2E37;
+  --mln-border: #283E47;
+  --mln-border-strong: #3B5661;
+  --mln-text: #E9F2F3;
+  --mln-muted: #A6B8BD;
+  --mln-faint: #7B9096;
+  --mln-accent: #E7B66B;
+  --mln-jade: #79C9BE;
+  --mln-rose: #C9867B;
+  --mln-danger: #D8665B;
+  --mln-radius: 12px;
+  --mln-radius-sm: 8px;
+  --mln-glow: rgba(231, 182, 107, .16);
+  --mln-halo: rgba(231, 182, 107, .18);
+  --mln-halo2: rgba(121, 201, 190, .13);
+  --mln-deep: rgba(2, 8, 10, .46);
+  --mln-bar-ambient:
+    linear-gradient(104deg, transparent 0 34%, rgb(121 201 190 / 11%) 44%, transparent 54% 100%),
+    radial-gradient(120% 64% at 50% 0, rgb(231 182 107 / 6%), transparent 72%);
+  --mln-bar-speed: 28s;
+  --mln-overlay-texture:
+    linear-gradient(172deg, rgb(214 232 235 / 5%), transparent 36%, transparent 68%, rgb(2 8 10 / 14%)),
+    radial-gradient(110% 80% at 10% 0, rgb(231 182 107 / 10%), transparent 58%),
+    radial-gradient(80% 50% at 90% 100%, rgb(121 201 190 / 6%), transparent 66%),
+    repeating-linear-gradient(96deg, rgb(214 232 235 / 2.2%) 0 1px, transparent 1px 7px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0, rgb(231 182 107 / 9%), transparent 64%),
+    linear-gradient(180deg, rgb(214 232 235 / 4%), transparent 30%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(231 182 107 / 2.4%) 23px 24px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(231 182 107 / 6%), transparent 58%),
+    repeating-linear-gradient(0deg, rgb(214 232 235 / 1.4%) 0 1px, transparent 1px 6px);
+  --mln-page-texture:
+    radial-gradient(120% 88% at 14% -6%, rgb(231 182 107 / 16%), transparent 62%),
+    radial-gradient(100% 78% at 92% 8%, rgb(121 201 190 / 12%), transparent 66%),
+    linear-gradient(180deg, rgb(214 232 235 / 5%), transparent 34%, transparent 72%, rgb(2 8 10 / 20%)),
+    repeating-linear-gradient(96deg, rgb(214 232 235 / 3%) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg, rgb(2 8 10 / 4%) 0 2px, transparent 2px 6px),
+    radial-gradient(78% 58% at 50% 108%, rgb(0 0 0 / 28%), transparent 72%);
+}
+
+html[data-ml-native="on"][data-ml-theme="school"] {
+  --mln-bg: #12110D;
+  --mln-surface: #1A1813;
+  --mln-surface-2: #211E15;
+  --mln-surface-3: #2A261B;
+  --mln-border: #373226;
+  --mln-border-strong: #514A38;
+  --mln-text: #ECE5D4;
+  --mln-muted: #AAA18C;
+  --mln-faint: #8A8170;
+  --mln-accent: #C9AE72;
+  --mln-jade: #7F9C84;
+  --mln-rose: #B56E63;
+  --mln-danger: #D05B4E;
+  --mln-radius: 6px;
+  --mln-radius-sm: 4px;
+  --mln-glow: rgba(201, 174, 114, .16);
+  --mln-halo: rgba(201, 174, 114, .18);
+  --mln-halo2: rgba(127, 156, 132, .12);
+  --mln-deep: rgba(6, 5, 3, .50);
+  --mln-bar-ambient:
+    linear-gradient(104deg, transparent 0 34%, rgb(201 174 114 / 11%) 44%, transparent 54% 100%),
+    repeating-linear-gradient(0deg, rgb(201 174 114 / 2.5%) 0 1px, transparent 1px 6px);
+  --mln-bar-speed: 32s;
+  --mln-overlay-texture:
+    linear-gradient(90deg, transparent 0 33%, rgb(201 174 114 / 3.5%) 33.4%, transparent 33.8%, transparent 66%, rgb(201 174 114 / 2.5%) 66.4%, transparent 66.8%),
+    radial-gradient(110% 80% at 10% 0, rgb(201 174 114 / 12%), transparent 58%),
+    radial-gradient(80% 50% at 90% 100%, rgb(127 156 132 / 8%), transparent 66%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 1.4%) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 10%) 0 1px, transparent 1px 4px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0, rgb(201 174 114 / 9%), transparent 64%),
+    linear-gradient(180deg, rgb(201 174 114 / 5%), transparent 30%),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 5px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(201 174 114 / 7%), transparent 58%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 1.2%) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 5px);
+  --mln-page-texture:
+    radial-gradient(120% 88% at 14% -6%, rgb(201 174 114 / 18%), transparent 62%),
+    radial-gradient(100% 78% at 92% 8%, rgb(127 156 132 / 12%), transparent 66%),
+    linear-gradient(180deg, rgb(201 174 114 / 5%), transparent 34%, transparent 72%, rgb(6 5 3 / 24%)),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 2%) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 9%) 0 1px, transparent 1px 4px),
+    radial-gradient(1px 1px at 18% 24%, rgb(255 255 255 / 18%) 0, transparent 1.4px),
+    radial-gradient(1.4px 1.4px at 72% 66%, rgb(255 255 255 / 14%) 0, transparent 1.8px),
+    radial-gradient(78% 58% at 50% 108%, rgb(0 0 0 / 30%), transparent 72%);
+}
+
+html[data-ml-native="on"][data-ml-theme="fog"] #history-backward,
+html[data-ml-native="on"][data-ml-theme="fog"] #history-forward,
+html[data-ml-native="on"][data-ml-theme="school"] #history-backward,
+html[data-ml-native="on"][data-ml-theme="school"] #history-forward { color: var(--mln-muted); }
+
+html[data-ml-native="on"][data-ml-theme="fog"] #passages .passage .red { color: #E58C7F; }
+html[data-ml-native="on"][data-ml-theme="school"] #passages .passage .red { color: #E08373; }
+
+html[data-ml-native="on"][data-ml-theme="fog"] #gameVersionDisplay,
+html[data-ml-native="on"][data-ml-theme="fog"] #gameVersionDisplay2,
+html[data-ml-native="on"][data-ml-theme="school"] #gameVersionDisplay,
+html[data-ml-native="on"][data-ml-theme="school"] #gameVersionDisplay2 { color: var(--mln-faint); }
+
+html[data-ml-native="on"][data-ml-theme="paper"] {
+  --mln-bg: #F1E7D3;
+  --mln-surface: #FBF4E6;
+  --mln-surface-2: #F3E7D2;
+  --mln-surface-3: #E8D8BE;
+  --mln-border: #C9B99E;
+  --mln-border-strong: #AD9A7E;
+  --mln-text: #2A2118;
+  --mln-muted: #6D5F50;
+  --mln-faint: #756451;
+  --mln-accent: #A9362A;
+  --mln-jade: #486F61;
+  --mln-rose: #9B5149;
+  --mln-danger: #8E2A21;
+  --mln-radius: 12px;
+  --mln-radius-sm: 8px;
+  --mln-glow: rgba(169, 54, 42, .10);
+  --mln-halo: rgba(169, 54, 42, .10);
+  --mln-halo2: rgba(120, 95, 64, .10);
+  --mln-deep: rgba(120, 95, 64, .24);
+  --mln-bar-ambient:
+    linear-gradient(104deg, transparent 0 34%, rgb(255 250 238 / 38%) 44%, transparent 54% 100%),
+    radial-gradient(120% 64% at 50% 0, rgb(169 54 42 / 4%), transparent 72%);
+  --mln-bar-speed: 24s;
+  --mln-overlay-texture:
+    linear-gradient(172deg, rgb(255 255 255 / 34%), transparent 36%, transparent 68%, rgb(120 95 64 / 8%)),
+    radial-gradient(110% 80% at 10% 0, rgb(169 54 42 / 6%), transparent 58%),
+    repeating-linear-gradient(92deg, rgb(90 70 45 / 2.2%) 0 1px, transparent 1px 5px);
+  --mln-bar-texture:
+    radial-gradient(100% 60% at 50% 0, rgb(169 54 42 / 7%), transparent 64%),
+    linear-gradient(180deg, rgb(255 255 255 / 26%), transparent 30%),
+    repeating-linear-gradient(0deg, transparent 0 23px, rgb(90 70 45 / 3%) 23px 24px);
+  --mln-surface-texture:
+    linear-gradient(135deg, rgb(169 54 42 / 5%), transparent 58%),
+    repeating-linear-gradient(0deg, rgb(90 70 45 / 1.4%) 0 1px, transparent 1px 5px);
+  --mln-page-texture:
+    radial-gradient(120% 88% at 14% -6%, rgb(255 250 238 / 55%), transparent 62%),
+    radial-gradient(100% 78% at 92% 8%, rgb(169 54 42 / 7%), transparent 66%),
+    linear-gradient(180deg, rgb(255 255 255 / 22%), transparent 34%, transparent 72%, rgb(120 95 64 / 10%)),
+    repeating-linear-gradient(115deg, rgb(90 70 45 / 2%) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(0deg, rgb(120 95 64 / 3%) 0 2px, transparent 2px 5px),
+    radial-gradient(78% 58% at 50% 108%, rgb(120 95 64 / 18%), transparent 72%);
+}
+
+/* 纸灯是亮色主题：深色文字不能带暗阴影，状态色与危险按钮要换成深色墨。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat {
+  text-shadow: none;
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.green { color: #2F6B45; border-color: rgb(47 107 69 / 46%); background: linear-gradient(180deg, rgb(47 107 69 / 6%), transparent), rgb(47 107 69 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.teal { color: #256E6B; border-color: rgb(37 110 107 / 46%); background: linear-gradient(180deg, rgb(37 110 107 / 6%), transparent), rgb(37 110 107 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.blue { color: #2C4F85; border-color: rgb(44 79 133 / 46%); background: linear-gradient(180deg, rgb(44 79 133 / 6%), transparent), rgb(44 79 133 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.lblue { color: #2E6378; border-color: rgb(46 99 120 / 46%); background: linear-gradient(180deg, rgb(46 99 120 / 6%), transparent), rgb(46 99 120 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.pink { color: #8A3D6A; border-color: rgb(138 61 106 / 46%); background: linear-gradient(180deg, rgb(138 61 106 / 6%), transparent), rgb(138 61 106 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.purple { color: #5D3F86; border-color: rgb(93 63 134 / 46%); background: linear-gradient(180deg, rgb(93 63 134 / 6%), transparent), rgb(93 63 134 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.red { color: #9E2F25; border-color: rgb(158 47 37 / 46%); background: linear-gradient(180deg, rgb(158 47 37 / 6%), transparent), rgb(158 47 37 / 8%); }
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.orange { color: #8A4B1E; border-color: rgb(138 75 30 / 46%); background: linear-gradient(180deg, rgb(138 75 30 / 6%), transparent), rgb(138 75 30 / 8%); }
+
+/* 亮纸底上的原版语义色（青/金/红等）对比不足，换成同色系深墨；逐项均 ≥4.5:1。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .teal { color: #0E5F5F; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .red { color: #A02A1F; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .green { color: #2F6B45; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .blue { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .lblue { color: #2E6378; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .pink { color: #8A3D6A; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .purple { color: #5D3F86; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .orange { color: #8A4B1E; }
+
+/* 纸灯的亮底同样要覆盖原生侧栏与开始页说明：原版这些位置用金色/浅灰/浅白写死。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #startCaption .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="paper"] #startCaption .link-external { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar a.link-external { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="paper"] #menu a { color: var(--mln-text); }
+html[data-ml-native="on"][data-ml-theme="paper"] #menu a:hover { color: var(--mln-accent); }
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar .macro-button {
+  background: var(--mln-surface-2);
+  color: var(--mln-text);
+  border: 1px solid var(--mln-border);
+}
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar .macro-button:hover {
+  background: var(--mln-surface-3);
+  border-color: var(--mln-border-strong);
+}
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .small-description { color: var(--mln-muted); }
+html[data-ml-native="on"][data-ml-theme="paper"] #gameVersionDisplay,
+html[data-ml-native="on"][data-ml-theme="paper"] #gameVersionDisplay2 { color: var(--mln-muted); }
+
+/* 普通 OPTIONS / 存档弹层里的 .gold、.linkBlue、外部链接同样是亮底写死色。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlay:not([data-overlay="modloader"]):not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold { color: #6F5210; }
+
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlay:not([data-overlay="modloader"]):not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue { color: #2C4F85; }
+
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlay:not([data-overlay="modloader"]):not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) a.link-external,
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) a.link-external,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) a.link-external,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) a.link-external { color: #2C4F85; }
+
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .saves-clear {
+  color: var(--mln-danger) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar#ui-bar {
+  box-shadow: 8px 0 24px rgb(120 95 64 / 16%);
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: rgb(241 231 211 / 58%);
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: rgb(251 244 230 / 62%);
+}
+
 html[data-ml-native="on"][data-ml-theme="star"] #ui-bar#ui-bar {
   background-image: var(--mln-bar-texture) !important;
 }
@@ -322,6 +553,26 @@ html[data-ml-native="on"] #ui-bar#ui-bar {
   color: var(--mln-text);
   font-family: var(--mln-font);
   box-shadow: 8px 0 24px rgb(0 0 0 / 18%);
+  transition: background-color .34s ease, color .34s ease, border-color .34s ease;
+}
+
+/* 三套主题的侧栏环境光：低 alpha 斜向光带，28–32s 往返，只改背景位置。 */
+html[data-ml-native="on"][data-ml-theme="fog"] #ui-bar#ui-bar,
+html[data-ml-native="on"][data-ml-theme="school"] #ui-bar#ui-bar,
+html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar#ui-bar {
+  background-image: var(--mln-bar-ambient), var(--mln-bar-texture) !important;
+  background-size: 230% 100%, 230% 100%, 100% 100%, 100% 100%, 100% 100% !important;
+  background-repeat: repeat !important;
+  animation: mln-bar-drift var(--mln-bar-speed, 28s) ease-in-out infinite alternate;
+}
+
+html[data-ml-native="on"] #ui-bar .macro-button {
+  transition: background-color .12s ease, border-color .12s ease, transform .12s ease, box-shadow .12s ease;
+}
+
+html[data-ml-native="on"] #ui-bar .macro-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -12px var(--mln-glow);
 }
 
 html[data-ml-native="on"] #ui-bar-body {
@@ -690,7 +941,7 @@ html[data-ml-native="on"] #menu#menu button {
   overflow: hidden;
   text-overflow: ellipsis;
   overflow-wrap: break-word;
-  transition: border-color 120ms ease, background-color 120ms ease;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 html[data-ml-native="on"] #overlayButtons#overlayButtons button {
@@ -719,6 +970,15 @@ html[data-ml-native="on"] #overlayButtons button:hover,
 html[data-ml-native="on"] #menu button:hover {
   border-color: var(--mln-accent);
   background: var(--mln-surface-3);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -12px var(--mln-glow);
+}
+
+html[data-ml-native="on"] #overlayButtons button:active,
+html[data-ml-native="on"] #menu button:active {
+  transform: translateY(0) scale(.97);
+  box-shadow: none;
+  transition-duration: 40ms;
 }
 
 html[data-ml-native="on"] #menu {
@@ -874,6 +1134,16 @@ html[data-ml-native="on"] #mobileStats .stat.time::after {
 html[data-ml-native="on"] #passages {
   color: var(--mln-text);
   font-family: var(--mln-font);
+  transition: color .3s ease;
+}
+
+html[data-ml-native="on"] #passages .passage,
+html[data-ml-native="on"] #mobileStats,
+html[data-ml-native="on"] #stats .centered-elements > div,
+html[data-ml-native="on"] #storyCaptionContent,
+html[data-ml-native="on"] #ui-bar-tray,
+html[data-ml-native="on"] #menu {
+  transition: background-color .3s ease, color .3s ease, border-color .3s ease;
 }
 
 html[data-ml-native="on"] #passages .passage {
@@ -886,7 +1156,7 @@ html[data-ml-native="on"] #passages .passage {
   line-height: 1.7;
   overflow-wrap: break-word;
   text-wrap: pretty;
-  animation: mln-passage-in 160ms ease-out both;
+  animation: mln-passage-in var(--ml-fx-dur-native) ease-out both;
 }
 
 /* 原版正文开头的空行由渲染层插入；JS 折叠之外再用 CSS 兜住一次。 */
@@ -966,6 +1236,8 @@ html[data-ml-native="on"] #passages .passage a.link-internal.macro-link:hover,
 html[data-ml-native="on"] #passages .passage a.macro-link:hover {
   border-color: var(--mln-accent);
   background: var(--mln-surface-2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
 html[data-ml-native="on"] #passages .passage a.link-internal.macro-link:active,
@@ -1018,6 +1290,15 @@ html[data-ml-native="on"] #passages .passage .ml-option-group {
 html[data-ml-native="on"] #passages .passage .ml-option-group:hover {
   border-color: var(--mln-accent);
   background: var(--mln-surface-2);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
+}
+
+html[data-ml-native="on"] #passages .passage .ml-option-group:active {
+  transform: translateY(1px) scale(.985);
+  border-color: var(--mln-accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 0 0 1px var(--mln-accent);
+  transition-duration: 40ms;
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group > img.icon {
@@ -1699,7 +1980,7 @@ html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_se
   font-family: var(--mln-font);
   box-shadow: 0 18px 60px rgb(0 0 0 / 42%);
   overflow: hidden;
-  animation: mln-overlay-in 160ms ease-out both;
+  animation: mln-overlay-in var(--ml-fx-dur-native) ease-out both;
 }
 
 html[data-ml-native="on"] #customOverlayTitle {
@@ -1865,7 +2146,7 @@ html[data-ml-native="on"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settin
   font-family: var(--mln-font);
   box-shadow: 0 18px 60px rgb(0 0 0 / 42%);
   overflow: hidden;
-  animation: mln-overlay-in 160ms ease-out both;
+  animation: mln-overlay-in var(--ml-fx-dur-native) ease-out both;
 }
 
 html[data-ml-native="on"] #ui-dialog-titlebar:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
@@ -2947,7 +3228,7 @@ html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_se
   gap: 12px;
   padding: 5px 0;
   border-bottom: 1px solid var(--mln-border);
-  animation: mln-stat-row-in 160ms ease-out both;
+  animation: mln-stat-row-in var(--ml-fx-dur-native) ease-out both;
 }
 
 html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))[data-ml-overlay="statistics"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .foldoutBody .ml-stat-row:nth-child(n+2) {
@@ -3047,21 +3328,7 @@ html[data-ml-native="on"] #passages::-webkit-scrollbar-thumb {
 }
 
 /* ---------------------------------------------------------------- 动效 */
-
-@keyframes mln-passage-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes mln-overlay-in {
-  from { opacity: 0; transform: scale(.98); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes mln-stat-row-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* keyframes 见 effects.css；本文件只声明宿主与选择器。 */
 
 html[data-ml-native="on"] #statmeters .meter > div {
   transition: width 180ms ease;
@@ -3084,6 +3351,31 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
   animation: none !important;
 }
 
+/* 新增环境光/悬浮层同样受「减少动效」与「宿主关闭动效」约束。 */
+html[data-ml-native="on"][data-ml-motion="off"] #ui-bar#ui-bar,
+html[data-ml-native="on"][data-ml-motion="off"] #stats .centered-elements > div,
+html[data-ml-native="on"][data-ml-motion="off"] #storyCaptionContent,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage a.link-internal.macro-link,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage .ml-option-group,
+html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button,
+html[data-ml-native="on"][data-ml-motion="off"] #menu button,
+html[data-ml-native="on"][data-ml-motion="off"] #ui-bar .macro-button {
+  animation: none !important;
+  transition: none !important;
+}
+
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage a.link-internal.macro-link:hover,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage .ml-option-group:hover,
+html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button:hover,
+html[data-ml-native="on"][data-ml-motion="off"] #menu button:hover,
+html[data-ml-native="on"][data-ml-motion="off"] #ui-bar .macro-button:hover,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage .ml-option-group:active,
+html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button:active,
+html[data-ml-native="on"][data-ml-motion="off"] #menu button:active {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html[data-ml-native="on"] #passages .passage,
   html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
@@ -3099,6 +3391,28 @@ html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
   html[data-ml-native="on"] #overlayButtons button {
     transition: none !important;
     animation: none !important;
+  }
+  html[data-ml-native="on"] #ui-bar#ui-bar,
+  html[data-ml-native="on"] #stats .centered-elements > div,
+  html[data-ml-native="on"] #storyCaptionContent,
+  html[data-ml-native="on"] #passages .passage a.link-internal.macro-link,
+  html[data-ml-native="on"] #passages .passage .ml-option-group,
+  html[data-ml-native="on"] #overlayButtons button,
+  html[data-ml-native="on"] #menu button,
+  html[data-ml-native="on"] #ui-bar .macro-button {
+    animation: none !important;
+    transition: none !important;
+  }
+  html[data-ml-native="on"] #passages .passage a.link-internal.macro-link:hover,
+  html[data-ml-native="on"] #passages .passage .ml-option-group:hover,
+  html[data-ml-native="on"] #overlayButtons button:hover,
+  html[data-ml-native="on"] #menu button:hover,
+  html[data-ml-native="on"] #ui-bar .macro-button:hover,
+  html[data-ml-native="on"] #passages .passage .ml-option-group:active,
+  html[data-ml-native="on"] #overlayButtons button:active,
+  html[data-ml-native="on"] #menu button:active {
+    transform: none !important;
+    box-shadow: none !important;
   }
 }
 
@@ -3715,14 +4029,10 @@ html[data-ml-native="on"] .mln-press-ring {
   mix-blend-mode: screen;
   transform: translate(-50%, -50%) scale(.45);
   opacity: .95;
-  animation: mln-press-ripple .46s cubic-bezier(.2, .8, .25, 1) forwards;
+  animation: mln-press-ripple var(--ml-fx-dur-ripple) var(--ml-fx-ease-ripple) forwards;
 }
 
-@keyframes mln-press-ripple {
-  0%   { opacity: .95; transform: translate(-50%, -50%) scale(.45); }
-  55%  { opacity: .9;  transform: translate(-50%, -50%) scale(1.9); }
-  100% { opacity: 0;   transform: translate(-50%, -50%) scale(3.1); }
-}
+/* mln-press-ripple 见 effects.css */
 
 @media (prefers-reduced-motion: reduce) {
   html[data-ml-native="on"] :is(#customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #passages) button:active,

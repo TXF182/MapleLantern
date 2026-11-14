@@ -12,10 +12,10 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.2.0";
+  var VERSION = "1.3.0";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
-  var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star"];
+  var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
 
@@ -57,6 +57,24 @@
       text: "#E5EAF8", muted: "#909BBA", faint: "#626E8E",
       accent: "#8FA6FF", accentInk: "#080C1A", line: "rgba(143,166,255,.14)",
       jade: "#6FE0D2", rose: "#D98CCB", danger: "#E06B6B"
+    },
+    fog: {
+      bg: "#0B1418", bgSoft: "#111D23", bgRaise: "#17262E",
+      text: "#E9F2F3", muted: "#A6B8BD", faint: "#7B9096",
+      accent: "#E7B66B", accentInk: "#191207", line: "rgba(231,182,107,.18)",
+      jade: "#79C9BE", rose: "#C9867B", danger: "#D8665B"
+    },
+    school: {
+      bg: "#12110D", bgSoft: "#1A1813", bgRaise: "#232016",
+      text: "#ECE5D4", muted: "#AAA18C", faint: "#8A8170",
+      accent: "#C9AE72", accentInk: "#1B1508", line: "rgba(201,174,114,.16)",
+      jade: "#7F9C84", rose: "#B56E63", danger: "#D05B4E"
+    },
+    paper: {
+      bg: "#F1E7D3", bgSoft: "#E7D8BF", bgRaise: "#FBF4E6",
+      text: "#2A2118", muted: "#6D5F50", faint: "#756451",
+      accent: "#A9362A", accentInk: "#FFF8EC", line: "rgba(42,33,24,.16)",
+      jade: "#486F61", rose: "#9B5149", danger: "#8E2A21"
     }
   };
 
@@ -108,7 +126,7 @@
       "native.entryHint": "打开灯台面板",
       "shop.filters": "筛选", "shop.options": "选项", "shop.legend": "图例",
       "theme.auto": "自动", "theme.cyberpunk": "赛博朋克", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
-      "theme.star": "星空",
+      "theme.star": "星空", "theme.fog": "雾港", "theme.school": "旧校舍", "theme.paper": "纸灯",
       "density.cozy": "舒适", "density.compact": "紧凑",
       "lang.auto": "自动", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "左下", "pos.right": "右下",
@@ -166,7 +184,7 @@
       "native.entryHint": "Open the Lantern panel",
       "shop.filters": "Filters", "shop.options": "Options", "shop.legend": "Legend",
       "theme.auto": "Auto", "theme.cyberpunk": "Cyberpunk", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
-      "theme.star": "Starfield",
+      "theme.star": "Starfield", "theme.fog": "Fog Harbor", "theme.school": "Old School", "theme.paper": "Paper Lantern",
       "density.cozy": "Cozy", "density.compact": "Compact",
       "lang.auto": "Auto", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "Bottom left", "pos.right": "Bottom right",

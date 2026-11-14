@@ -5,12 +5,15 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.2.0");
+  assert.equal(C.VERSION, "1.3.0");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "settings"]);
-  assert.equal(C.THEMES.length, 6);
+  assert.equal(C.THEMES.length, 9);
   assert.ok(C.THEMES.includes("cyberpunk"));
   assert.ok(C.THEMES.includes("star"));
+  assert.ok(C.THEMES.includes("fog"));
+  assert.ok(C.THEMES.includes("school"));
+  assert.ok(C.THEMES.includes("paper"));
   assert.equal(C.WORN_SLOTS.length, 14);
 });
 
@@ -196,7 +199,7 @@ test("readThirdParty：两个第三方都缺失时返回 null，不增加空面�
 });
 
 test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () => {
-  for (const name of ["cyberpunk", "amber", "jade", "graphite"]) {
+  for (const name of ["cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
     const p = C.paletteFor(name);
     assert.ok(C.contrast(p.text, p.bg) >= 4.5, name + " text " + C.contrast(p.text, p.bg));
     assert.ok(C.contrast(p.muted, p.bg) >= 4.5, name + " muted " + C.contrast(p.muted, p.bg));
@@ -207,7 +210,7 @@ test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () =>
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.2.0");
+  assert.equal(d.version, "1.3.0");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);

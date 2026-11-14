@@ -61,6 +61,22 @@
     return node;
   }
 
+  /* 每次挂载给 8 颗环境粒子做一次轻量随机抖动：位置仍在边缘安全区，
+     只改 CSS 变量、不进每帧循环，避免雾团每次都长在同一个点上。 */
+  var AMBIENT_SLOTS = [[-6, 6], [68, -5], [5, 58], [72, 62], [34, -10], [52, 82], [84, 30], [-12, 36]];
+  function jitterAmbient(ambient) {
+    var list = ambient.children;
+    for (var i = 0; i < list.length; i += 1) {
+      var slot = AMBIENT_SLOTS[i];
+      var scale = .72 + Math.random() * .55;
+      var delay = -Math.round(Math.random() * 32);
+      list[i].style.setProperty("--ml-wisp-x", (slot[0] + Math.random() * 6 - 3).toFixed(1) + "%");
+      list[i].style.setProperty("--ml-wisp-y", (slot[1] + Math.random() * 6 - 3).toFixed(1) + "%");
+      list[i].style.setProperty("--ml-wisp-s", scale.toFixed(2));
+      list[i].style.setProperty("--ml-wisp-delay", delay + "s");
+    }
+  }
+
   function text(key, map) { return C.fmt(C.strings(state.lang)[key] || key, map); }
 
   /* ---------------------------------------------------------------- 数据桥 */
@@ -200,6 +216,7 @@
     els.root.setAttribute("data-motion", state.settings.motion ? "on" : "off");
     els.root.setAttribute("data-panel", state.settings.panel ? "on" : "off");
     if (els.orb) { els.orb.hidden = !state.settings.panel; }
+    if (els.ambient) { els.ambient.hidden = !state.settings.motion; }
     try {
       doc.documentElement.setAttribute("data-ml-motion", state.settings.motion ? "on" : "off");
       doc.documentElement.setAttribute("data-ml-lang", state.lang);
@@ -317,6 +334,14 @@
     var scrim = el("div", "ml-scrim", { hidden: "" });
     scrim.addEventListener("pointerdown", function () { closePanel("scrim"); });
 
+    /* 主题环境层：单容器 + 8 颗粒子；只动 transform/opacity，中央留空。
+       动效关闭时整层 hidden，不进入渲染树（见 applySettings）。 */
+    var ambient = el("div", "ml-ambient", { "aria-hidden": "true" });
+    for (var wi = 1; wi <= 8; wi += 1) {
+      ambient.appendChild(el("span", "ml-ambient__wisp", { "data-wisp": String(wi) }));
+    }
+    jitterAmbient(ambient);
+
     var orb = el("button", "ml-orb", {
       type: "button",
       id: "ml-orb",
@@ -369,11 +394,11 @@
     panel.appendChild(grip); panel.appendChild(head); panel.appendChild(tabs);
     panel.appendChild(body); panel.appendChild(foot);
 
-    root.appendChild(scrim); root.appendChild(orb); root.appendChild(panel);
+    root.appendChild(ambient); root.appendChild(scrim); root.appendChild(orb); root.appendChild(panel);
     root.appendChild(toast); root.appendChild(sr);
     doc.body.appendChild(root);
 
-    els.root = root; els.scrim = scrim; els.orb = orb; els.orbRing = ring; els.orbDot = dot;
+    els.root = root; els.ambient = ambient; els.scrim = scrim; els.orb = orb; els.orbRing = ring; els.orbDot = dot;
     els.panel = panel; els.grip = grip; els.head = head; els.tabs = tabs; els.body = body;
     els.miniClock = miniClock; els.closeBtn = closeBtn;
     els.nameNode = name; els.subNode = sub;
@@ -858,8 +883,8 @@
       return box;
     }
 
-    function segmented(options, current, onPick) {
-      var group = el("div", "ml-seg", { role: "radiogroup" });
+    function segmented(options, current, onPick, modifier) {
+      var group = el("div", modifier ? "ml-seg " + modifier : "ml-seg", { role: "radiogroup" });
       options.forEach(function (opt) {
         var btn = el("button", "ml-seg-btn", {
           type: "button", role: "radio",
@@ -887,8 +912,11 @@
       { value: "amber", label: s["theme.amber"] },
       { value: "jade", label: s["theme.jade"] },
       { value: "graphite", label: s["theme.graphite"] },
-      { value: "star", label: s["theme.star"] }
-    ], state.settings.theme, function (v) { setSetting("theme", v, false); })));
+      { value: "star", label: s["theme.star"] },
+      { value: "fog", label: s["theme.fog"] },
+      { value: "school", label: s["theme.school"] },
+      { value: "paper", label: s["theme.paper"] }
+    ], state.settings.theme, function (v) { setSetting("theme", v, false); }, "ml-seg--themes")));
 
     function rangeControl(key, min, max, step, label, format) {
       var wrap = el("div", "ml-scale");

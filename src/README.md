@@ -1,6 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.2.0）
+# 灯台 · Lantern（MapleLantern 1.3.0）
 
-- **1.2.0 原生几何回归**：立绘与侧栏回到 1.1.22 状态，源码不再出现 `body.has-images #img`、`#img > canvas` 或 `#ui-bar` 宽度覆盖；任何缩放与视口都走游戏原生 `#ui-bar 280`、`#img left:64`、`canvas 256`。移除 216px / 420–480 / 481–632 三套重写规则，避免画布被缩进窄栏后人物与背景错位。
+- **1.3.0 主题与动效收口**：新增雾港 / 旧校舍 / 纸灯三套主题；动效 token、24 个 keyframes 与 4 个可选工具类独立到 `effects.css`；原生 280/64/256 几何保持不变。
 - **保住的窄屏修复**：顶栏四格、金额 nowrap 单行、日期横排、状态卡 `#stats 100%`、状态条 200px/轨道 64px、选项单列 20px 图标。
 - **回归护栏**：单测新增“不得再次覆盖 #img / canvas / #ui-bar 宽度”，原生几何被改写会直接失败。
 
@@ -10,8 +10,11 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 原生卡片开关默认**开**；悬浮灯台默认**关**，入口在 `OPTIONS` 弹层顶部「灯台」行，也可用 `Alt+L` 唤起。
 - 此刻 / 身心 / 着装 / 系统 / 设置 五个页签；「此刻」页保留时间、金钱、场景与身心速览。
 - 自动跟随 DoLGameUI 4.x 的强调色与圆角；**检测到主 UI 时不再关闭本包原生层**（1.1.6 及以前会整层让位，导致 Android 上面板已更新、正文却退回宿主卡片）。
-- **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空仍可在设置里切回。
-- **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **默认主题为赛博朋克**：深蓝黑底、青蓝主光、洋红副光、静态网格与霓虹描边；琥珀 / 青瓷 / 石墨 / 星空 / 雾港 / 旧校舍 / 纸灯仍可在设置里切回。
+- **主题纹理层**：琥珀为暖金纸纤维 + 斜细纹，赛博为霓虹网格 + 斜线，青瓷为斜丝 + 织纹 + 釉光带，石墨为碳纤交叉纹 + 金属光带，星空为紫蓝星云 + 星点 + 银河带，雾港为冷青海雾横纹 + 暖金雾灯，旧校舍为粉笔格 + 旧木纹，纸灯为宣纸纤维 + 朱红；面板、正文、卡片三层分别落点，原生顶栏 / 弹层 / 状态卡 / 正文同步换纹理。
+- **主题环境层（1.3.0）**：九套主题各有边缘粒子与专属伪层，统一 `#ml-root .ml-ambient` 固定底层，`pointer-events:none`、`contain:layout paint style`，中央正文留空；≤600px 只留 5 颗，动效关闭或系统减少动态时整层 `display:none`。雾港额外一层呼吸雾带；8 颗粒子的位置/尺寸/相位在每次挂载时做一次边缘随机抖动，只在 CSS 变量上写一次，不进每帧循环。面板打开时环境层降到 55%（220ms），标题栏同时一次 420ms 细光扫过；星空每 15s 一颗右上流星，雾港第二层雾带再叠第三团下缘远景雾。
+- **动效层（1.3.0）**：三套面板环境光 26/31/22s、发丝线 7s、页签 200ms、表盘 5.6s；原生侧栏 28/32/24s 光带，`background-image` 用 `ambient + texture` 五层合成，不能为动效丢掉纹理；按钮/分段/卡片 hover 1–2px。三路关断（`data-motion=off` / `data-ml-motion=off` / `prefers-reduced-motion`）全部 `none`。
+- **动效库分区（`effects.css`，1.3.0）**：`--ml-fx-dur-*` 时间、`--ml-fx-ease-*` 缓动、24 个公共 keyframes 与 `.ml-fx-pane/.ml-fx-hairline/.ml-fx-breathe/.ml-fx-drift` 工具类独立成文件；`style.css` / `maplelantern-native.css` 只保留组件选择器，加载顺序 `style.css → maplelantern-native.css → effects.css`。以后新面板可直接引用 token 或工具类，不再复制动画定义。
 - **1.1.24 游戏缩放布局收口**：DoL 的「游戏缩放」实际是 `body.style.zoom`，`getBoundingClientRect()` 返回已缩放视觉坐标，而 `--ml-caption-top` 写在父容器本地像素。85% 下把 163.2 直接写入会被再缩成 138.5，顶部四格/状态卡上移 24.7px 压住立绘，右侧 `#storyCaptionDiv` 整列随之错位。现在按 `#img` 的「视觉高 / 布局高」求有效 zoom，把视觉差值换算回本地像素（163.2/0.85=192），并观察 `body[style]`：zoom 从 100 切到 85 或反向时立即重算一次，不再等下一次 passage。
 - **1.1.23 联动按钮样式收口**：`#ml-root .ml-btn.ml-bridge-open` 提高特异性，避免后置 `.ml-btn` 的 `padding: 8px 14px` 覆盖联动按钮的 `0 12px`；44px 触控高度与紧凑行高保持不变。
 - **1.1.22 第三方只读联动**：读 `V.Dynamicest.Settings` 与 `foreground_image1` / `background_image1` 等公开字段，在「此刻」页显示摘要（动态提醒 / 时段条 / 透明度；前景 / 背景 / 自动背景），点击「打开设置」跳到 Dynamicest「极致动态」页或前景背景入口。没有第三方时整块隐藏；不写第三方状态。
@@ -39,7 +42,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.2.0-theme.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21/1.1.22/1.1.23/1.1.24/1.1.25/1.1.26/1.1.27/1.1.28/1.1.29 旧包时先停用旧包，再导入新包。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.3.0.mod.zip`；已装 1.1.4/1.1.5/1.1.6/1.1.7/1.1.8/1.1.9/1.1.10/1.1.11/1.1.12/1.1.13/1.1.14/1.1.15/1.1.17/1.1.18/1.1.19/1.1.20/1.1.21/1.1.22/1.1.23/1.1.24/1.1.25/1.1.26/1.1.27/1.1.28/1.1.29/1.2.0 旧包时先停用旧包，再导入新包。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -61,7 +64,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 |---|---|---|
 | 原生卡片 | 开 / 关 | **开** |
 | 悬浮灯台 | 开 / 关 | **关** |
-| 主题 | 自动 / 赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空 | 赛博朋克 |
+| 主题 | 自动 / 赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空 / 雾港 / 旧校舍 / 纸灯 | 赛博朋克 |
 | 字号 | 80–140%，5% 步进 | 100% |
 | 通透度 | 0–100，5% 步进 | 60 |
 | 密度 | 舒适 / 紧凑 | 舒适 |
@@ -87,7 +90,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
 | `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡，展开体按「标签 : 值」拆成两栏行并带 160ms 逐行淡入；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
-| `#ui-bar` 窄屏档 | 无标记，`@media (max-width:480px)` | 侧栏固定 216px（=立绘原始宽），收起位移 -184px，保留 32px 把手；立绘 `left:0`，左右缘同时贴边；正文从 216px 起排（390/360/320 分别 158/128/88px）；金钱/时间/星期四格改 `32px / 弹性 / 40px / 38px`、gap 3px，时间与金额不再截断 |
+| `#ui-bar` 窄屏档 | 无标记，原生几何 | **1.3.0 不覆盖侧栏宽度**：`#ui-bar` 保持原生 280px，`#img left:64`、canvas 256 不回退；顶栏四格、金额单行、日期横排、状态卡 `#stats 100%` 保留，窄屏选项单列。 |
 | 衣柜内层（`Wardrobe`） | `data-ml-option` + `tidySeparators` | warmth 50px 条压成 16px 圆角条，温度说明独立卡；`Close wardrobe` / `Strip all` 等动作两列，裸 `\|` 全清；`#listoutfits` 双列、四张 outfit 卡左对齐等宽 |
 | 商店目录（`Clothing Shop`） | `markShopCats` | 15 组「图标 + 文字」收进两列胶囊卡，去掉原版 `<br><br>` 撑出的断行；warmth / 说明卡与衣柜同材质 |
 | 商店列表（`View All` 等） | `markShopCats` + `markEmptyDetails` + `tidyShopText` + `markShopTools` | `Back to shop` 取消原版绝对定位与气泡描边，回到正常流；分类图标去斜切、44×44 方卡；商品行成网格卡：48×48 图标 + 名称 + 右上价签胶囊 + 三行 stats-ball；空 `.clothing-details` 隐去；中文环境把原版硬编码 `Filters` / `Opt.` / `Legend` 换成「筛选 / 选项 / 图例」，已本地化的原文保持不动 |
@@ -117,7 +120,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 ## 兼容与降级
 
-- **未装 DoLGameUI**：用自带六主题（赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空），功能完整；`html[data-dgu-*]` 反制规则零匹配。
+- **未装 DoLGameUI**：用自带九主题（赛博朋克 / 琥珀 / 青瓷 / 石墨 / 星空 / 雾港 / 旧校舍 / 纸灯），功能完整；`html[data-dgu-*]` 反制规则零匹配。
 - **装了 DoLGameUI**：只转发 `--dgu-accent` / `--dgu-radius` / `--dgu-card-radius`，并逐类封回被全局按钮规则改写的 padding / min-height。
 - **读不到存档字段**：面板仍可打开，显示「读取降级」，不抛错。
 - **存储不可用**：设置只在本次会话生效，并提示一次。
@@ -132,7 +135,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-12，Windows）实测：
 
-- `node --test tests\*.test.js`：**95 / 95 PASS**（含主题纹理三层落点、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约、性能补扫收敛、分组稳定跳过 pack、同值写入跳过、晚到 2 秒链接仍接回）
+- `node --test tests\*.test.js`：**123 / 123 PASS**（含九主题调色板/双语文案/设置项/双 CSS 入口、主题纹理三层落点、三套主题动效/纹理合成/三路关断、320/390 页签等分、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约、性能补扫收敛、分组稳定跳过 pack、同值写入跳过、晚到 2 秒链接仍接回、`effects.css` 令牌/keyframes/工具类分区与 boot 加载顺序、组件引用的 keyframes/token 全部有定义、主题环境层 9 主题变量/8 粒子/5 颗粒子移动端减量/三层关断）
 - `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 314 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **64ms、pack 0 次、写入 0 次（跳过 5160 次同值写）**（上一轮 78ms / 251ms；jsdom 逻辑层，不冒充浏览器帧率）
 - 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
@@ -141,6 +144,9 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 真实正文按压：`pointerdown` 后 `pressed:true` / `ring:true`，`mln-press-ring` 出现在卡片内
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，8/8 `clicked:true`、`overlayHidden:false`、`errors:[]`；OPTIONS 页灯台入口保留
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
+- 动效实机（540×1170，Edge 隔离 profile，三套主题）：`#ml-panel::after` `ml-panel-ambient` 26/31/22s、`::before` `ml-hairline`、`.ml-pane` `ml-pane-in`、`.ml-ring::after` `ml-ring-breathe` 5.6s；`#ui-bar` `mln-bar-drift` 28/32/24s，`background-size` 5 层（2 环境光 + 3 纹理）；hover `matrix(1,0,0,1,0,-1)`；关断后 panel/ring/bar/pane 全 `none`；0 pageerror。
+- 窄屏回归（390×844、320×568，paper）：面板宽 390/320，5 个页签 71/61×44 全部可见；320 主题网格 3×91×44，文档无横向溢出；`ml-pane-in` / `ml-panel-ambient` / `mln-bar-drift` 仍运行，0 pageerror。面板 `scrollWidth` 的额外值来自 `::after ambient` 负 inset，不是内容溢出。
+
 - Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、z 89900、0 未捕获异常，**18 项 PASS**
 - 宿主档（DoLGameUI 4.2.0 启用）：**23 项 PASS**，含「宿主下原生层仍按玩家开关挂载」、宿主 token 已读、面板仍 380×504
 - 原生按钮关→开回归：`NATIVE_OFF` / `NATIVE_ON` 均 `overlayHidden:false`、`entryCount:1`、`ttab:true`，随后点 Theme 页签无 `<<toggleTab>>` 报错

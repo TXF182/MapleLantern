@@ -21,6 +21,20 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "灯台分类");
 });
 
+test("环境层：8 颗粒子只占一层，动效关闭时整层 hidden", () => {
+  const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
+  const ambient = on.w.document.querySelector("#ml-root .ml-ambient");
+  assert.ok(ambient, "缺主题环境层");
+  assert.equal(ambient.getAttribute("aria-hidden"), "true");
+  assert.equal(ambient.children.length, 8, "桌面固定 8 颗粒子");
+  assert.equal(ambient.hidden, false, "动效开启时应参与渲染");
+
+  const off = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const hiddenAmbient = off.w.document.querySelector("#ml-root .ml-ambient");
+  assert.ok(hiddenAmbient, "动效关闭也应保留节点，便于设置切换后恢复");
+  assert.equal(hiddenAmbient.hidden, true, "动效关闭必须整层移出渲染树");
+});
+
 test("文案：切到英文时页签分类与关闭按钮的无障碍标签同步换语", () => {
   const { w } = createEnv({ seed: { v: 1, lang: "en", motion: false } });
   assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "Lantern sections");
