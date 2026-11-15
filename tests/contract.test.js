@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.7");
+  assert.equal(boot.version, "1.3.8");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -646,6 +646,19 @@ test("CE 页签不被内容按钮通扫覆盖，关闭按钮不被二次改尺�
   /* 组前后空 <p> 会把 3px 间距重新撑大；必须双向清理且不得删掉含图标的段落。 */
   assert.match(native, /var after = wrap\.nextSibling/);
   assert.match(native, /querySelector\("img\.icon, \.icon-container, a\.link-internal, a\.macro-link"\)/);
+});
+
+test("1.3.8：孩子详情沿用原版正文色，不再继承主题的青蓝", () => {
+  assert.match(
+    nativeCss,
+    /html\[data-ml-native="on"\] #passages \.passage \.childDetails\s*\{[^}]*color:\s*var\(--100,\s*#eee\)/,
+    "childDetails 必须恢复原版 --100 正文色"
+  );
+  assert.doesNotMatch(
+    nativeCss,
+    /html\[data-ml-native="on"\] #passages \.passage \.childDetails\s*\{[^}]*var\(--mln-text\)/,
+    "childDetails 不得再被主题正文色接管"
+  );
 });
 
 test("1.3.7：手机面板滚动期间摘掉 backdrop-filter，停止 160ms 后恢复", () => {

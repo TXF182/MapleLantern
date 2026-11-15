@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.7 手机面板滚动摘模糊；130/130 PASS，check_ui / game-smoke / compat-smoke 以本节实测为准
+> 最后核对：2026-11-15 / 1.3.8 孩子详情恢复原版正文色；131/131 PASS，check_ui / game-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -190,14 +190,22 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.7.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.8.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.7.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.8.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
+
+### 1.3.8 孩子详情恢复原版正文色（2026-11-15）
+
+- **根因**：`src\maplelantern-native.css:1114` 的 `#passages .passage { color: var(--mln-text) }` 把主题正文色（赛博主题 `--mln-text #E6F7FF`）继承到孩子详情容器 `.childDetails`；原版该容器没有独立颜色，沿用正文 `--100`。FertilityExpansion 的 `modules\css\eden.css` 与 `boot.json` 均未改 `.childDetails` 颜色，排除该模组。
+- **修复**：新增 `html[data-ml-native="on"] #passages .passage .childDetails { color: var(--100, #eee); }`（特异性 1,3,0 > 1,1,0）。`Type:` 的 `.gold` 标签、`.childName input` 与孩子图标各有自己的颜色，不受影响。
+- **实测**（Edge 1280×720，赛博主题，原生层开启）：注入 `.childDetails` 后计算色 `rgb(221, 221, 221)`（即当前 `--100 #ddd`），修复前为 `rgb(230, 247, 255)`；`.gold` 仍 `rgb(255, 215, 0)`。版本显示 `v1.3.8`。
+- **测试**：`node --test tests\*.test.js` **131 / 131 PASS**；新增断言恢复 `--100` 且不再出现 `--mln-text`。
+- **最终产物**：`dist\MapleLantern-1.3.8.mod.zip`，**115,287 B / 8 条目 / SHA256 `6b240707ed49ed385578c2ac1762814195b0ba47cdd6ea1364e860a542d62d05`**；`check_ui_mod.py` 13 PASS / 1 WARN / 0 FAIL；`game-smoke` 18 项 PASS / `SMOKE: PASS`。
 
 ### 1.3.7 手机面板滚动摘模糊（2026-11-15）
 

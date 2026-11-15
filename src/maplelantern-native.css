@@ -1119,6 +1119,12 @@ html[data-ml-native="on"] #passages .passage {
   animation: mln-passage-in var(--ml-fx-dur-native) ease-out both;
 }
 
+/* 孩子详情沿用原版正文色：主题正文色只接管普通 passage 文本，
+   不把 childDetails 里的类型值/活动描述染成主题的青蓝色。 */
+html[data-ml-native="on"] #passages .passage .childDetails {
+  color: var(--100, #eee);
+}
+
 /* 原版正文开头的空行由渲染层插入；JS 折叠之外再用 CSS 兜住一次。 */
 html[data-ml-native="on"] #passages .passage > br:first-child {
   display: none !important;
