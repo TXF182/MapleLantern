@@ -1694,3 +1694,14 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
   #ml-root .ml-native-entry:active { transform: none; }
 }
 
+/* 1.3.7：面板滚动期间临时摘掉 backdrop-filter。
+   面板静止时仍保留完整玻璃；手指滚动、滚轮或页面带动面板背后内容时，
+   只在这一段滚动窗口内关闭模糊，停止 160ms 后自动恢复。
+   只在手机断点生效，桌面保留完整材质。 */
+@media (max-width: 899px) {
+  #ml-root .ml-panel[data-scrolling="1"] {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+

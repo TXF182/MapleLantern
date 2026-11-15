@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.6");
+  assert.equal(boot.version, "1.3.7");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -646,6 +646,22 @@ test("CE 页签不被内容按钮通扫覆盖，关闭按钮不被二次改尺�
   /* 组前后空 <p> 会把 3px 间距重新撑大；必须双向清理且不得删掉含图标的段落。 */
   assert.match(native, /var after = wrap\.nextSibling/);
   assert.match(native, /querySelector\("img\.icon, \.icon-container, a\.link-internal, a\.macro-link"\)/);
+});
+
+test("1.3.7：手机面板滚动期间摘掉 backdrop-filter，停止 160ms 后恢复", () => {
+  assert.match(css, /@media \(max-width: 899px\)\s*\{[\s\S]{0,900}?#ml-root \.ml-panel\[data-scrolling="1"\][\s\S]{0,400}?backdrop-filter:\s*none !important/,
+    "手机端必须有滚动期间关闭面板模糊的规则");
+  assert.match(index, /function markPanelScrolling\(\)/,
+    "render.js 必须集中处理面板滚动状态");
+  assert.match(index, /addEventListener\("scroll", markPanelScrolling, \{ passive: true \}\)/,
+    "面板与页面滚动监听必须 passive");
+  assert.match(index, /data-scrolling/);
+  assert.match(index, /setTimeout\(function \(\) \{[\s\S]{0,140}?removeAttribute\("data-scrolling"\)/,
+    "停止滚动后必须恢复模糊");
+  assert.match(index, /doc\.body\.removeEventListener\("scroll", markPanelScrolling\)/,
+    "销毁时必须解绑 body 滚动监听");
+  assert.match(index, /window\.removeEventListener\("scroll", markPanelScrolling\)/,
+    "销毁时必须解绑 window 滚动监听");
 });
 
 test("effects.css：动效令牌/keyframes/工具类独立分区，组件文件不再内联 keyframes", () => {

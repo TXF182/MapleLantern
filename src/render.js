@@ -26,6 +26,7 @@
     lastFocus: null,
     lastRenderMs: 0,
     closeTimer: 0,
+    scrollTimer: 0,
     drag: null,
     orbDrag: null,
     disposed: false,
@@ -419,6 +420,8 @@
     });
     panel.addEventListener("keydown", onPanelKey);
     grip.addEventListener("pointerdown", onGripDown);
+    body.addEventListener("scroll", markPanelScrolling, { passive: true });
+    window.addEventListener("scroll", markPanelScrolling, { passive: true });
   }
 
   function renderChrome() {
@@ -1089,6 +1092,15 @@
     );
   }
 
+  function markPanelScrolling() {
+    if (!state.open || !els.panel) { return; }
+    els.panel.setAttribute("data-scrolling", "1");
+    clearTimeout(state.scrollTimer);
+    state.scrollTimer = window.setTimeout(function () {
+      if (els.panel) { els.panel.removeAttribute("data-scrolling"); }
+    }, 160);
+  }
+
   function openPanel() {
     if (!els.panel || state.open) { return; }
     state.open = true;
@@ -1119,6 +1131,8 @@
   function closePanel(reason) {
     if (!els.panel || !state.open) { return; }
     state.open = false;
+    clearTimeout(state.scrollTimer);
+    els.panel.removeAttribute("data-scrolling");
     els.panel.setAttribute("data-open", "0");
     els.root.setAttribute("data-open", "0");
     els.orb.setAttribute("aria-expanded", "false");
@@ -1319,6 +1333,7 @@
     state.disposed = true;
     state.open = false;
     clearTimeout(state.closeTimer);
+    clearTimeout(state.scrollTimer);
     clearTimeout(toastTimer);
     clearTimeout(moveTimer);
     clearPressTimers();
@@ -1330,6 +1345,8 @@
       doc.removeEventListener("pointerdown", onDocPointer, true);
       doc.removeEventListener("pointerdown", onPressFx, true);
       window.removeEventListener("resize", onResize);
+      if (doc.body) { doc.body.removeEventListener("scroll", markPanelScrolling); }
+      window.removeEventListener("scroll", markPanelScrolling);
     } catch (e) { /* ignore */ }
     if (els.root && els.root.parentNode) { els.root.parentNode.removeChild(els.root); }
     els = {};

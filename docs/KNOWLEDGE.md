@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.6 手机端二次收口；129/129 PASS，check_ui / game-smoke / compat-smoke 以本节实测为准
+> 最后核对：2026-11-15 / 1.3.7 手机面板滚动摘模糊；130/130 PASS，check_ui / game-smoke / compat-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -190,14 +190,26 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.6.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.7.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.6.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.7.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
+
+### 1.3.7 手机面板滚动摘模糊（2026-11-15）
+
+- **改动**：`src\style.css` 末尾新增 `@media (max-width:899px)`，`#ml-root .ml-panel[data-scrolling="1"]` 双写 `-webkit-backdrop-filter:none!important` / `backdrop-filter:none!important`；`src\render.js` 新增 `state.scrollTimer`、`markPanelScrolling()`，在 `body` 与 `window` 各挂 `{ passive:true }` 滚动监听，滚动置 `data-scrolling="1"`，停止 160ms 后 `removeAttribute`；`closePanel()` 同步清计时器与属性，`destroy()` 解绑 `body` / `window` 滚动监听。桌面断点不启用，静止时材质不变。
+- **测试**：`node --test tests\*.test.js` **130 / 130 PASS**（约 15.7s）；版本双源 `1.3.7`；新增 `1.3.7：手机面板滚动期间摘掉 backdrop-filter，停止 160ms 后恢复` 契约（CSS 媒体块 + `markPanelScrolling` + passive 双监听 + 160ms 恢复）。
+- **单变量 A/B（`ml_131_ab.js`，Edge 390×844 DPR2、CPU 4x、`--disable-gpu`、`--disable-frame-rate-limit`，页面追加 3000px filler）**：
+  - `body::before` 固定底层替代 `html background-attachment:fixed`：基线页面 `1.91 / 1.56 / 1.09ms`、TaskDuration `188.1 / 154.6 / 115.2ms`；底层页面 `2.55 / 1.59 / 1.23ms`、TaskDuration **`250.3 / 187.8 / 122.8ms`**，全面更差，**否决**，原方案保持。
+  - 面板滚动期摘 blur：基线 `3.69 / 3.38 / 4.97ms` → 关模糊 **`3.15 / 2.92 / 2.40ms`**，约省 20–35%，**采用**。
+- **真实 1.3.7 包复测**（同一套 Edge 参数，5 轮去冷启首轮）：页面 `2.04 / 1.32 / 1.62 / 1.55ms`（首轮冷启 7.25ms），与 1.3.6 的 1.19–1.93ms 同区间；面板 `3.50 / 3.23 / 3.77 / 3.42 / 3.07ms`，区间 **3.07–3.77ms，均值约 3.40ms**（1.3.6 同环境 3.63–5.18ms）。
+- **实时状态取证**（`ml_137_probe.js`）：滚动中 `data-scrolling="1"`、`backdropFilter:none`；停止 260ms 后属性 `null`、恢复 `blur(12px) saturate(1.1)`。静止/滚动截图 `%TEMP%\ml_137\panel-rest.png` / `panel-scrolling.png` 对照，静止仍为完整玻璃，滚动期背景变清晰。
+- **最终产物**：`dist\MapleLantern-1.3.7.mod.zip`，**115,043 B / 8 条目 / SHA256 `07b604d31c73faa4985a75432b8f946c35aece1bebff7f00c425728d47f050b7`**；`check_ui_mod.py` 13 PASS / 1 WARN / 0 FAIL（WARN 与历史一致：依赖仅 ModLoader/GameVersion，未声明 StoneFreeHost；`maplelantern-native.js` 已有 `apiVersion !== 1` 退出守卫）。
+- **冒烟**：`ML_ZIP=dist\MapleLantern-1.3.7.mod.zip node tools\game-smoke.js` 18 项 PASS；`node tools\compat-smoke.js` 21 项 `COMPAT: PASS`。失败请求均为 `game\` 缺失的 `modList.json` / `style.css` / `usettings.js` / 旧图，非本次改动引入。
 
 ### 1.3.6 手机端二次收口（2026-11-15）
 
