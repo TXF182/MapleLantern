@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.1");
+  assert.equal(boot.version, "1.3.2");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -263,6 +263,12 @@ test("1.3.1：窄屏展开侧栏不再把 #story 挤成两字列", () => {
   assert.match(clean,
     /html\[data-ml-native="on"\]\[data-ml-sidebar-open="1"\] #story\s*\{[^}]*pointer-events:\s*none !important/s,
     "抽屉状态下隐藏正文需同时断掉指针事件");
+  assert.match(clean,
+    /html\[data-ml-native="on"\]\[data-ml-sidebar-open="1"\] #customOverlayContainer\s*\{[^}]*visibility:\s*visible !important[^}]*pointer-events:\s*auto !important/s,
+    "侧栏展开时若原生弹层容器落在 #story 子树内，必须显式恢复可见与可点，不能把作弊层一起隐藏");
+  assert.match(clean,
+    /@media\s*\(max-width:\s*899px\)\s*\{[\s\S]{0,900}html\[data-ml-native="on"\] #customOverlay\s*\{[^}]*left:\s*0 !important[^}]*right:\s*0 !important/s,
+    "容器已全视口，<=899px 必须把原版 -17.6em 的弹性层左移封回 0，否则 CE 层会跑到屏幕左外、右半屏空白");
   assert.match(native, /function syncSidebar\(\)[\s\S]{0,260}getBoundingClientRect\(\)/,
     "侧栏开合必须读真实几何，不能只按 .stowed class 判断");
   assert.match(native, /setAttribute\("data-ml-sidebar-open"/,

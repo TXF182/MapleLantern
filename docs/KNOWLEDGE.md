@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.1 发布基线（tag `v1.3.1`）；126/126 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
+> 最后核对：2026-11-15 / 1.3.2 补丁基线（基于 tag `v1.3.1`）；126/126 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -190,20 +190,21 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.1.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.2.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.1.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.2.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
 
-当前实测（2026-11-15，1.3.1 正式包 111,798 B / 8 条目，SHA256 `30533a4c767592d7bc03a5b405779065da1bf5ee367b0a83eab138a9e5716eb2`；两次打包哈希一致）：
+当前实测（2026-11-15，1.3.2 补丁包 112,450 B / 8 条目，SHA256 `fa5029f994551bfe219ddeb8852060c9db50171267512cf0a58f3ff566403824`）：
 
 - `node --test tests\*.test.js`：**126 / 126 PASS**。
-- `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 基线一致。
-- `ML_ZIP=dist\MapleLantern-1.3.1.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS。
+- `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 / 1.3.1 基线一致。
+- `ML_ZIP=dist\MapleLantern-1.3.2.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS，注入版本 `1.3.2`。
+- 合成 CE 几何探针（1.3.2 包，540×1170 / 360×780）：540 `#customOverlay` `x=0,y=10,w=524,h=1150`、`left/right=0`，content `x=8,w=508`，CE `x=17,w=490`；360 `x=0,y=10,w=344,h=760`，content `x=8,w=328`，CE `x=17,w=310`；容器 `visibility=visible` / `pointer=auto`，`#story` hidden，`errors=[]`。
 - Edge 计算样式探针：`effects.css` token `.2s` / `.46s` / `cubic-bezier(.16, 1, .3, 1)` 可读，雾港 `#ml-panel::after`=`ml-panel-ambient`、`#ui-bar`=`mln-bar-drift`，关断后全 `none`。
 - 主题环境层探针（390/1280）：`#ml-root .ml-ambient` 8 颗粒子 + 1 层 veil、mobile 5 颗粒子可见、`pointer-events:none`、`z-index:0`；雾港 ambient `1.0`、veil `.44`，打开面板后 ambient 降到 `.55`；`auto` 根节点带 `data-phase`，`::after` 天光带动画名为 `ml-sky-band`。
 
@@ -289,3 +290,11 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 根因：原生层由 CE 异步挂载，正文观察器看不到 `#customOverlay` 子树；浮卡只按自身开关判断是否退场。
 - 修复：`nativeLayerVisible(overlay)` 同时看 `hidden`、计算样式与几何；`watchOverlay()` 维护 `state.overlayVisible`，隐藏→可见跳变时调用 `MapleLantern.close()`；原生入口点击后 80ms 再按真实几何补关，覆盖观察器来不及的首帧；`ensureOverlayFinder()` 在 `#customOverlay` 节点换代时重挂。
 - 防复发：原生弹层与自有浮层不得只靠 class 判断可见性；必须读真实几何，并覆盖“节点重建”与“点击后异步挂载”两条路径。
+
+### ERR-20261115-003 `overlay.ce-layer-shifted-offscreen`
+
+- 状态：**fixed**（1.3.2）
+- 现象：手机点开「模组作弊」后，CE 层内容只占左半屏，右半屏只剩星空背景；540×1170 实机截图 `DvNUdYPGju` 复现。
+- 根因：原版游戏 CSS `@media only screen and (max-width:870px) { .customOverlay { left:-17.6em } }` 用 280px 侧栏宽度做左移。灯台把 `#customOverlayContainer` 改成 `position:fixed; inset:0; width:100vw` 后容器已全视口，这条左移把 `.customOverlay` 整体推到屏幕左侧外 281.6px。540 探针修复前 `#customOverlay` `left:-281.6px`、`x=-281.59`、`width=524`、`right=242.41`；`#customOverlayContent` `x=-273.59`；合成 CE `x=-264.59`。
+- 修复：`src/maplelantern-native.css` 的 `@media (max-width:899px)` 给 `html[data-ml-native="on"] #customOverlay` 补 `left:0 !important; right:0 !important`，宽度继续由既有 `max-width: calc(100vw - 16px)` 约束。540 复测 `left/right=0`、`x=0`、`width=524`，内容 `x=8 / width=508`，CE `x=17 / width=490`；360 复测 `x=0 / width=344`，内容 `x=8 / width=328`。另在 `<=560px` 侧栏展开时给 `#customOverlayContainer` 补 `visibility:visible !important; pointer-events:auto !important`：该容器由 PassageFooter 渲染，可能落在 `#passages` 子树内，`#story` 的抽屉隐藏会连带吞掉作弊层。
+- 防复发：任何把第三方弹层容器改成全视口 fixed 的覆盖，必须同步封回原版针对侧栏宽度的 `left/right/margin` 补偿；验收不能只看盒子 `width`，要同时读 `x/right`，否则“宽度对了但整体在屏外”会被漏掉。合成 CE 探针只能证明几何，真实 CE 入口仍需实机/存档验证。

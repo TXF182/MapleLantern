@@ -786,6 +786,13 @@ html[data-ml-native="on"] body.has-images #storyCaptionContent {
     visibility: hidden !important;
     pointer-events: none !important;
   }
+  /* #customOverlayContainer 由 PassageFooter 渲染，可能落在 #passages 子树内。
+     #story 隐藏后子节点默认继承 hidden，点「作弊」会变成“菜单还在、层没出来”。
+     显式把弹层容器拉回可见，并恢复指针事件；#story 本身仍保持抽屉隐藏。 */
+  html[data-ml-native="on"][data-ml-sidebar-open="1"] #customOverlayContainer {
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
 }
 
 html[data-ml-native="on"] body.has-images #stats {
@@ -4249,6 +4256,12 @@ html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#custom
     max-width: calc(100vw - 16px) !important;
     box-sizing: border-box !important;
     overflow-x: hidden !important;
+    /* 原版 @media <=870px 把 .customOverlay 的 left 改成 -17.6em，用来贴住
+       280px 侧栏。本包已把容器改成全视口 fixed，再左移 280px 会把 CE 层
+       推出屏幕左侧，表现为“只有左半屏有内容、右半屏星空空白”。容器全宽后
+       左右必须归零，宽度交给上面的 max-width 约束。 */
+    left: 0 !important;
+    right: 0 !important;
   }
   html[data-ml-native="on"] #customOverlayContent {
     width: auto !important;
