@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.4");
+  assert.equal(boot.version, "1.3.6");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -584,7 +584,16 @@ test("1.1.8：正文选项按压、图标同卡、六主题整页背景与宿主
   assert.match(nativeCss, /html\[data-ml-native="on"\] body\s*\{[\s\S]*?background-color: transparent !important/);
   assert.match(nativeCss, /html\[data-ml-native="on"\]\s*\{[\s\S]*?background-image:\s*radial-gradient\(132% 92% at 50% -14%[\s\S]*?var\(--mln-page-texture\) !important/);
   assert.match(nativeCss, /background-attachment: fixed/);
-  assert.match(nativeCss, /radial-gradient\(3\.2px 3\.2px at 33% 15%/);
+  /* 1.3.5：星空页底从 87 层压到 ≤9 层，逐点星层交给天空层的平铺星尘。 */
+  const starBlock = nativeCss.match(/html\[data-ml-native="on"\]\[data-ml-theme="star"\]\s*\{([\s\S]*?)\n\}/);
+  assert.ok(starBlock, "星空主题变量块缺失");
+  const pageStart = starBlock[1].indexOf("--mln-page-texture:");
+  assert.ok(pageStart >= 0, "星空主题必须有 page texture");
+  const pageTexture = starBlock[1].slice(pageStart);
+  assert.ok((pageTexture.match(/gradient\(/g) || []).length <= 9,
+    "星空 page texture 必须压到 9 层以内");
+  assert.ok(!/radial-gradient\(3\.2px 3\.2px at 33% 15%/.test(pageTexture),
+    "旧的 78 颗逐点星层必须移除");
   assert.match(nativeCss, /br:has\(\+ a\.macro-link\)/);
   assert.ok(native.includes("var on = state.settings.native !== false;"),
     "检测到 DoLGameUI 不能把本包原生层整层关掉");
@@ -710,8 +719,8 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、�
   assert.match(index, /els\.root\.setAttribute\("data-phase", phase\)/,
     "render 必须把游戏时段挂到根节点，否则 CSS 分时段配色永远不生效");
   assert.match(fx, /animation:\s*ml-star-meteor 12s/, "流星频率必须提升到 12s 一级");
-  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__wisp:nth-child\(n \+ 6\)\s*\{[^}]*display:\s*none/s,
-    "≤600px 必须减到 5 颗，避免手机 GPU 过载");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__wisp:nth-child\(n \+ 3\)\s*\{[^}]*display:\s*none/s,
+    "≤600px 必须减到 2 颗，避免手机 GPU 过载");
   assert.match(fx, /#ml-root\[data-motion="off"\] \.ml-ambient[\s\S]*?display:\s*none !important/s,
     "玩家关动效时环境层必须整层隐藏，不能留下静态雾团");
   assert.match(fx, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.ml-ambient\s*\{[^}]*display:\s*none !important/s,
@@ -741,6 +750,27 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、�
   assert.match(index, /--ml-wisp-delay/, "随机抖动必须写入粒子相位变量");
   assert.match(index, /els\.ambient\.hidden = !state\.settings\.motion/,
     "动效关闭时环境层必须从渲染树移除");
+});
+
+test("1.3.5：手机端降载、星空页底瘦身与 CE 模糊下调", () => {
+  assert.match(fx, /--ml-sky-dust:[\s\S]{0,320}repeat/s,
+    "星空星尘必须走平铺层，不能逐颗铺几十层");
+  assert.match(fx, /#ml-root \.ml-ambient__sky\s*\{[^}]*background:\s*var\(--ml-sky-dust, none\)/s,
+    "天空层必须消费平铺星尘变量");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?#ml-root \.ml-ambient,\s*\n?\s*#ml-root \.ml-ambient \*[\s\S]{0,180}animation:\s*none/s,
+    "手机端环境层必须整体静态，不能留持续重绘");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?data-open="1"\] \.ml-ambient\s*\{[^}]*display:\s*none/s,
+    "手机端面板打开时必须停止绘制环境层");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__wisp:nth-child\(n \+ 3\)/s,
+    "手机端只留 2 颗粒子");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__veil\s*\{[^}]*display:\s*none/s,
+    "手机端必须隐藏整幅 veil 层，天空层保留静态星场");
+  assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient::before[\s\S]{0,80}?\.ml-ambient::after\s*\{[^}]*display:\s*none/s,
+    "手机端必须隐藏环境层两条主题光带伪元素");
+  assert.match(nativeCss, /#customOverlay \.dol-shadow[\s\S]{0,400}backdrop-filter:\s*blur\(6px\)/,
+    "CE 面板模糊必须从 10px 收到 6px");
+  assert.match(index, /innerWidth\s*<=\s*899[\s\S]{0,120}Math\.min\(blur,\s*12\)/,
+    "手机/平板端面板模糊必须封顶 12px");
 });
 
 test("effects.css：组件引用的 keyframes/token 全部有定义，且原生 CSS 仍在原型加载链中", () => {

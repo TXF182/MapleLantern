@@ -57,6 +57,12 @@ function createEnv(opts) {
     pretendToBeVisual: true,
     url: "http://localhost/",
     beforeParse(w) {
+      if (opts.width) {
+        Object.defineProperty(w, "innerWidth", { configurable: true, get: () => opts.width });
+      }
+      if (opts.height) {
+        Object.defineProperty(w, "innerHeight", { configurable: true, get: () => opts.height });
+      }
       const proxied = new Proxy(vars, {
         set() { writes++; throw new Error("writes are forbidden"); },
         defineProperty() { writes++; throw new Error("writes are forbidden"); },

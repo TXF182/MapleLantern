@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.4 天空层基线（基于 1.3.3 tag）；127/127 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
+> 最后核对：2026-11-15 / 1.3.6 手机端二次收口；129/129 PASS，check_ui / game-smoke / compat-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -190,16 +190,39 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.4.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.6.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.4.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.6.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
 
-当前实测（2026-11-15，1.3.4 天空层包 114,992 B / 8 条目，SHA256 `46a5df859d785ec9e37660feecf2e3f4f4e7b98fb83590e2a6c2f920fa60bcef`）：
+### 1.3.6 手机端二次收口（2026-11-15）
+
+- **改动**：`src\effects.css` 手机媒体查询在 1.3.5 基础上再隐藏 `.ml-ambient__veil` 与 `.ml-ambient::before` / `::after` 两条主题光带；粒子 `nth-child(n + 4)` → `nth-child(n + 3)`，只留 2 颗。保留静态天空层（`--ml-sky-dust` 星场 + 天光）和 2 颗静态粒子。
+- **测试**：`node --test tests\*.test.js` **129 / 129 PASS**；新增断言覆盖 `n + 3`、veil 隐藏、两条 ambient 伪元素隐藏。
+- **5 轮基准**（Edge 390×844 DPR2、`--disable-gpu`、CPU 4x、`--disable-frame-rate-limit`；`ml_final_bench_136.js`，去冷启首轮）：页面 **5.54–8.78ms，均值 6.66ms**；强制可滚动面板 **12.26–15.16ms，均值 13.16ms**。1.3.5 对应约 13.05 / 14.54ms；关 ambient 约 5.4–7.5ms，页面已基本贴住下限。
+- **视觉**：`ml_sky_game.js` 星/auto 390×844 截图仍保留全屏星场；`ml_mobile_probe_136.js` 实测 390 宽 `veil display:none`、wisp 仅前 2 个 `display:block`、ambient 动画 `none`。
+- **最终产物**：`dist\MapleLantern-1.3.6.mod.zip`，**114,385 B / 8 条目 / SHA256 `c4289d417f91d2ce8855e9e7107bf4d7adf03d60416bbde819fb5e5d5aa2523b`**；`check_ui_mod.py` 13 PASS / 1 WARN / 0 FAIL（WARN 与历史一致：依赖仅 ModLoader/GameVersion，未声明 StoneFreeHost；`maplelantern-native.js` 已有 `apiVersion !== 1` 退出守卫）。
+- **冒烟**：`ML_ZIP=dist\MapleLantern-1.3.6.mod.zip node tools\game-smoke.js` 18 项 PASS；`node tools\compat-smoke.js` 21 项 `COMPAT: PASS`。失败请求均为 `game\` 缺失的 `modList.json` / `style.css` / `usettings.js` / 旧图，非本次改动引入。
+
+### 1.3.5 性能收口（2026-11-15，最终包以 `dist\SHA256.txt` 为准）
+
+- **星空页底 87→9 层**：`src\maplelantern-native.css` 星空 `--mln-page-texture` 删除约 78 个逐点星层，只留 6 个基础渐变；`html` 的 `background-image` / `background-attachment` 实测均为 9，`--mln-page-texture` 从 8,313 字符 / 84 gradient 降到 554 字符 / 6 gradient。
+- **星尘改平铺**：新增 `--ml-sky-dust`，星空 `220px/280px`、auto night `240px/300px`；`.ml-ambient__sky` 以 `background: var(--ml-sky-dust, none)` 消费，星点全屏可见但不增加 `html` fixed 层。
+- **手机 ambient 降载**：`@media (max-width:600px)` 粒子 `nth-child(n + 4)`（5→3）；`.ml-ambient` `inset:0`；环境层及其所有子元素/伪元素 `animation:none!important`、`will-change:auto!important`；`#ml-root[data-open="1"] .ml-ambient { display:none!important; }`，面板打开时不再绘制环境层。桌面/平板不受影响。
+- **面板模糊封顶 12px**：`src\render.js` 在 tier 计算后加 `if (innerWidth > 0 && innerWidth <= 899) blur = Math.min(blur, 12);`；`onResize()` 150ms 后重算 `applySettings()`。390 宽实测 `blur(12px) saturate(1.1)`；桌面 1024 宽 glass 100 仍 `32px`。
+- **CE 模糊 10→6**：`#customOverlay .dol-shadow` 两条 `backdrop-filter` 改为 `blur(6px) saturate(1.08)`。
+- **测试**：`node --test tests\*.test.js` **129 / 129 PASS**（约 15.2s）；新增 `--ml-sky-dust`、星空页底 ≤9 gradient、手机 `n + 4`、ambient 全量静态、面板打开隐藏、CE `blur(6px)`、render 手机封顶与 390/1024 双断点用例。
+- **无头滚动基准**（Edge 390×844 DPR2、`--disable-gpu`、CPU 4x、`--disable-frame-rate-limit`；`ml_scroll_bench2.js`，3 轮）：`page-base` 21.83 / 12.56 / 13.05ms（中位 13.05；1.3.4 基线 18.5–24.3）；`page-ambient-off` 7.70 / 5.40 / 6.75ms；`panel-base` 18.22 / 13.58 / 14.54ms（中位 14.54；1.3.4 基线 21–24）；`panel-ambient-off` 12.05 / 15.34 / 15.22ms。第一轮含冷启动，看中位与后两轮；软件渲染只作同向对比。
+- **视觉**：`ml_sky_game.js` 星/auto 390×844 截图（`%TEMP%\ml_sky_game\game-star-390.png` / `game-auto-390.png`）；`::before/::after` 计算值 `animation:none`，星点仍全屏；`ml_sky_matrix.js` 320/360/390 closed + 390 open 无 `pageerror`，面板显示 v1.3.5 且打开时 ambient 隐藏。
+- **导入状态**：Edge profile `%TEMP%\lantern-edge-profile` 的 ModLoader 列表已移除 1.3.2/1.3.3/1.3.4，仅加载 `MapleLantern-1.3.5.mod.zip`；旧包数据键未删。
+- **最终产物**：`dist\MapleLantern-1.3.5.mod.zip`，**114,201 B / 8 条目 / SHA256 `5d0fa36284d57a917ac2636307781a5825471ac06f19354b80f93ae3d421a57e`**；`check_ui_mod.py` 13 PASS / 1 WARN / 0 FAIL（WARN 与历史一致）。
+- **冒烟**：`ML_ZIP=dist\MapleLantern-1.3.5.mod.zip node tools\game-smoke.js` 18 项 PASS；`node tools\compat-smoke.js` 与 `COMPAT_HOSTS=1` 两轮均 `COMPAT: PASS`（各 21 项）。失败请求均为 `game\` 缺失的 `modList.json` / `style.css` / `usettings.js` / 旧图，非本次改动引入。
+
+### 1.3.4 天空层基线（历史）
 
 - `node --test tests\*.test.js`：**127 / 127 PASS**。
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 / 1.3.1 / 1.3.2 / 1.3.3 基线一致。

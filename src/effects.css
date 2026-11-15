@@ -212,6 +212,7 @@
   overflow: hidden;
   pointer-events: none;
   opacity: var(--ml-sky-opacity, .62);
+  background: var(--ml-sky-dust, none);
   contain: paint style;
   transform: translateZ(0);
 }
@@ -437,6 +438,9 @@
   --ml-sky-c2: rgba(143, 166, 255, .30);
   --ml-sky-opacity: .68;
   --ml-sky-speed: 30s;
+  --ml-sky-dust:
+    radial-gradient(1.4px 1.4px at 18px 26px, rgba(255, 255, 255, .55) 0, transparent 1.8px) 0 0 / 220px 220px repeat,
+    radial-gradient(1px 1px at 74px 88px, rgba(196, 208, 255, .34) 0, transparent 1.4px) 0 0 / 280px 280px repeat;
   --ml-sky-stars:
     radial-gradient(2.0px 2.0px at 12% 16%, rgba(255, 255, 255, .95), transparent 100%),
     radial-gradient(1.7px 1.7px at 28% 9%, rgba(255, 255, 255, .88), transparent 100%),
@@ -529,6 +533,9 @@
   --ml-sky-b: rgba(90, 210, 220, .24);
   --ml-sky-c: rgba(255, 255, 255, .20);
   --ml-sky-c2: rgba(120, 150, 255, .18);
+  --ml-sky-dust:
+    radial-gradient(1.3px 1.3px at 24px 34px, rgba(255, 255, 255, .48) 0, transparent 1.7px) 0 0 / 240px 240px repeat,
+    radial-gradient(1px 1px at 92px 16px, rgba(196, 208, 255, .30) 0, transparent 1.4px) 0 0 / 300px 300px repeat;
   --ml-sky-stars:
     radial-gradient(1.8px 1.8px at 16% 18%, rgba(255, 255, 255, .88), transparent 100%),
     radial-gradient(1.5px 1.5px at 42% 12%, rgba(255, 255, 255, .78), transparent 100%),
@@ -690,10 +697,22 @@
   animation: ml-paper-fiber 28s linear infinite alternate;
 }
 
-/* ---- 性能与关断：≤600px 只留 5 颗；动效关断/系统减少动态时整层不渲染 ---- */
+/* ---- 性能与关断：≤600px 只留 2 颗；veil 隐藏，天空静态，面板打开时不再绘制 ---- */
 
 @media (max-width: 600px) {
-  #ml-root .ml-ambient__wisp:nth-child(n + 6) { display: none; }
+  #ml-root .ml-ambient { inset: 0; }
+  #ml-root .ml-ambient__veil { display: none; }
+  #ml-root .ml-ambient::before,
+  #ml-root .ml-ambient::after { display: none; }
+  #ml-root .ml-ambient__wisp:nth-child(n + 3) { display: none; }
+  #ml-root .ml-ambient,
+  #ml-root .ml-ambient *,
+  #ml-root .ml-ambient *::before,
+  #ml-root .ml-ambient *::after {
+    animation: none !important;
+    will-change: auto !important;
+  }
+  #ml-root[data-open="1"] .ml-ambient { display: none !important; }
 }
 
 #ml-root[data-motion="off"] .ml-ambient,

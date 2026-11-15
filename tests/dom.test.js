@@ -147,6 +147,14 @@ test("宿主不支持模糊时关闭 backdrop-filter", () => {
   assert.equal(plain.document.getElementById("ml-root").getAttribute("data-blur"), "on");
 });
 
+test("1.3.5 手机端：玻璃 100% 时模糊封顶 12px，桌面保留 32px", () => {
+  const seed = { v: 1, lang: "zh", motion: false, glass: 100 };
+  const { w: phone } = createEnv({ seed, width: 390, height: 844 });
+  assert.equal(phone.document.getElementById("ml-root").style.getPropertyValue("--ml-blur"), "12px");
+  const { w: desktop } = createEnv({ seed, width: 1024, height: 768 });
+  assert.equal(desktop.document.getElementById("ml-root").style.getPropertyValue("--ml-blur"), "32px");
+});
+
 test("宿主视觉档位：Smooth / Balanced 收窄模糊，Fancy 保留完整", () => {
   const seed = { v: 1, lang: "zh", motion: false, glass: 100 };
   const { w: smooth } = createEnv({ seed, host: true, hostCaps: { visualTier: "Smooth" } });

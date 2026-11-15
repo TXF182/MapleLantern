@@ -229,6 +229,7 @@
     var tier = state.host && state.host.visualTier;
     if (tier === "Smooth") { blur = Math.min(blur, 10); }
     else if (tier === "Balanced") { blur = Math.min(blur, 16); }
+    if (window.innerWidth > 0 && window.innerWidth <= 899) { blur = Math.min(blur, 12); }
     els.root.style.setProperty("--ml-surface-alpha", String(Math.max(.72, Math.min(1, alpha)).toFixed(3)));
     els.root.style.setProperty("--ml-blur", String(Math.round(blur)) + "px");
     els.root.style.setProperty("--ml-edge", String(.06 + glass * .0005));
@@ -1287,6 +1288,7 @@
     clearTimeout(moveTimer);
     moveTimer = setTimeout(function () {
       if (state.disposed) { return; }
+      applySettings();
       applyLayout();
       if (state.open) { renderActive(); }
     }, 150);
