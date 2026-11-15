@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.3");
+  assert.equal(boot.version, "1.3.4");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -657,7 +657,7 @@ test("effects.css：动效令牌/keyframes/工具类独立分区，组件文件�
   }
 });
 
-test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空与三层关断", () => {
+test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、中央留空与三层关断", () => {
   for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
     assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,180}--ml-fx-ambient-a'),
       "缺少环境粒子变量: " + theme);
@@ -669,6 +669,25 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空�
   assert.match(fx, /#ml-root \.ml-ambient__veil\s*\{[^}]*pointer-events:\s*none[^}]*animation:\s*ml-veil-flow/s,
     "整幅慢流层必须存在、不可点击且只跑 transform 动画");
   assert.match(fx, /@keyframes ml-veil-flow\s*\{/, "慢流层必须有 keyframes");
+  assert.match(fx, /#ml-root \.ml-ambient__sky\s*\{[^}]*z-index:\s*0[^}]*pointer-events:\s*none[^}]*opacity:\s*var\(--ml-sky-opacity/s,
+    "天空层必须在 root 底层、不可点击且可独立调亮");
+  assert.match(fx, /#ml-root \.ml-ambient__sky::before[\s\S]*?animation:\s*ml-sky-glow/s,
+    "天空层必须有会漂移的天光底");
+  assert.match(fx, /#ml-root \.ml-ambient__sky::after[\s\S]*?animation:\s*ml-sky-ribbon/s,
+    "天空层必须有第二条极光/光带，不能只靠静态渐变");
+  assert.match(fx, /@keyframes ml-sky-glow\s*\{/, "天光底必须有 keyframes");
+  assert.match(fx, /@keyframes ml-sky-ribbon\s*\{/, "极光带必须有 keyframes");
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+    assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,620}--ml-sky-a'),
+      "缺少主题天空变量: " + theme);
+  }
+  const starVar = fx.match(/--ml-sky-stars:\s*([\s\S]*?);/);
+  assert.ok(starVar && (starVar[1].match(/radial-gradient/g) || []).length >= 10,
+    "星空主题必须有一层独立星点，且不少于 10 颗");
+  for (const phase of ["dawn", "day", "dusk", "night"]) {
+    assert.match(fx, new RegExp('#ml-root\\[data-theme="auto"\\]\\[data-phase="' + phase + '"\\][\\s\\S]{0,260}--ml-sky-a'),
+      "auto 的天空色必须跟随游戏时段: " + phase);
+  }
   for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
     assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,520}--ml-veil-a'),
       "缺少主题慢流变量: " + theme);
@@ -683,6 +702,10 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空�
   }
   assert.match(fx, /#ml-root\[data-theme="auto"\] \.ml-ambient::after/,
     "auto 必须有一条会移动的天光带，不能只靠静态渐变");
+  assert.match(fx, /#ml-root\[data-theme="auto"\] \.ml-ambient::before[\s\S]{0,520}var\(--ml-sky-a/,
+    "auto 地平光必须吃 data-phase 天空变量，夜里不能留固定暖橙");
+  assert.match(fx, /#ml-root\[data-theme="auto"\] \.ml-ambient::after[\s\S]{0,900}var\(--ml-sky-c/,
+    "auto 天光带必须吃 data-phase 天空变量，白天/夜晚要换色");
   assert.match(fx, /@keyframes ml-sky-band\s*\{/, "天光带必须有 keyframes");
   assert.match(index, /els\.root\.setAttribute\("data-phase", phase\)/,
     "render 必须把游戏时段挂到根节点，否则 CSS 分时段配色永远不生效");
@@ -712,6 +735,8 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空�
   assert.match(index, /"ml-ambient__veil"/);
   assert.match(index, /jitterAmbient\(ambient\)[\s\S]{0,180}"ml-ambient__veil"/,
     "慢流层必须在粒子抖动之后追加，不能改变 1~8 号粒子的锚点");
+  assert.match(index, /jitterAmbient\(ambient\)[\s\S]{0,320}"ml-ambient__veil"[\s\S]{0,240}"ml-ambient__sky"/,
+    "天空层必须在慢流层之后追加，不能改变 1~8 号粒子与 veil 的顺序");
   assert.match(index, /jitterAmbient\(ambient\)/, "每次挂载必须做一次边缘随机抖动，避免雾团固定不动");
   assert.match(index, /--ml-wisp-delay/, "随机抖动必须写入粒子相位变量");
   assert.match(index, /els\.ambient\.hidden = !state\.settings\.motion/,

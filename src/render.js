@@ -343,6 +343,9 @@
     jitterAmbient(ambient);
     /* 第 9 个节点是整幅慢流层，不参与粒子随机；只做一条 CSS transform 动画。 */
     ambient.appendChild(el("span", "ml-ambient__veil", { "data-layer": "veil" }));
+    /* 第 10 个节点是天光底：放在 veil 之后，不改变 1~8 号粒子与 veil 的顺序；
+       只加一个 CSS 层，星点/极光全部由伪元素承担，移动端不增加 JS 计算。 */
+    ambient.appendChild(el("div", "ml-ambient__sky", { "data-layer": "sky", "aria-hidden": "true" }));
 
     var orb = el("button", "ml-orb", {
       type: "button",

@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.3 补丁基线（基于 tag `v1.3.2`）；127/127 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
+> 最后核对：2026-11-15 / 1.3.4 天空层基线（基于 1.3.3 tag）；127/127 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -190,24 +190,27 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.3.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.4.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.3.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.4.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
 
-当前实测（2026-11-15，1.3.3 补丁包 113,083 B / 8 条目，SHA256 `328d034d88b7454654d37b270ba52901ef040c99c316f18e7e7096127203ad65`）：
+当前实测（2026-11-15，1.3.4 天空层包 114,992 B / 8 条目，SHA256 `46a5df859d785ec9e37660feecf2e3f4f4e7b98fb83590e2a6c2f920fa60bcef`）：
 
 - `node --test tests\*.test.js`：**127 / 127 PASS**。
-- `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 / 1.3.1 / 1.3.2 基线一致。
-- `ML_ZIP=dist\MapleLantern-1.3.3.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS，注入版本 `1.3.3`。
-- 顶栏两行网格探针（1.3.3 包，540×1170 展开侧栏，强制 `#stats` 宽 280/216/180，金额 `£9,474.99`、日期 `星期日 9月4日`）：280 下 row `264×67`、toggle `28×67`、money `172×32`、time `58×32`、day `233×32`；216 下 money `108`、day `169`；180 下 money `72`、day `133`。三档 `scrollWidth ≤ clientWidth`，无裁切；`#stats` 恒 72 高，不把状态卡下推。
+- `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 / 1.3.1 / 1.3.2 / 1.3.3 基线一致。
+- `ML_ZIP=dist\MapleLantern-1.3.4.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS。
+- 天空层探针（390×844，`prototype/index.html?hud=0&theme=<theme>`）：`skyRect 491×945`（随 ambient 的 `inset:-6vmax` 外扩盒），`z-index:0`；`::before` 为 `ml-sky-glow`（实测 24/30/32/36s 随主题），`mask` 上 48%，背景含 `linear-gradient(180deg, --ml-sky-c2, transparent 42%)` + 双径向 + `--ml-sky-stars`；`::after` 为 `ml-sky-ribbon`，`mask` 下缘 66–92%，背景含 `radial-gradient(56% 38% at 50% 104%, --ml-sky-a, transparent 74%)` + 104° 斜带。实测 `--ml-sky-opacity`：auto `.62`、star `.68`、cyberpunk `.58`、fog `.70`。
+- `auto` 四时段变量实测：dawn `rgba(255,196,120,.48)` / `rgba(255,143,112,.30)` / `rgba(255,228,180,.28)`；day `rgba(126,190,255,.36)` / `rgba(255,255,255,.24)` / `rgba(126,214,200,.22)`；dusk `rgba(255,150,90,.46)` / `rgba(255,110,150,.30)` / `rgba(255,205,130,.26)`；night `rgba(120,150,255,.34)` / `rgba(90,210,220,.24)` / `rgba(255,255,255,.20)`，night 另有 6 颗 `--ml-sky-stars`。
+- `auto` 旧地平光/天光带已改吃同一组变量（390×844 计算样式回读）：`::before` dawn `rgba(255,196,120,.48)`→night `rgba(120,150,255,.34)`；`::after` dawn 奶白 `rgba(255,228,180,.28)`→day 青 `rgba(126,214,200,.22)`→night 蓝白 `rgba(255,255,255,.20)`，不再固定暖橙。
+- 1.3.3 顶栏两行网格探针（1.3.3 包，540×1170 展开侧栏，强制 `#stats` 宽 280/216/180，金额 `£9,474.99`、日期 `星期日 9月4日`）：280 下 row `264×67`、toggle `28×67`、money `172×32`、time `58×32`、day `233×32`；216 下 money `108`、day `169`；180 下 money `72`、day `133`。三档 `scrollWidth ≤ clientWidth`，无裁切；`#stats` 恒 72 高，不把状态卡下推。
 - 合成 CE 几何探针（1.3.2/1.3.3 包，540×1170 / 360×780）：540 `#customOverlay` `x=0,y=10,w=524,h=1150`、`left/right=0`，content `x=8,w=508`，CE `x=17,w=490`；360 `x=0,y=10,w=344,h=760`，content `x=8,w=328`，CE `x=17,w=310`；容器 `visibility=visible` / `pointer=auto`，`#story` hidden，`errors=[]`。
 - Edge 计算样式探针：`effects.css` token `.2s` / `.46s` / `cubic-bezier(.16, 1, .3, 1)` 可读，雾港 `#ml-panel::after`=`ml-panel-ambient`、`#ui-bar`=`mln-bar-drift`，关断后全 `none`。
-- 主题环境层探针（390/1280）：`#ml-root .ml-ambient` 8 颗粒子 + 1 层 veil、mobile 5 颗粒子可见、`pointer-events:none`、`z-index:0`；雾港 ambient `1.0`、veil `.44`，打开面板后 ambient 降到 `.55`；`auto` 根节点带 `data-phase`，`::after` 天光带动画名为 `ml-sky-band`。
+- 主题环境层探针（390/1280）：`#ml-root .ml-ambient` 为 8 颗粒子 + 1 层 veil + 1 层 sky（共 10 个节点）、mobile 5 颗粒子可见、`pointer-events:none`、`z-index:0`；雾港 ambient `1.0`、veil `.44`，打开面板后 ambient 降到 `.55`；`auto` 根节点带 `data-phase`，环境层 `::after` 天光带动画名为 `ml-sky-band`，天空层 `::after` 为 `ml-sky-ribbon`。
 
 ## 6. 错误台账
 

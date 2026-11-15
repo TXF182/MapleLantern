@@ -146,6 +146,7 @@
   border-radius: 50%;
   background: radial-gradient(closest-side, var(--ml-wisp-tone, var(--ml-fx-ambient-a)), transparent 72%);
   opacity: .5;
+  z-index: 1;
   animation: ml-ambient-drift var(--ml-fx-ambient-speed, 30s) ease-in-out infinite alternate;
   animation-delay: var(--ml-wisp-delay, -8s);
 }
@@ -191,12 +192,66 @@
   inset: -14%;
   pointer-events: none;
   opacity: var(--ml-veil-opacity, .26);
+  z-index: 1;
   background:
     radial-gradient(44% 34% at 18% 22%, var(--ml-veil-a, transparent), transparent 72%),
     radial-gradient(52% 38% at 82% 78%, var(--ml-veil-b, transparent), transparent 74%);
   transform: translate3d(0, 0, 0) scale(1.04);
   animation: ml-veil-flow var(--ml-veil-speed, 38s) var(--ml-fx-ease-out, ease) infinite alternate;
   will-change: transform;
+}
+
+/* 天空底：在第 10 个节点上只做两条天光层，星点/极光交给伪元素。
+   放在 veil 之后但 z-index:0，所以粒子/慢流仍在其上；中央正文由 mask 避开，
+   既能把“天”读出来，又不压住选项与状态文字。 */
+#ml-root .ml-ambient__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: var(--ml-sky-opacity, .62);
+  contain: paint style;
+  transform: translateZ(0);
+}
+
+#ml-root .ml-ambient__sky::before {
+  content: "";
+  position: absolute;
+  inset: -12% -8% auto -8%;
+  height: 66%;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, var(--ml-sky-c2, transparent) 0%, transparent 42%),
+    radial-gradient(58% 62% at 16% 6%, var(--ml-sky-a, transparent), transparent 72%),
+    radial-gradient(46% 54% at 84% -2%, var(--ml-sky-b, transparent), transparent 74%),
+    var(--ml-sky-stars, none);
+  opacity: .72;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 48%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 48%, transparent 100%);
+  animation: ml-sky-glow var(--ml-sky-speed, 34s) ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+#ml-root .ml-ambient__sky::after {
+  content: "";
+  position: absolute;
+  inset: -16% -10%;
+  pointer-events: none;
+  background:
+    radial-gradient(56% 38% at 50% 104%, var(--ml-sky-a, transparent), transparent 74%),
+    linear-gradient(104deg,
+      transparent 0 24%,
+      var(--ml-sky-c, transparent) 34%,
+      var(--ml-sky-c2, var(--ml-sky-c, transparent)) 37%,
+      var(--ml-sky-c, transparent) 40%,
+      transparent 50% 100%);
+  opacity: .38;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0 48%, #000 66% 92%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0 48%, #000 66% 92%, transparent 100%);
+  animation: ml-sky-ribbon var(--ml-sky-speed, 34s) ease-in-out infinite alternate-reverse;
+  will-change: transform, opacity;
 }
 
 /* ---- 主题参数：只改变量，不复制结构 ---- */
@@ -327,6 +382,105 @@
   --ml-veil-speed: 32s;
 }
 
+/* ---- 天空层参数：九主题共用一层，只改变量；数值比旧环境层高一档，
+   让“天”在手机空白区能被看见，同时仍低于正文与面板的对比度。 ---- */
+
+#ml-root[data-theme="cyberpunk"] {
+  --ml-sky-a: rgba(0, 229, 255, .42);
+  --ml-sky-b: rgba(255, 61, 154, .28);
+  --ml-sky-c: rgba(0, 229, 255, .26);
+  --ml-sky-c2: rgba(255, 61, 154, .24);
+  --ml-sky-opacity: .58;
+  --ml-sky-speed: 24s;
+}
+
+#ml-root[data-theme="auto"] {
+  --ml-sky-a: rgba(255, 205, 140, .42);
+  --ml-sky-b: rgba(126, 214, 200, .26);
+  --ml-sky-c: rgba(255, 246, 224, .24);
+  --ml-sky-c2: rgba(255, 205, 140, .30);
+  --ml-sky-opacity: .62;
+  --ml-sky-speed: 32s;
+}
+
+#ml-root[data-theme="amber"] {
+  --ml-sky-a: rgba(227, 178, 95, .46);
+  --ml-sky-b: rgba(255, 255, 255, .20);
+  --ml-sky-c: rgba(255, 153, 74, .26);
+  --ml-sky-c2: rgba(255, 228, 180, .22);
+  --ml-sky-opacity: .56;
+  --ml-sky-speed: 34s;
+}
+
+#ml-root[data-theme="jade"] {
+  --ml-sky-a: rgba(95, 191, 172, .36);
+  --ml-sky-b: rgba(220, 255, 247, .18);
+  --ml-sky-c: rgba(127, 214, 197, .22);
+  --ml-sky-c2: rgba(220, 255, 247, .14);
+  --ml-sky-opacity: .48;
+  --ml-sky-speed: 38s;
+}
+
+#ml-root[data-theme="graphite"] {
+  --ml-sky-a: rgba(201, 205, 212, .20);
+  --ml-sky-b: rgba(255, 255, 255, .12);
+  --ml-sky-c: rgba(120, 130, 140, .14);
+  --ml-sky-c2: rgba(255, 255, 255, .10);
+  --ml-sky-opacity: .36;
+  --ml-sky-speed: 42s;
+}
+
+#ml-root[data-theme="star"] {
+  --ml-sky-a: rgba(143, 166, 255, .50);
+  --ml-sky-b: rgba(255, 255, 255, .30);
+  --ml-sky-c: rgba(111, 224, 210, .26);
+  --ml-sky-c2: rgba(143, 166, 255, .30);
+  --ml-sky-opacity: .68;
+  --ml-sky-speed: 30s;
+  --ml-sky-stars:
+    radial-gradient(2.0px 2.0px at 12% 16%, rgba(255, 255, 255, .95), transparent 100%),
+    radial-gradient(1.7px 1.7px at 28% 9%, rgba(255, 255, 255, .88), transparent 100%),
+    radial-gradient(2.2px 2.2px at 46% 22%, rgba(214, 228, 255, .92), transparent 100%),
+    radial-gradient(1.5px 1.5px at 63% 8%, rgba(255, 255, 255, .82), transparent 100%),
+    radial-gradient(2.4px 2.4px at 78% 18%, rgba(255, 255, 255, .96), transparent 100%),
+    radial-gradient(1.8px 1.8px at 91% 10%, rgba(206, 224, 255, .88), transparent 100%),
+    radial-gradient(1.8px 1.8px at 6% 42%, rgba(255, 255, 255, .78), transparent 100%),
+    radial-gradient(2.1px 2.1px at 22% 55%, rgba(255, 255, 255, .90), transparent 100%),
+    radial-gradient(1.6px 1.6px at 40% 38%, rgba(214, 228, 255, .80), transparent 100%),
+    radial-gradient(2.3px 2.3px at 58% 52%, rgba(255, 255, 255, .94), transparent 100%),
+    radial-gradient(1.9px 1.9px at 74% 40%, rgba(255, 255, 255, .84), transparent 100%),
+    radial-gradient(2.0px 2.0px at 88% 56%, rgba(214, 228, 255, .90), transparent 100%),
+    radial-gradient(1.4px 1.4px at 34% 66%, rgba(255, 255, 255, .72), transparent 100%),
+    radial-gradient(1.5px 1.5px at 66% 70%, rgba(255, 255, 255, .76), transparent 100%);
+}
+
+#ml-root[data-theme="fog"] {
+  --ml-sky-a: rgba(188, 210, 214, .54);
+  --ml-sky-b: rgba(231, 182, 107, .28);
+  --ml-sky-c: rgba(121, 201, 190, .30);
+  --ml-sky-c2: rgba(188, 210, 214, .24);
+  --ml-sky-opacity: .70;
+  --ml-sky-speed: 36s;
+}
+
+#ml-root[data-theme="school"] {
+  --ml-sky-a: rgba(255, 255, 255, .28);
+  --ml-sky-b: rgba(201, 174, 114, .18);
+  --ml-sky-c: rgba(127, 156, 132, .16);
+  --ml-sky-c2: rgba(255, 255, 255, .12);
+  --ml-sky-opacity: .40;
+  --ml-sky-speed: 40s;
+}
+
+#ml-root[data-theme="paper"] {
+  --ml-sky-a: rgba(109, 95, 80, .26);
+  --ml-sky-b: rgba(255, 255, 255, .14);
+  --ml-sky-c: rgba(169, 54, 42, .12);
+  --ml-sky-c2: rgba(255, 255, 255, .10);
+  --ml-sky-opacity: .36;
+  --ml-sky-speed: 44s;
+}
+
 /* auto 主题“天光”：默认主题跟随游戏时段换气。只改环境色，不动正文与面板，
    让默认主题在黎明/白天/黄昏/夜晚都有可见但可忽略的底色流动。 */
 #ml-root[data-theme="auto"][data-phase="dawn"] {
@@ -335,6 +489,10 @@
   --ml-fx-ambient-c: rgba(126, 214, 200, .18);
   --ml-veil-a: rgba(255, 196, 120, .26);
   --ml-veil-b: rgba(126, 214, 200, .17);
+  --ml-sky-a: rgba(255, 196, 120, .48);
+  --ml-sky-b: rgba(255, 143, 112, .30);
+  --ml-sky-c: rgba(255, 228, 180, .28);
+  --ml-sky-c2: rgba(255, 255, 255, .24);
 }
 
 #ml-root[data-theme="auto"][data-phase="day"] {
@@ -343,6 +501,10 @@
   --ml-fx-ambient-c: rgba(126, 214, 200, .16);
   --ml-veil-a: rgba(126, 190, 255, .24);
   --ml-veil-b: rgba(126, 214, 200, .15);
+  --ml-sky-a: rgba(126, 190, 255, .36);
+  --ml-sky-b: rgba(255, 255, 255, .24);
+  --ml-sky-c: rgba(126, 214, 200, .22);
+  --ml-sky-c2: rgba(255, 255, 255, .18);
 }
 
 #ml-root[data-theme="auto"][data-phase="dusk"] {
@@ -351,6 +513,10 @@
   --ml-fx-ambient-c: rgba(255, 205, 130, .16);
   --ml-veil-a: rgba(255, 150, 90, .25);
   --ml-veil-b: rgba(255, 110, 150, .16);
+  --ml-sky-a: rgba(255, 150, 90, .46);
+  --ml-sky-b: rgba(255, 110, 150, .30);
+  --ml-sky-c: rgba(255, 205, 130, .26);
+  --ml-sky-c2: rgba(255, 246, 224, .20);
 }
 
 #ml-root[data-theme="auto"][data-phase="night"] {
@@ -359,6 +525,17 @@
   --ml-fx-ambient-c: rgba(255, 255, 255, .14);
   --ml-veil-a: rgba(120, 150, 255, .22);
   --ml-veil-b: rgba(90, 210, 220, .15);
+  --ml-sky-a: rgba(120, 150, 255, .34);
+  --ml-sky-b: rgba(90, 210, 220, .24);
+  --ml-sky-c: rgba(255, 255, 255, .20);
+  --ml-sky-c2: rgba(120, 150, 255, .18);
+  --ml-sky-stars:
+    radial-gradient(1.8px 1.8px at 16% 18%, rgba(255, 255, 255, .88), transparent 100%),
+    radial-gradient(1.5px 1.5px at 42% 12%, rgba(255, 255, 255, .78), transparent 100%),
+    radial-gradient(2.0px 2.0px at 68% 22%, rgba(214, 228, 255, .88), transparent 100%),
+    radial-gradient(1.6px 1.6px at 86% 14%, rgba(255, 255, 255, .82), transparent 100%),
+    radial-gradient(1.7px 1.7px at 28% 48%, rgba(255, 255, 255, .72), transparent 100%),
+    radial-gradient(1.5px 1.5px at 74% 52%, rgba(255, 255, 255, .76), transparent 100%);
 }
 
 /* 粉笔灰/纸屑用小颗粒，位移必须按像素走；米制主题继续用百分比漂移。 */
@@ -386,18 +563,20 @@
   animation: ml-ember-pulse 10s ease-in-out infinite alternate;
 }
 
-/* auto 的地平线暖光：上缘留一条不压正文的暖带，和慢流层叠加。 */
+/* auto 的地平线暖光：上缘留一条不压正文的暖带，和慢流层叠加。
+   1.3.4 起改用 data-phase 天空变量，夜里不再留一条固定暖橙。 */
 #ml-root[data-theme="auto"] .ml-ambient::before {
   opacity: .70;
   background:
-    radial-gradient(46% 30% at 14% 84%, rgba(255, 196, 120, .20), transparent 70%),
-    radial-gradient(38% 24% at 84% 14%, rgba(126, 214, 200, .12), transparent 72%);
+    radial-gradient(46% 30% at 14% 84%, var(--ml-sky-a, rgba(255, 196, 120, .20)), transparent 70%),
+    radial-gradient(38% 24% at 84% 14%, var(--ml-sky-b, rgba(126, 214, 200, .12)), transparent 72%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0 8%, #000 26% 74%, transparent 92%);
   mask-image: linear-gradient(180deg, transparent 0 8%, #000 26% 74%, transparent 92%);
   animation: ml-ember-pulse 14s ease-in-out infinite alternate;
 }
 
-/* auto 的“天光带”：一条斜向暖/青双色光带缓慢扫过右上空白，补足默认主题的存在感。 */
+/* auto 的“天光带”：一条斜向光带缓慢扫过空白区。
+   1.3.4 起同样吃 data-phase 天空变量，黎明暖橙、白天蓝白、黄昏橙粉、夜晚蓝青。 */
 #ml-root[data-theme="auto"] .ml-ambient::after {
   content: "";
   position: absolute;
@@ -405,8 +584,13 @@
   pointer-events: none;
   opacity: .58;
   background:
-    linear-gradient(108deg, transparent 0 26%, rgba(255, 205, 140, .22) 35%, rgba(255, 246, 224, .38) 38%, rgba(255, 205, 140, .18) 41%, transparent 50% 100%),
-    radial-gradient(50% 28% at 24% 20%, rgba(126, 214, 200, .18), transparent 72%);
+    linear-gradient(108deg,
+      transparent 0 26%,
+      var(--ml-sky-c, rgba(255, 205, 140, .18)) 35%,
+      var(--ml-sky-c2, rgba(255, 246, 224, .24)) 38%,
+      var(--ml-sky-c, rgba(255, 205, 140, .18)) 41%,
+      transparent 50% 100%),
+    radial-gradient(50% 28% at 24% 20%, var(--ml-sky-b, rgba(126, 214, 200, .12)), transparent 72%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 90%, transparent 100%);
   mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 90%, transparent 100%);
   animation: ml-sky-band 26s var(--ml-fx-ease-out, ease) infinite alternate;
@@ -546,6 +730,19 @@ html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-head::after {
   0% { transform: translate3d(-6%, 2%, 0) scale(1.04); opacity: .28; }
   50% { opacity: .48; }
   100% { transform: translate3d(6%, -2%, 0) scale(1.10); opacity: .34; }
+}
+
+/* 天空底：两条低速层，只动 transform/opacity；36s 级，手机上也不会明显耗电。 */
+@keyframes ml-sky-glow {
+  0% { transform: translate3d(-3%, 1%, 0) scale(1.02); opacity: .50; }
+  50% { opacity: .80; }
+  100% { transform: translate3d(4%, -2%, 0) scale(1.08); opacity: .58; }
+}
+
+@keyframes ml-sky-ribbon {
+  0% { transform: translate3d(-7%, 2%, 0) rotate(-1.5deg) scale(1.02); opacity: .16; }
+  50% { opacity: .34; }
+  100% { transform: translate3d(7%, -2%, 0) rotate(1.5deg) scale(1.07); opacity: .22; }
 }
 
 @keyframes ml-dust-drift {

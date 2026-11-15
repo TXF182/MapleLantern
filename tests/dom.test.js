@@ -21,14 +21,16 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "灯台分类");
 });
 
-test("环境层：8 颗粒子 + 1 层慢流，动效关闭时整层 hidden", () => {
+test("环境层：8 颗粒子 + 天空层 + 1 层慢流，动效关闭时整层 hidden", () => {
   const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   const ambient = on.w.document.querySelector("#ml-root .ml-ambient");
   assert.ok(ambient, "缺主题环境层");
   assert.equal(ambient.getAttribute("aria-hidden"), "true");
   assert.equal(ambient.querySelectorAll(".ml-ambient__wisp").length, 8, "桌面固定 8 颗粒子");
   assert.ok(ambient.querySelector(".ml-ambient__veil"), "必须有一层整幅慢流");
-  assert.equal(ambient.children.length, 9, "8 颗粒子 + 1 层慢流，不重复建层");
+  assert.ok(ambient.querySelector('.ml-ambient__sky[data-layer="sky"]'), "必须有一层天空底");
+  assert.equal(ambient.children.length, 10, "8 颗粒子 + 1 层慢流 + 1 层天空底，不重复建层");
+  assert.equal(ambient.lastElementChild.className, "ml-ambient__sky", "天空层最后追加，不改变 1~8 号粒子锚点");
   assert.equal(ambient.hidden, false, "动效开启时应参与渲染");
 
   const off = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
