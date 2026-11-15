@@ -1,12 +1,12 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.0 开发基线（基于 1.2.0 发布版，未发布）；主题、动效与代码分区改动在工作树，HEAD `f7213b9`，123/123 PASS
+> 最后核对：2026-11-15 / 1.3.1 发布基线（tag `v1.3.1`）；126/126 PASS，`check_ui_mod` 13 PASS / 1 WARN / 0 FAIL，game-smoke 18 项 PASS
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
-## 1. 当前几何基线（v1.2.0 起，1.3.0 沿用）
+## 1. 当前几何基线（v1.2.0 起，1.3.0/1.3.1 沿用）
 
-v1.2.0 起的立绘与侧栏**完全走游戏原生**，1.3.0 沿用，不重写画布。任何缩放、432 或 540 视口都不应再改变这套几何。
+v1.2.0 起的立绘与侧栏**完全走游戏原生**，1.3.0/1.3.1 沿用，不重写画布。任何缩放、432 或 540 视口都不应再改变这套几何。
 
 | 区域 | 当前规则 | 说明 |
 |---|---|---|
@@ -79,7 +79,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 
 装载顺序：按 O0O README，放在其他图像包之后；MapleLantern 放前放后均可。若手机卡顿，优先做 O0O 的按需加载补丁，不要改灯台几何。
 
-## 4. 主题扩展：雾港 / 旧校舍 / 纸灯（1.3.0，未发布）
+## 4. 主题扩展：雾港 / 旧校舍 / 纸灯（1.3.0 已发布）
 
 主题从 6 套扩到 **9 项**（`auto` + 8 套）。新增三套的接入点固定为五处，少一处就会“设置里能选、实际只换一半”：
 
@@ -145,7 +145,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 - 游戏内 Bedroom：`prototype/shots/theme-fog-game-540.png` / `theme-school-game-540.png` / `theme-paper-game-540.png`（上一轮静态，未随动效重拍）
 - 原生几何实测：`#ui-bar 281`、`#img 216×192`、`canvas 256×256`、`#stats 280×72`
 
-### 动效层（1.3.0，未发布）
+### 动效层（1.3.0/1.3.1 已发布）
 
 三套主题的动效全部是 CSS，不读 `capabilities.reducedMotion`，也不改任何业务状态。
 
@@ -190,22 +190,22 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ```powershell
 node --test tests\*.test.js
 pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.0.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.3.1.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.0.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.1.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
 
-当前实测（2026-11-15，1.3.0 正式包 107,985 B / 8 条目，SHA256 `955ef43920eb6c590d4a16586978d20cf9cdc16a70855d6722d642844fd96e00`；两次打包哈希一致）：
+当前实测（2026-11-15，1.3.1 正式包 111,798 B / 8 条目，SHA256 `30533a4c767592d7bc03a5b405779065da1bf5ee367b0a83eab138a9e5716eb2`；两次打包哈希一致）：
 
-- `node --test tests\*.test.js`：**123 / 123 PASS**。
+- `node --test tests\*.test.js`：**126 / 126 PASS**。
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**；唯一 WARN 仍是 `maplelantern-native.js` 引用 `window.DoLGameUI` 但未声明 `StoneFreeHost` 依赖，与 1.2.0 / 1.3.0 基线一致。
-- `ML_ZIP=dist\MapleLantern-1.3.0.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS。
+- `ML_ZIP=dist\MapleLantern-1.3.1.mod.zip node tools\game-smoke.js`：**SMOKE: PASS**，18 项断言全 PASS。
 - Edge 计算样式探针：`effects.css` token `.2s` / `.46s` / `cubic-bezier(.16, 1, .3, 1)` 可读，雾港 `#ml-panel::after`=`ml-panel-ambient`、`#ui-bar`=`mln-bar-drift`，关断后全 `none`。
-- 主题环境层探针（390/1280）：`#ml-root .ml-ambient` 8 颗节点、mobile 5 颗可见、`pointer-events:none`、`z-index:0`；雾港 `::after` 呼吸层 `ml-fog-breathe` 生效；中心点位命中 `story`，环境层不拦截正文。面板打开后雾港 ambient `0.9 → 0.495`（`.55` 降亮规则），星空 `::after` 动画名为 `ml-star-meteor`。
+- 主题环境层探针（390/1280）：`#ml-root .ml-ambient` 8 颗粒子 + 1 层 veil、mobile 5 颗粒子可见、`pointer-events:none`、`z-index:0`；雾港 ambient `1.0`、veil `.44`，打开面板后 ambient 降到 `.55`；`auto` 根节点带 `data-phase`，`::after` 天光带动画名为 `ml-sky-band`。
 
 ## 6. 错误台账
 
@@ -272,3 +272,20 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 根因：探针按主题串行截图，上一轮为拍原生侧栏光带点了 `#ui-bar-toggle` 展开，下一轮没有恢复 `stowed`；同时鼠标停在上一个主题按钮上，`:hover` 残留，两个状态被带进下一张图。
 - 修复：每轮设置页截图前若 `#ui-bar` 非 `stowed` 则点回收起；截图前 `page.mouse.move(1,1)` 清 hover；原生截图再单独展开侧栏。
 - 防复发：视觉脚本必须把“页面状态”与“产品状态”分开记录；截图前显式复位 hover、抽屉、滚动与展开态，不能只靠上一步自然结束。
+
+### ERR-20261115-001 `layout.mobile-story-two-char-column`
+
+- 状态：**fixed**（1.3.1）
+- 现象：手机展开侧栏后，右侧正文被压成两字一列，立绘/状态卡同时错位。
+- 根因：`src/maplelantern-native.css` 的 `@media (max-width:632px)` 里写着 `html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story { margin-left:17.5em !important; }`。该规则由 `c20205f`（v1.1.25）引入；360 视口只剩约 64px，扣掉 `.passage` 左右 padding 后约两字宽。
+- 反证：1.2.0 官方包 `maplelantern-native.css` 528–532 行同样有这条规则，所以 1.2 不是“没写”，而是 `body.has-images` + 侧栏展开 + `<=632px` 三个条件未同时成立，未显形。
+- 修复：删除 17.5em 覆盖；`<=560px` 改为抽屉语义，侧栏**实际可见**时隐藏 `#story` 并断 `pointer-events`，收起立即恢复。是否可见由 `syncSidebar()` 读 `display/visibility/opacity/getBoundingClientRect()` 后挂 `data-ml-sidebar-open`，不再按 `.stowed` class 猜——侧栏自身 `display:none` 时不会误隐藏正文。
+- 防复发：窄屏侧栏只能二选一，要么并排且给正文留足宽度，要么抽屉隐藏正文；不得用 `margin-left` 把正文压到两字宽。
+
+### ERR-20261115-002 `overlay.native-cheat-layer-stacks-lantern`
+
+- 状态：**fixed**（1.3.1）
+- 现象：点开模组作弊/原生菜单后，`#customOverlay` 与灯台浮卡同屏叠加，中央菜单被左侧浮卡裁切。
+- 根因：原生层由 CE 异步挂载，正文观察器看不到 `#customOverlay` 子树；浮卡只按自身开关判断是否退场。
+- 修复：`nativeLayerVisible(overlay)` 同时看 `hidden`、计算样式与几何；`watchOverlay()` 维护 `state.overlayVisible`，隐藏→可见跳变时调用 `MapleLantern.close()`；原生入口点击后 80ms 再按真实几何补关，覆盖观察器来不及的首帧；`ensureOverlayFinder()` 在 `#customOverlay` 节点换代时重挂。
+- 防复发：原生弹层与自有浮层不得只靠 class 判断可见性；必须读真实几何，并覆盖“节点重建”与“点击后异步挂载”两条路径。

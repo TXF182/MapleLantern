@@ -1178,8 +1178,8 @@
 /* ---------------------------------------------------------------- 抽屉模式 */
 
 #ml-root[data-sheet="1"] .ml-panel {
-  left: var(--ml-safe-l);
-  right: var(--ml-safe-r);
+  left: max(var(--ml-safe-l), 8px);
+  right: max(var(--ml-safe-r), 8px);
   top: auto;
   bottom: 0;
   width: auto;
@@ -1193,6 +1193,45 @@
   background-image: linear-gradient(180deg, rgba(38, 31, 20, .35) 0%, rgba(11, 13, 16, 0) 22%);
 }
 #ml-root[data-sheet="1"] .ml-panel[data-open="1"] { transform: translateY(var(--ml-sheet-drag, 0px)); }
+
+/* 横屏 / 矮屏：不要拉成 844px 全宽横条。收成居中 560px 抽屉，
+   并允许占 92dvh，让正文区多出一屏可滚动内容。 */
+@media (orientation: landscape) and (max-height: 520px) {
+  #ml-root[data-sheet="1"] .ml-panel {
+    left: 50%;
+    right: auto;
+    width: min(560px, calc(100vw - 16px));
+    max-height: 92dvh;
+    transform: translate(-50%, 100%);
+  }
+  #ml-root[data-sheet="1"] .ml-panel[data-open="1"] {
+    transform: translate(-50%, var(--ml-sheet-drag, 0px));
+  }
+}
+
+/* 320 级小屏：左右收 6px 安全边，头部与正文各降一档内边距；
+   圆环缩到 88，保证 320×568 下页签、金额卡、状态卡不被挤成横向滚动。 */
+@media (max-width: 360px) {
+  #ml-root[data-sheet="1"] .ml-panel {
+    left: max(var(--ml-safe-l), 6px);
+    right: max(var(--ml-safe-r), 6px);
+  }
+  #ml-root[data-sheet="1"] .ml-head {
+    padding: 10px 10px 8px 12px;
+    gap: 8px;
+  }
+  #ml-root[data-sheet="1"] .ml-brand { gap: 8px; }
+  #ml-root[data-sheet="1"] .ml-body { padding: 12px 12px 16px; }
+  #ml-root[data-sheet="1"] .ml-foot {
+    padding-left: 12px;
+    padding-right: 12px;
+    font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  }
+  #ml-root[data-sheet="1"] .ml-ring { width: 88px; height: 88px; }
+  #ml-root[data-sheet="1"] .ml-ring-time {
+    font-size: calc(22px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  }
+}
 #ml-root[data-sheet="1"] .ml-grip {
   display: block;
   height: 18px;

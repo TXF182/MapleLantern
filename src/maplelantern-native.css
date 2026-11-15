@@ -773,12 +773,18 @@ html[data-ml-native="on"] body.has-images #storyCaptionContent {
   width: 100% !important;
 }
 
-/* 390px 级窄屏：展开侧栏宽 17.5em，而原版 <=632px 只给 #story 3em
-   左边距，主内容会被压在侧栏下面，只剩右侧一条可见。展开态改为从
-   侧栏右缘起排；stowed 仍走原版 3em，不改变收起行为。 */
-@media screen and (max-width: 632px) {
-  html[data-ml-native="on"] body.has-images #ui-bar:not(.stowed) ~ #story {
-    margin-left: 17.5em !important;
+/* 窄屏侧栏是抽屉，不是并排栏。原版 <=632px 只给 #story 3em 左边距；
+   早前把它改成 17.5em 后，360 级视口里 #story 只剩约 64px，扣
+   .passage 左右 padding 后正文只剩两个字宽。这里不再改原版边距，
+   改用与面板抽屉同一阈值（<=560px）：侧栏展开时把正文让给抽屉，
+   隐藏正文、保留其布局与滚动位置，收起侧栏立即恢复。561–632 仍按
+   原版 3em，正文在侧栏右侧可见，不做额外覆盖。
+   是否展开由 JS 读真实几何后挂 data-ml-sidebar-open；不按
+   #ui-bar:not(.stowed) 猜，避免侧栏本身 display:none 时误隐藏正文。 */
+@media screen and (max-width: 560px) {
+  html[data-ml-native="on"][data-ml-sidebar-open="1"] #story {
+    visibility: hidden !important;
+    pointer-events: none !important;
   }
 }
 

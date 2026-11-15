@@ -101,6 +101,7 @@
  * 中央正文留空；pointer-events:none / aria-hidden 保证不拦截游玩与焦点。
  * 每颗粒子只动 transform/opacity；不用 filter: blur()，移动端 GPU 成本更低。
  * 粒子数：桌面 8 颗；≤600px 隐藏 6~8 号，留 5 颗。
+ * 额外一层 veil 做整幅慢流，补足“雾在走、光在移”的流动性；仍然只有 1 个节点。
  */
 
 #ml-root .ml-ambient {
@@ -183,96 +184,181 @@
   --ml-wisp-tone: var(--ml-fx-ambient-c);
 }
 
+/* 整幅慢流层：一张双径向渐变在 30–46s 内平移/缩放，负责“空气在动”的底噪。
+   只做 transform，不动 filter；pointer-events 永久关闭。 */
+#ml-root .ml-ambient__veil {
+  position: absolute;
+  inset: -14%;
+  pointer-events: none;
+  opacity: var(--ml-veil-opacity, .26);
+  background:
+    radial-gradient(44% 34% at 18% 22%, var(--ml-veil-a, transparent), transparent 72%),
+    radial-gradient(52% 38% at 82% 78%, var(--ml-veil-b, transparent), transparent 74%);
+  transform: translate3d(0, 0, 0) scale(1.04);
+  animation: ml-veil-flow var(--ml-veil-speed, 38s) var(--ml-fx-ease-out, ease) infinite alternate;
+  will-change: transform;
+}
+
 /* ---- 主题参数：只改变量，不复制结构 ---- */
 
 #ml-root[data-theme="cyberpunk"] {
-  --ml-fx-ambient-a: rgba(0, 229, 255, .10);
-  --ml-fx-ambient-b: rgba(255, 61, 154, .07);
-  --ml-fx-ambient-c: rgba(88, 255, 214, .05);
-  --ml-fx-ambient-w: 34vmax;
-  --ml-fx-ambient-h: 26vmax;
+  --ml-fx-ambient-a: rgba(0, 229, 255, .16);
+  --ml-fx-ambient-b: rgba(255, 61, 154, .11);
+  --ml-fx-ambient-c: rgba(88, 255, 214, .08);
+  --ml-fx-ambient-w: 36vmax;
+  --ml-fx-ambient-h: 28vmax;
   --ml-fx-ambient-speed: 22s;
-  --ml-fx-ambient-opacity: .68;
+  --ml-fx-ambient-opacity: .80;
+  --ml-veil-a: rgba(0, 229, 255, .10);
+  --ml-veil-b: rgba(255, 61, 154, .07);
+  --ml-veil-opacity: .28;
+  --ml-veil-speed: 26s;
 }
 
 #ml-root[data-theme="auto"] {
-  --ml-fx-ambient-a: var(--ml-accent-soft, rgba(227, 178, 95, .08));
-  --ml-fx-ambient-b: rgba(255, 255, 255, .03);
-  --ml-fx-ambient-c: rgba(121, 201, 190, .04);
-  --ml-fx-ambient-w: 28vmax;
-  --ml-fx-ambient-h: 22vmax;
-  --ml-fx-ambient-speed: 30s;
-  --ml-fx-ambient-opacity: .55;
+  --ml-fx-ambient-a: rgba(227, 178, 95, .28);
+  --ml-fx-ambient-b: rgba(255, 255, 255, .16);
+  --ml-fx-ambient-c: rgba(121, 201, 190, .18);
+  --ml-fx-ambient-w: 34vmax;
+  --ml-fx-ambient-h: 28vmax;
+  --ml-fx-ambient-speed: 26s;
+  --ml-fx-ambient-opacity: .84;
+  --ml-veil-a: rgba(227, 178, 95, .24);
+  --ml-veil-b: rgba(121, 201, 190, .16);
+  --ml-veil-opacity: .42;
+  --ml-veil-speed: 28s;
 }
 
 #ml-root[data-theme="amber"] {
-  --ml-fx-ambient-a: rgba(227, 178, 95, .11);
-  --ml-fx-ambient-b: rgba(255, 153, 74, .065);
-  --ml-fx-ambient-c: rgba(255, 228, 180, .04);
-  --ml-fx-ambient-w: 30vmax;
-  --ml-fx-ambient-h: 24vmax;
-  --ml-fx-ambient-speed: 28s;
-  --ml-fx-ambient-opacity: .62;
+  --ml-fx-ambient-a: rgba(227, 178, 95, .16);
+  --ml-fx-ambient-b: rgba(255, 153, 74, .10);
+  --ml-fx-ambient-c: rgba(255, 228, 180, .07);
+  --ml-fx-ambient-w: 32vmax;
+  --ml-fx-ambient-h: 26vmax;
+  --ml-fx-ambient-speed: 26s;
+  --ml-fx-ambient-opacity: .78;
+  --ml-veil-a: rgba(227, 178, 95, .14);
+  --ml-veil-b: rgba(255, 153, 74, .09);
+  --ml-veil-opacity: .32;
+  --ml-veil-speed: 30s;
 }
 
 #ml-root[data-theme="jade"] {
-  --ml-fx-ambient-a: rgba(95, 191, 172, .10);
-  --ml-fx-ambient-b: rgba(127, 214, 197, .07);
-  --ml-fx-ambient-c: rgba(220, 255, 247, .035);
-  --ml-fx-ambient-w: 32vmax;
-  --ml-fx-ambient-h: 26vmax;
-  --ml-fx-ambient-speed: 32s;
-  --ml-fx-ambient-opacity: .60;
+  --ml-fx-ambient-a: rgba(95, 191, 172, .14);
+  --ml-fx-ambient-b: rgba(127, 214, 197, .10);
+  --ml-fx-ambient-c: rgba(220, 255, 247, .07);
+  --ml-fx-ambient-w: 34vmax;
+  --ml-fx-ambient-h: 28vmax;
+  --ml-fx-ambient-speed: 30s;
+  --ml-fx-ambient-opacity: .76;
+  --ml-veil-a: rgba(95, 191, 172, .10);
+  --ml-veil-b: rgba(127, 214, 197, .08);
+  --ml-veil-opacity: .30;
+  --ml-veil-speed: 36s;
 }
 
 #ml-root[data-theme="graphite"] {
-  --ml-fx-ambient-a: rgba(201, 205, 212, .075);
-  --ml-fx-ambient-b: rgba(255, 255, 255, .035);
-  --ml-fx-ambient-c: rgba(120, 130, 140, .04);
-  --ml-fx-ambient-w: 28vmax;
-  --ml-fx-ambient-h: 24vmax;
-  --ml-fx-ambient-speed: 36s;
-  --ml-fx-ambient-opacity: .50;
+  --ml-fx-ambient-a: rgba(201, 205, 212, .10);
+  --ml-fx-ambient-b: rgba(255, 255, 255, .06);
+  --ml-fx-ambient-c: rgba(120, 130, 140, .06);
+  --ml-fx-ambient-w: 30vmax;
+  --ml-fx-ambient-h: 26vmax;
+  --ml-fx-ambient-speed: 34s;
+  --ml-fx-ambient-opacity: .66;
+  --ml-veil-a: rgba(201, 205, 212, .07);
+  --ml-veil-b: rgba(255, 255, 255, .05);
+  --ml-veil-opacity: .22;
+  --ml-veil-speed: 40s;
 }
 
 #ml-root[data-theme="star"] {
-  --ml-fx-ambient-a: rgba(143, 166, 255, .12);
-  --ml-fx-ambient-b: rgba(111, 224, 210, .06);
-  --ml-fx-ambient-c: rgba(255, 255, 255, .10);
-  --ml-fx-ambient-w: 30vmax;
-  --ml-fx-ambient-h: 24vmax;
-  --ml-fx-ambient-speed: 30s;
-  --ml-fx-ambient-opacity: .72;
+  --ml-fx-ambient-a: rgba(143, 166, 255, .17);
+  --ml-fx-ambient-b: rgba(111, 224, 210, .10);
+  --ml-fx-ambient-c: rgba(255, 255, 255, .14);
+  --ml-fx-ambient-w: 32vmax;
+  --ml-fx-ambient-h: 26vmax;
+  --ml-fx-ambient-speed: 28s;
+  --ml-fx-ambient-opacity: .84;
+  --ml-veil-a: rgba(143, 166, 255, .14);
+  --ml-veil-b: rgba(111, 224, 210, .10);
+  --ml-veil-opacity: .36;
+  --ml-veil-speed: 34s;
 }
 
 #ml-root[data-theme="fog"] {
-  --ml-fx-ambient-a: rgba(188, 210, 214, .26);
-  --ml-fx-ambient-b: rgba(121, 201, 190, .17);
-  --ml-fx-ambient-c: rgba(231, 182, 107, .10);
-  --ml-fx-ambient-w: 40vmax;
-  --ml-fx-ambient-h: 30vmax;
-  --ml-fx-ambient-speed: 34s;
-  --ml-fx-ambient-opacity: .90;
+  --ml-fx-ambient-a: rgba(188, 210, 214, .32);
+  --ml-fx-ambient-b: rgba(121, 201, 190, .22);
+  --ml-fx-ambient-c: rgba(231, 182, 107, .14);
+  --ml-fx-ambient-w: 44vmax;
+  --ml-fx-ambient-h: 32vmax;
+  --ml-fx-ambient-speed: 32s;
+  --ml-fx-ambient-opacity: 1;
+  --ml-veil-a: rgba(188, 210, 214, .24);
+  --ml-veil-b: rgba(121, 201, 190, .19);
+  --ml-veil-opacity: .44;
+  --ml-veil-speed: 46s;
 }
 
 #ml-root[data-theme="school"] {
-  --ml-fx-ambient-a: rgba(255, 255, 255, .10);
-  --ml-fx-ambient-b: rgba(201, 174, 114, .07);
-  --ml-fx-ambient-c: rgba(127, 156, 132, .05);
+  --ml-fx-ambient-a: rgba(255, 255, 255, .14);
+  --ml-fx-ambient-b: rgba(201, 174, 114, .10);
+  --ml-fx-ambient-c: rgba(127, 156, 132, .08);
   --ml-fx-ambient-w: 5px;
   --ml-fx-ambient-h: 5px;
   --ml-fx-ambient-speed: 16s;
-  --ml-fx-ambient-opacity: .80;
+  --ml-fx-ambient-opacity: .88;
+  --ml-veil-a: rgba(255, 255, 255, .09);
+  --ml-veil-b: rgba(201, 174, 114, .07);
+  --ml-veil-opacity: .26;
+  --ml-veil-speed: 30s;
 }
 
 #ml-root[data-theme="paper"] {
-  --ml-fx-ambient-a: rgba(109, 95, 80, .10);
-  --ml-fx-ambient-b: rgba(169, 54, 42, .055);
-  --ml-fx-ambient-c: rgba(72, 111, 97, .05);
+  --ml-fx-ambient-a: rgba(109, 95, 80, .14);
+  --ml-fx-ambient-b: rgba(169, 54, 42, .08);
+  --ml-fx-ambient-c: rgba(72, 111, 97, .08);
   --ml-fx-ambient-w: 7px;
   --ml-fx-ambient-h: 7px;
   --ml-fx-ambient-speed: 18s;
-  --ml-fx-ambient-opacity: .75;
+  --ml-fx-ambient-opacity: .84;
+  --ml-veil-a: rgba(109, 95, 80, .08);
+  --ml-veil-b: rgba(169, 54, 42, .06);
+  --ml-veil-opacity: .24;
+  --ml-veil-speed: 32s;
+}
+
+/* auto 主题“天光”：默认主题跟随游戏时段换气。只改环境色，不动正文与面板，
+   让默认主题在黎明/白天/黄昏/夜晚都有可见但可忽略的底色流动。 */
+#ml-root[data-theme="auto"][data-phase="dawn"] {
+  --ml-fx-ambient-a: rgba(255, 196, 120, .30);
+  --ml-fx-ambient-b: rgba(255, 143, 112, .20);
+  --ml-fx-ambient-c: rgba(126, 214, 200, .18);
+  --ml-veil-a: rgba(255, 196, 120, .26);
+  --ml-veil-b: rgba(126, 214, 200, .17);
+}
+
+#ml-root[data-theme="auto"][data-phase="day"] {
+  --ml-fx-ambient-a: rgba(126, 190, 255, .26);
+  --ml-fx-ambient-b: rgba(255, 255, 255, .16);
+  --ml-fx-ambient-c: rgba(126, 214, 200, .16);
+  --ml-veil-a: rgba(126, 190, 255, .24);
+  --ml-veil-b: rgba(126, 214, 200, .15);
+}
+
+#ml-root[data-theme="auto"][data-phase="dusk"] {
+  --ml-fx-ambient-a: rgba(255, 150, 90, .27);
+  --ml-fx-ambient-b: rgba(255, 110, 150, .18);
+  --ml-fx-ambient-c: rgba(255, 205, 130, .16);
+  --ml-veil-a: rgba(255, 150, 90, .25);
+  --ml-veil-b: rgba(255, 110, 150, .16);
+}
+
+#ml-root[data-theme="auto"][data-phase="night"] {
+  --ml-fx-ambient-a: rgba(120, 150, 255, .24);
+  --ml-fx-ambient-b: rgba(90, 210, 220, .17);
+  --ml-fx-ambient-c: rgba(255, 255, 255, .14);
+  --ml-veil-a: rgba(120, 150, 255, .22);
+  --ml-veil-b: rgba(90, 210, 220, .15);
 }
 
 /* 粉笔灰/纸屑用小颗粒，位移必须按像素走；米制主题继续用百分比漂移。 */
@@ -292,13 +378,38 @@
   animation: ml-scan-sweep 14s linear infinite alternate;
 }
 
-#ml-root[data-theme="amber"] .ml-ambient::before,
-#ml-root[data-theme="auto"] .ml-ambient::before {
+#ml-root[data-theme="amber"] .ml-ambient::before {
   opacity: .45;
   background:
     radial-gradient(50% 32% at 18% 88%, rgba(227, 178, 95, .10), transparent 70%),
     radial-gradient(40% 26% at 82% 12%, rgba(255, 255, 255, .04), transparent 72%);
   animation: ml-ember-pulse 10s ease-in-out infinite alternate;
+}
+
+/* auto 的地平线暖光：上缘留一条不压正文的暖带，和慢流层叠加。 */
+#ml-root[data-theme="auto"] .ml-ambient::before {
+  opacity: .70;
+  background:
+    radial-gradient(46% 30% at 14% 84%, rgba(255, 196, 120, .20), transparent 70%),
+    radial-gradient(38% 24% at 84% 14%, rgba(126, 214, 200, .12), transparent 72%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0 8%, #000 26% 74%, transparent 92%);
+  mask-image: linear-gradient(180deg, transparent 0 8%, #000 26% 74%, transparent 92%);
+  animation: ml-ember-pulse 14s ease-in-out infinite alternate;
+}
+
+/* auto 的“天光带”：一条斜向暖/青双色光带缓慢扫过右上空白，补足默认主题的存在感。 */
+#ml-root[data-theme="auto"] .ml-ambient::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  opacity: .58;
+  background:
+    linear-gradient(108deg, transparent 0 26%, rgba(255, 205, 140, .22) 35%, rgba(255, 246, 224, .38) 38%, rgba(255, 205, 140, .18) 41%, transparent 50% 100%),
+    radial-gradient(50% 28% at 24% 20%, rgba(126, 214, 200, .18), transparent 72%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 10%, #000 90%, transparent 100%);
+  animation: ml-sky-band 26s var(--ml-fx-ease-out, ease) infinite alternate;
 }
 
 #ml-root[data-theme="jade"] .ml-ambient::before {
@@ -336,21 +447,21 @@
   animation: ml-star-twinkle 7s ease-in-out infinite alternate;
 }
 
-/* 星空：每 15s 一颗低频流星，从右上斜划向左下；只占右上空白，不压正文。 */
+/* 星空：每 12s 一颗低频流星，从右上斜划向左下；只占右上空白，不压正文。 */
 #ml-root[data-theme="star"] .ml-ambient::after {
   content: "";
   position: absolute;
   top: 10%;
   right: 6%;
-  width: min(30vmax, 420px);
+  width: min(32vmax, 440px);
   height: 2px;
   pointer-events: none;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(220, 235, 255, .72), transparent);
+  background: linear-gradient(90deg, transparent, rgba(220, 235, 255, .9), transparent);
   opacity: 0;
   transform: translate3d(0, 0, 0) rotate(20deg) scaleX(.4);
   transform-origin: 100% 50%;
-  animation: ml-star-meteor 15s ease-in infinite;
+  animation: ml-star-meteor 12s ease-in infinite;
 }
 
 #ml-root[data-theme="fog"] .ml-ambient::before {
@@ -418,15 +529,29 @@ html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-head::after {
 }
 
 @keyframes ml-ambient-drift {
-  0% { transform: translate3d(-2.5%, 3%, 0) scale(1); opacity: .42; }
-  50% { opacity: .72; }
-  100% { transform: translate3d(3.5%, -2.5%, 0) scale(1.06); opacity: .48; }
+  0% { transform: translate3d(-3.5%, 3.5%, 0) scale(1); opacity: .52; }
+  50% { opacity: .82; }
+  100% { transform: translate3d(4.5%, -3.5%, 0) scale(1.10); opacity: .56; }
+}
+
+/* 整幅慢流：只做位移与缩放，保证合成层上运行；不触发布局/绘制。 */
+@keyframes ml-veil-flow {
+  0% { transform: translate3d(-4%, 2%, 0) scale(1.03); }
+  50% { transform: translate3d(0, -2%, 0) scale(1.07); }
+  100% { transform: translate3d(5%, -4%, 0) scale(1.02); }
+}
+
+/* auto 天光带：只做位移/缩放，保持合成层；26s 一个往复，不抢阅读。 */
+@keyframes ml-sky-band {
+  0% { transform: translate3d(-6%, 2%, 0) scale(1.04); opacity: .28; }
+  50% { opacity: .48; }
+  100% { transform: translate3d(6%, -2%, 0) scale(1.10); opacity: .34; }
 }
 
 @keyframes ml-dust-drift {
-  0% { transform: translate3d(-3px, 8px, 0) scale(.9); opacity: .14; }
-  45% { opacity: .55; }
-  100% { transform: translate3d(5px, -12px, 0) scale(1.15); opacity: .18; }
+  0% { transform: translate3d(-3px, 8px, 0) scale(.9); opacity: .20; }
+  45% { opacity: .66; }
+  100% { transform: translate3d(5px, -12px, 0) scale(1.15); opacity: .26; }
 }
 
 @keyframes ml-scan-sweep {
@@ -455,14 +580,14 @@ html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-head::after {
 }
 
 @keyframes ml-fog-band {
-  from { transform: translate3d(-4%, 0, 0) scaleX(1.04); opacity: .30; }
-  to { transform: translate3d(4%, 0, 0) scaleX(1.12); opacity: .60; }
+  from { transform: translate3d(-5%, 0, 0) scaleX(1.04); opacity: .34; }
+  to { transform: translate3d(5%, 0, 0) scaleX(1.14); opacity: .68; }
 }
 
 @keyframes ml-fog-breathe {
-  0% { transform: translate3d(-3%, 1%, 0) scale(.98); opacity: .18; }
-  45% { opacity: .34; }
-  100% { transform: translate3d(3%, -2%, 0) scale(1.12); opacity: .22; }
+  0% { transform: translate3d(-4%, 1%, 0) scale(.98); opacity: .24; }
+  45% { opacity: .42; }
+  100% { transform: translate3d(4%, -2%, 0) scale(1.14); opacity: .30; }
 }
 
 @keyframes ml-paper-fiber {

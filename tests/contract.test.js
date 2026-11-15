@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.0");
+  assert.equal(boot.version, "1.3.1");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -250,6 +250,54 @@ test("1.2.0：立绘与侧栏保持 1.1.22 游戏原生几何，不再重写画�
     "不得改 #ui-bar 宽度：原生 17.5em=280，压到 216 会把画布挤进窄栏");
   assert.match(clean, /#stats\s*\{[^}]*width:\s*100% !important/s,
     "金额卡必须填满原生 280 侧栏，不能停在 248");
+});
+
+test("1.3.1：窄屏展开侧栏不再把 #story 挤成两字列", () => {
+  const clean = strip(nativeCss);
+  assert.doesNotMatch(clean,
+    /@media[^{]*max-width:\s*632px[^{]*\{[\s\S]*?#ui-bar:not\(\.stowed\) ~ #story[\s\S]*?margin-left:\s*17\.5em/s,
+    "不得在窄屏把 #story 左边距改成 17.5em：360 级视口只剩两个字宽");
+  assert.match(clean,
+    /@media[^{]*max-width:\s*560px[^{]*\{[\s\S]*?html\[data-ml-native="on"\]\[data-ml-sidebar-open="1"\] #story\s*\{[^}]*visibility:\s*hidden !important/s,
+    "560px 以下（与面板抽屉同阈值）侧栏实际展开时必须走抽屉语义，隐藏正文而不是压窄正文");
+  assert.match(clean,
+    /html\[data-ml-native="on"\]\[data-ml-sidebar-open="1"\] #story\s*\{[^}]*pointer-events:\s*none !important/s,
+    "抽屉状态下隐藏正文需同时断掉指针事件");
+  assert.match(native, /function syncSidebar\(\)[\s\S]{0,260}getBoundingClientRect\(\)/,
+    "侧栏开合必须读真实几何，不能只按 .stowed class 判断");
+  assert.match(native, /setAttribute\("data-ml-sidebar-open"/,
+    "侧栏实际可见时才挂 data-ml-sidebar-open");
+});
+
+test("1.3.1：手机抽屉安全边、横屏宽度与 320 紧凑尺寸", () => {
+  assert.match(css,
+    /#ml-root\[data-sheet="1"\] \.ml-panel \{[\s\S]{0,200}left:\s*max\(var\(--ml-safe-l\),\s*8px\)[\s\S]{0,120}right:\s*max\(var\(--ml-safe-r\),\s*8px\)/s,
+    "抽屉必须留 8px 安全边，不能压到刘海/圆角边缘");
+  assert.match(css,
+    /@media \(orientation:\s*landscape\) and \(max-height:\s*520px\)[\s\S]{0,500}#ml-root\[data-sheet="1"\] \.ml-panel \{[\s\S]{0,260}width:\s*min\(560px,\s*calc\(100vw - 16px\)\)/s,
+    "844×390 横屏抽屉应收成居中 560px，不能拉成整屏横条");
+  assert.match(css,
+    /@media \(max-width:\s*360px\)[\s\S]{0,1800}#ml-root\[data-sheet="1"\] \.ml-ring \{[\s\S]{0,80}width:\s*88px; height:\s*88px/s,
+    "320 级小屏圆环收到 88px，给金额卡/状态卡让出高度");
+  assert.match(css,
+    /@media \(max-width:\s*360px\)[\s\S]{0,1200}#ml-root\[data-sheet="1"\] \.ml-body \{[\s\S]{0,60}padding:\s*12px 12px 16px/s,
+    "320 级小屏正文内边距收到 12px");
+});
+
+test("1.3.1：原生菜单打开时灯台浮卡必须退场", () => {
+  assert.match(native, /function nativeLayerVisible\(overlay\)[\s\S]*?classList\.contains\("hidden"\)[\s\S]*?getBoundingClientRect/s,
+    "原生层可见性必须同时看 hidden/display/几何，不能只看 class");
+  assert.match(native,
+    /if \(visible && !state\.overlayVisible\)[\s\S]{0,300}MapleLantern\.close\(\)/s,
+    "原生层由隐藏变可见时必须关闭灯台浮卡，避免叠加");
+  assert.match(native, /state\.overlayVisible = nativeLayerVisible\(overlay\)/,
+    "观察器初始化必须记录当前可见态，不能把首次可见误判成跳变");
+  assert.match(native,
+    /function ensureOverlayFinder\(\)[\s\S]{0,600}observe\(doc\.documentElement,\s*\{\s*childList:\s*true,\s*subtree:\s*true\s*\}\)/s,
+    "SugarCube 替换 #customOverlay 后必须按当前节点重挂，观察器要挂在稳定的 documentElement 上");
+  assert.match(native,
+    /data-ml-entry[\s\S]{0,400}nativeLayerVisible\(ov\)[\s\S]{0,200}MapleLantern\.close\(\)/s,
+    "点击打开原生菜单时必须按实际几何补关一次；从灯台入口反开浮卡时跳过");
 });
 
 test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留主题材质", () => {
@@ -600,6 +648,27 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空�
     "环境层必须在 root 底层、不可点击且开启 containment");
   assert.match(fx, /#ml-root \.ml-ambient__wisp:nth-child\(8\)/,
     "桌面必须保留 8 颗粒子锚点");
+  assert.match(fx, /#ml-root \.ml-ambient__veil\s*\{[^}]*pointer-events:\s*none[^}]*animation:\s*ml-veil-flow/s,
+    "整幅慢流层必须存在、不可点击且只跑 transform 动画");
+  assert.match(fx, /@keyframes ml-veil-flow\s*\{/, "慢流层必须有 keyframes");
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+    assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,520}--ml-veil-a'),
+      "缺少主题慢流变量: " + theme);
+  }
+  assert.match(fx, /#ml-root\[data-theme="auto"\][\s\S]{0,600}--ml-fx-ambient-opacity:\s*\.(?:7|8|9)/,
+    "auto 主题必须提亮到 0.7 以上，默认主题不能看不见");
+  assert.match(fx, /#ml-root\[data-theme="fog"\][\s\S]{0,600}--ml-fx-ambient-opacity:\s*1;/,
+    "雾港必须是最强的 1.0 环境层");
+  for (const phase of ["dawn", "day", "dusk", "night"]) {
+    assert.match(fx, new RegExp('#ml-root\\[data-theme="auto"\\]\\[data-phase="' + phase + '"\\]'),
+      "auto 必须按游戏时段换环境色: " + phase);
+  }
+  assert.match(fx, /#ml-root\[data-theme="auto"\] \.ml-ambient::after/,
+    "auto 必须有一条会移动的天光带，不能只靠静态渐变");
+  assert.match(fx, /@keyframes ml-sky-band\s*\{/, "天光带必须有 keyframes");
+  assert.match(index, /els\.root\.setAttribute\("data-phase", phase\)/,
+    "render 必须把游戏时段挂到根节点，否则 CSS 分时段配色永远不生效");
+  assert.match(fx, /animation:\s*ml-star-meteor 12s/, "流星频率必须提升到 12s 一级");
   assert.match(fx, /@media \(max-width:\s*600px\)[\s\S]*?\.ml-ambient__wisp:nth-child\(n \+ 6\)\s*\{[^}]*display:\s*none/s,
     "≤600px 必须减到 5 颗，避免手机 GPU 过载");
   assert.match(fx, /#ml-root\[data-motion="off"\] \.ml-ambient[\s\S]*?display:\s*none !important/s,
@@ -622,6 +691,9 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、中央留空�
   assert.match(fx, /@keyframes ml-fog-breathe/, "雾港呼吸雾带必须有 keyframes");
   assert.match(index, /"ml-ambient"/);
   assert.match(index, /"ml-ambient__wisp"/);
+  assert.match(index, /"ml-ambient__veil"/);
+  assert.match(index, /jitterAmbient\(ambient\)[\s\S]{0,180}"ml-ambient__veil"/,
+    "慢流层必须在粒子抖动之后追加，不能改变 1~8 号粒子的锚点");
   assert.match(index, /jitterAmbient\(ambient\)/, "每次挂载必须做一次边缘随机抖动，避免雾团固定不动");
   assert.match(index, /--ml-wisp-delay/, "随机抖动必须写入粒子相位变量");
   assert.match(index, /els\.ambient\.hidden = !state\.settings\.motion/,

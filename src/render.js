@@ -341,6 +341,8 @@
       ambient.appendChild(el("span", "ml-ambient__wisp", { "data-wisp": String(wi) }));
     }
     jitterAmbient(ambient);
+    /* 第 9 个节点是整幅慢流层，不参与粒子随机；只做一条 CSS transform 动画。 */
+    ambient.appendChild(el("span", "ml-ambient__veil", { "data-layer": "veil" }));
 
     var orb = el("button", "ml-orb", {
       type: "button",
@@ -526,6 +528,8 @@
   function updateOrb(clock) {
     if (!els.orb) { return; }
     var s = C.strings(state.lang);
+    var phase = clock && clock.phase ? clock.phase : "unknown";
+    els.root.setAttribute("data-phase", phase);
     if (!clock) {
       els.root.style.setProperty("--ml-day-pct", "0%");
       els.orb.setAttribute("data-degraded", "1");

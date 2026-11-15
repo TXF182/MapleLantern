@@ -1571,6 +1571,7 @@
     if (state.nativeOn !== on) { state.ceDirty = true; state.ceReady = false; }
     state.nativeOn = on;
     setRoot(on);
+    syncSidebar();
     if (!on) {
       clearMarks();
       state.packStable = false;
@@ -1589,6 +1590,7 @@
     fitSidebarLabels();
     markDialog();
     normalizeCheatLayout();
+    watchOverlay();
   }
 
   function schedule() {
@@ -1668,6 +1670,11 @@
   function onClick(e) {
     var t = e && e.target;
     if (!t) { return; }
+    /* 侧栏开合通常由按钮切换 class/style，UI 不会派发事件；点击后主动对两次。 */
+    if (t.closest && t.closest("#ui-bar-toggle, #ui-bar-history, #ui-bar")) {
+      setTimeout(syncSidebar, 0);
+      setTimeout(syncSidebar, 160);
+    }
     /* 只对可能改变弹层/侧栏/正文的点击做一次合并重扫；不在滚动或输入时跑。 */
     var inBar = !!(t.closest && (t.closest("#overlayButtons") || t.closest("#menu") || t.closest("#customOverlay")));
     /* 只在会异步换 DOM 的内层页点选后补扫；普通正文推进由 passageend 负责。 */
@@ -1676,7 +1683,39 @@
       schedule();
       setTimeout(schedule, 150);
       if (t.closest && t.closest("#overlayButtons")) { armFeatsIntro(); }
+      /* 原生菜单是点击打开的；点击后再读一次实际几何，比只等观察器可靠。
+         从原生「灯台」入口反开浮卡时跳过，避免刚开就关。 */
+      if (!(t.closest && t.closest("[data-ml-entry]"))) {
+        setTimeout(function () {
+          var ov = doc.getElementById("customOverlay");
+          var root = doc.getElementById("ml-root");
+          if (!ov || !root || root.getAttribute("data-open") !== "1") { return; }
+          if (nativeLayerVisible(ov)) {
+            try { if (window.MapleLantern && typeof window.MapleLantern.close === "function") { window.MapleLantern.close(); } } catch (e) { /* ignore */ }
+          }
+        }, 80);
+      }
     }
+  }
+
+  /* 侧栏抽屉语义不能靠 class 猜：有些页面/宿主把 #ui-bar 直接 display:none，
+     没有 .stowed；只按 class 判会把正文误隐藏。这里读真实几何 + 计算样式，
+     只在实际可见且未收起时挂 data-ml-sidebar-open，CSS 再据此隐藏正文。 */
+  function syncSidebar() {
+    var bar = doc.getElementById("ui-bar");
+    var open = false;
+    if (bar && !bar.classList.contains("stowed")) {
+      try {
+        var cs = window.getComputedStyle(bar);
+        var r = bar.getBoundingClientRect();
+        open = cs.display !== "none" && cs.visibility !== "hidden" &&
+          parseFloat(cs.opacity) !== 0 && r.width > 4 && r.height > 4 &&
+          r.right > 1 && r.left < window.innerWidth;
+      } catch (e) { open = false; }
+    }
+    var root = doc.documentElement;
+    if (open) { root.setAttribute("data-ml-sidebar-open", "1"); }
+    else { root.removeAttribute("data-ml-sidebar-open"); }
   }
 
   function onReady() { schedule(); }
@@ -1685,17 +1724,61 @@
   function onResize() {
     state.ceDirty = true;
     state.zoom = zoomFactor();
+    syncSidebar();
     schedule();
   }
 
+  /* 原生菜单/弹层是否真的在屏上。不能用 class 单独判断：CE 关闭后
+     #customOverlay 会被主菜单复用，真正的可见性由 hidden/display/几何共同决定。 */
+  function nativeLayerVisible(overlay) {
+    if (!overlay || overlay.classList.contains("hidden")) { return false; }
+    try {
+      var cs = window.getComputedStyle(overlay);
+      if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) === 0) { return false; }
+      var r = overlay.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    } catch (e) { return false; }
+  }
+
   /* CE 面板是点开 OPTIONS 之后才异步挂进来的，正文观察器看不到它；
-     单独盯 #customOverlay 子树，面板一出现/换页签就重算一次几何。 */
+     单独盯 #customOverlay 子树，面板一出现/换页签就重算一次几何。
+     同时只在「隐藏 → 可见」的跳变里让灯台浮卡退场：原生菜单打开时两者
+     叠在一屏，浮卡必须收起；从原生 OPTIONS 的「灯台」入口反向打开浮卡
+     时 overlay 已经是可见态，不会误关。 */
+  /* 开始页的 #customOverlay 会被 SugarCube 替换；只盯一个节点会漏掉后来
+     重挂的菜单。用 body 的 childList 观察器在节点换代时重新对位。 */
+  function ensureOverlayFinder() {
+    if (state.overlayFinder || typeof window.MutationObserver !== "function" || !doc.body) { return; }
+    state.overlayFinder = new window.MutationObserver(function () {
+      if (state.disposed) { return; }
+      if (doc.getElementById("customOverlay") !== state.overlayEl) { watchOverlay(); }
+    });
+    state.overlayFinder.observe(doc.documentElement, { childList: true, subtree: true });
+  }
+
   function watchOverlay() {
-    if (state.overlayObserver || typeof window.MutationObserver !== "function") { return; }
+    if (state.disposed || typeof window.MutationObserver !== "function") { return; }
     var overlay = doc.getElementById("customOverlay");
-    if (!overlay) { return; }
+    if (!overlay) { ensureOverlayFinder(); return; }
+    /* SugarCube 自举时会重建开始页的 #customOverlay；旧观察器会盯在一个
+       已经脱离文档的节点上，之后原生菜单再打开也不会回调。按当前节点重挂。 */
+    if (state.overlayObserver && state.overlayEl === overlay) { return; }
+    if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
+    ensureOverlayFinder();
+    state.overlayEl = overlay;
+    state.overlayVisible = nativeLayerVisible(overlay);
     state.overlayObserver = new window.MutationObserver(function () {
-      if (state.disposed || !state.nativeOn) { return; }
+      if (state.disposed) { return; }
+      var visible = nativeLayerVisible(overlay);
+      if (visible && !state.overlayVisible) {
+        try {
+          if (window.MapleLantern && typeof window.MapleLantern.close === "function") {
+            window.MapleLantern.close();
+          }
+        } catch (e) { /* 面板未就绪时保持原界面 */ }
+      }
+      state.overlayVisible = visible;
+      if (!state.nativeOn) { return; }
       var tabs = doc.getElementById("cheat_extended_options");
       var active = isCePanelActive(tabs, doc.getElementById("customOverlay"));
       if (!active) {
@@ -1757,8 +1840,10 @@
     restoreCeStyle();
     if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
     if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
+    if (state.overlayFinder) { state.overlayFinder.disconnect(); state.overlayFinder = null; }
     if (state.zoomObserver) { state.zoomObserver.disconnect(); state.zoomObserver = null; }
     if (state.sweep) { clearTimeout(state.sweep); state.sweep = null; }
+    doc.documentElement.removeAttribute("data-ml-sidebar-open");
   }
 
   function destroy() {

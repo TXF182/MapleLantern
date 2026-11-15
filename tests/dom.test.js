@@ -21,12 +21,14 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "灯台分类");
 });
 
-test("环境层：8 颗粒子只占一层，动效关闭时整层 hidden", () => {
+test("环境层：8 颗粒子 + 1 层慢流，动效关闭时整层 hidden", () => {
   const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   const ambient = on.w.document.querySelector("#ml-root .ml-ambient");
   assert.ok(ambient, "缺主题环境层");
   assert.equal(ambient.getAttribute("aria-hidden"), "true");
-  assert.equal(ambient.children.length, 8, "桌面固定 8 颗粒子");
+  assert.equal(ambient.querySelectorAll(".ml-ambient__wisp").length, 8, "桌面固定 8 颗粒子");
+  assert.ok(ambient.querySelector(".ml-ambient__veil"), "必须有一层整幅慢流");
+  assert.equal(ambient.children.length, 9, "8 颗粒子 + 1 层慢流，不重复建层");
   assert.equal(ambient.hidden, false, "动效开启时应参与渲染");
 
   const off = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
