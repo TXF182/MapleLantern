@@ -22,7 +22,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.2");
+  assert.equal(boot.version, "1.3.3");
   assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
@@ -191,21 +191,33 @@ test("原生样式：左轨保持 32px，字号提升且每格有左侧色条", 
   assert.match(nativeCss, /#mobileStats \.stat::before\s*\{[^}]*linear-gradient\(90deg/s);
 });
 
-test("原生样式：顶栏四列强制 grid、金额不省略、侧栏按实际立绘底边起排", () => {
-  assert.match(nativeCss, /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1\.32fr\)/s);
+test("原生样式：顶栏两行网格，开关跨行、金额/时间在上、日期整行在下", () => {
   assert.match(nativeCss,
-    /@media \(max-width:\s*632px\)[\s\S]{0,400}#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 46px 44px !important/s,
-    "632px 窄屏必须给时间格 46px、星期 44px，并隐藏挤占时间格的时钟图标");
-  assert.match(nativeCss, /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*normal[^}]*text-overflow:\s*clip/s);
+    /#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*32px minmax\(0, 1fr\) 64px !important/s,
+    "顶栏必须是 开关 / 金额 / 时间 三列，日期用整行");
   assert.match(nativeCss,
-    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*nowrap !important[^}]*overflow-wrap:\s*normal !important/s,
-    "1.2.0 窄屏金额必须单行，overflow-wrap:anywhere 会在 £9,474.99 中间逐字断行");
+    /#stats#stats \.centered-elements\s*\{[^}]*grid-template-rows:\s*32px 32px !important/s);
   assert.match(nativeCss,
-    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="day"\]\s*\{[^}]*flex-direction:\s*row !important[^}]*white-space:\s*nowrap/s,
-    "1.2.0 日期格必须横排单行，原 flex-column 会把图标与星期日压成两行");
+    /#stats#stats \.centered-elements\s*\{[^}]*grid-template-areas:\s*"toggle money time"\s*"toggle day day" !important/s,
+    "原版式阅读顺序：开关跨两行，金额+时间在上，日期在下");
   assert.match(nativeCss,
-    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="day"\] img\s*\{[^}]*display:\s*none !important/s,
-    "1.2.0 44px 日期格容不下日历图标 + 星期日，图标必须让位");
+    /@media \(max-width:\s*632px\)[\s\S]{0,500}#stats#stats \.centered-elements\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 58px !important/s,
+    "632px 窄屏只保留三列，第 4 列 44px 会留下无法解释的空白");
+  assert.match(nativeCss,
+    /data-ml-chip="money"\] \.true\s*\{[^}]*white-space:\s*nowrap[^}]*overflow-wrap:\s*normal[^}]*word-break:\s*keep-all/s,
+    "金额必须单行；overflow-wrap:anywhere 会把 £9,474.99 拆成多行");
+  assert.match(nativeCss,
+    /data-ml-chip="day"\]\s*\{[^}]*flex-direction:\s*row[^}]*white-space:\s*nowrap/s,
+    "日期格必须横排单行，原 flex-column 会把图标与星期日压成两行");
+  assert.match(nativeCss,
+    /data-ml-chip="time"\]\s*\{[^}]*flex-direction:\s*row[^}]*align-items:\s*center[^}]*justify-content:\s*center/s,
+    "时间格图标与 09:06 必须同排居中，原版就是时钟在左、时间在右");
+  assert.match(nativeCss,
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="day"\] img\s*\{[^}]*display:\s*block !important[^}]*width:\s*12px/s,
+    "日期整行有 169px，日历图标应保留而不是让位");
+  assert.match(nativeCss,
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="time"\] \.clockContainer img\s*\{[^}]*display:\s*block !important[^}]*width:\s*13px/s,
+    "58px 时间格足够放 13px 时钟图标，不应再隐藏");
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*top:\s*var\(--ml-caption-top, 192px\)/s);
   assert.match(nativeCss, /body\.has-images #storyCaptionDiv\s*\{[^}]*left:\s*0 !important[^}]*width:\s*100% !important/s,
     "侧栏内层必须 left:0 + 100% 宽，left:24 会让 #ui-bar scrollWidth 超出 24px");
@@ -224,8 +236,8 @@ test("1.1.27 窄屏数值：状态条轨道回宽、时间/星期不换行、选
     /@media \(max-width:\s*632px\)[\s\S]{0,3600}#statmeters > div\[id\$="caption"\]\s*\{[^}]*grid-template-columns:\s*46px minmax\(0, 1fr\) !important[^}]*padding:\s*7px 70px 7px 0 !important/s,
     "标签列 46px + 右留白 70px 才能把七行进度条留到 64px，原 54/68 会压到 32px");
   assert.match(nativeCss,
-    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="time"\] \.clockContainer img\s*\{[^}]*display:\s*none !important/s,
-    "46px 时间格容不下 15px 图标 + 09:06，窄屏必须让图标让位");
+    /@media \(max-width:\s*632px\)[\s\S]{0,3600}data-ml-chip="time"\] \.clockContainer img\s*\{[^}]*display:\s*block !important[^}]*width:\s*13px/s,
+    "58px 时间格容得下 13px 图标 + 09:06，图标应保留");
   assert.match(nativeCss,
     /@media screen and \(max-width:\s*632px\)[\s\S]{0,3600}\.ml-option-group\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\)[^}]*gap:\s*5px[^}]*padding:\s*0 8px/s,
     "窄屏默认单列：:has 不可用时链接仍占满整行");

@@ -41,6 +41,26 @@ test("默认：原生卡片开启，悬浮球关闭，钱/时间/星期与 7 行
   assert.equal(w.document.getElementById("traumacaption").getAttribute("data-ml-stat-key"), "trauma");
 });
 
+test("日期格图片路径被翻译改写时，仍按 ml-src 或中文星期标记为 day", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const cells = w.document.querySelectorAll("#stats .centered-elements > div");
+  const day = cells[cells.length - 1];
+  const img = day.querySelector("img");
+
+  img.removeAttribute("src");
+  img.setAttribute("ml-src", "img/ui/sidebar-day.png");
+  w.MapleLanternNative.refresh();
+  await tick(w, 60);
+  assert.equal(day.getAttribute("data-ml-chip"), "day", "图片被替换后 ml-src 仍应保留日期标记");
+
+  img.setAttribute("ml-src", "img/translated/calendar.png");
+  day.querySelector("span").textContent = "星期日 9月4日";
+  w.MapleLanternNative.refresh();
+  await tick(w, 60);
+  assert.equal(day.getAttribute("data-ml-chip"), "day", "翻译改图后应靠中文星期文本兜底");
+});
+
 test("缩放 85%：--ml-caption-top 按元素本地像素归一化，不写视觉坐标", async () => {
   const { w } = createEnv();
   await tick(w);

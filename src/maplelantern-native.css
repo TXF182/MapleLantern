@@ -637,10 +637,18 @@ html[data-ml-native="on"] #stats > .content > .first-row {
   overflow: hidden;
 }
 
+/* 原版 #stats 是单行 flex，靠 20px gap 分隔；改成四列定宽时，日期字一长
+   （中文「星期日 9月4日」约 62px）就会被 44px 的日期格裁掉，金额格也会被
+   挤到只剩「£9,4」。这里沿用原版的阅读顺序，但排成两行：
+   左侧开关跨两行，金额与时间在上，日期独占下一行整行。 */
 html[data-ml-native="on"] #stats#stats .centered-elements {
   display: grid !important;
   grid-auto-flow: row !important;
-  grid-template-columns: 32px minmax(0, 1.32fr) minmax(0, .66fr) minmax(0, .68fr) !important;
+  grid-template-columns: 32px minmax(0, 1fr) 64px !important;
+  grid-template-rows: 32px 32px !important;
+  grid-template-areas:
+    "toggle money time"
+    "toggle day day" !important;
   gap: 4px;
   align-items: stretch;
 }
@@ -650,8 +658,8 @@ html[data-ml-native="on"] #stats .centered-elements > div {
   flex-direction: column;
   justify-content: center;
   min-width: 0;
-  min-height: 56px;
-  padding: 7px 6px;
+  min-height: 32px;
+  padding: 3px 4px;
   box-sizing: border-box;
   overflow: hidden;
   border: 1px solid var(--mln-border);
@@ -663,23 +671,36 @@ html[data-ml-native="on"] #stats .centered-elements > div {
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="toggle"] {
+  grid-area: toggle;
+  min-height: 0;
+  height: auto;
   padding: 4px;
   align-items: center;
+  justify-content: center;
   background: var(--mln-surface-2);
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] {
+  grid-area: money;
   background: linear-gradient(180deg, rgb(95 191 172 / 10%), transparent), var(--mln-surface);
   border-color: rgb(95 191 172 / 28%);
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] {
+  grid-area: time;
   border-color: rgb(227 178 95 / 24%);
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] {
+  grid-area: day;
+  flex-direction: row;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  padding: 3px 4px !important;
   color: var(--mln-muted);
   font-size: 10.5px;
+  white-space: nowrap;
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] .true {
@@ -689,16 +710,20 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] 
   font-variant-numeric: tabular-nums;
   letter-spacing: -.01em;
   line-height: 1.12;
-  white-space: normal;
-  overflow: visible;
+  white-space: nowrap;
+  overflow: hidden;
   text-overflow: clip;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: normal;
+  word-break: keep-all;
   text-align: center;
   max-height: none;
 }
 
 html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] {
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -3431,7 +3456,8 @@ html[data-ml-native="on"][data-ml-motion="off"] #menu button:active {
 
 @media (max-width: 632px) {
   html[data-ml-native="on"] #stats#stats .centered-elements {
-    grid-template-columns: 28px minmax(0, 1fr) 46px 44px !important;
+    grid-template-columns: 28px minmax(0, 1fr) 58px !important;
+    grid-template-rows: 32px 32px !important;
     gap: 3px;
   }
   /* 216px 侧栏下状态卡只占 184px，右留白 68px + 标签 54px 会把七行进度条
@@ -3450,39 +3476,39 @@ html[data-ml-native="on"][data-ml-motion="off"] #menu button:active {
     font-size: 9.5px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div {
-    min-height: 52px;
-    padding: 6px;
+    min-height: 32px;
+    padding: 3px;
     font-size: 11px;
   }
+  html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="toggle"] {
+    padding: 3px;
+  }
   html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="money"] .true {
-    font-size: clamp(8.5px, 2.45vw, 10.5px);
+    font-size: 10px;
     white-space: nowrap !important;
     overflow-wrap: normal !important;
     word-break: keep-all;
   }
-  /* 日期格原生是“日历图标 + 星期日”两个 flex 子节点；竖排会把 3 个汉字压成两行。
-     窄屏改为横排并让图标让位，保证 44px 内单行显示。 */
+  /* 日期整行放在金额/时间下方，图标保留，和原版「日历 + 星期日 9月4日」一致。 */
   html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] {
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 6px 2px !important;
-    font-size: clamp(8.5px, 2.3vw, 9.5px);
-    white-space: nowrap;
+    padding: 3px 2px !important;
+    font-size: 10px;
+    gap: 5px;
   }
   html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] img {
-    display: none !important;
+    display: block !important;
+    width: 12px;
+    height: 12px;
   }
+  /* 58px 时间格足够 13px 时钟图标 + 5 位时间，不再隐藏图标。 */
   html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] .clockContainer {
     font-size: 10.5px;
-    gap: 0;
+    gap: 2px;
   }
-  /* 46px 时间格里 15px 时钟图标 + 5 位时间放不下；窄屏保文字，图标让位。 */
   html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="time"] .clockContainer img {
-    display: none !important;
-  }
-  html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="day"] {
-    font-size: 9.5px;
+    display: block !important;
+    width: 13px;
+    height: 13px;
   }
   html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
     margin: 0 4px 4px;

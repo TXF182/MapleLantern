@@ -133,8 +133,11 @@
       var kind = "";
       if (node.querySelector(".true")) { kind = "money"; }
       else if (node.querySelector(".clockContainer")) { kind = "time"; }
-      else if (node.querySelector('img[src*="sidebar-day"]')) { kind = "day"; }
-      else if (node.querySelector('img[src*="sidebar-open"], img[src*="sidebar-closed"]')) { kind = "toggle"; }
+      else if (node.querySelector('img[src*="sidebar-day"], img[ml-src*="sidebar-day"], img[ml-replaced-src*="sidebar-day"]')) { kind = "day"; }
+      else if (node.querySelector('img[src*="sidebar-open"], img[src*="sidebar-closed"], img[ml-src*="sidebar-open"], img[ml-src*="sidebar-closed"]')) { kind = "toggle"; }
+      /* 翻译包可能改写图片路径，日期格不能再只靠 src 认。中文星期与英文星期名
+         只出现在日期格里，作为兜底不会误命中金额/时间。 */
+      else if (/星期[日一二三四五六]|(Sun|Mon|Tue|Wed|Thu|Fri|Sat)(day)?$/.test((node.textContent || "").trim())) { kind = "day"; }
       if (kind) { setAttr(node, "data-ml-chip", kind); }
       else { setAttr(node, "data-ml-chip", null); }
       if (kind === "money") {

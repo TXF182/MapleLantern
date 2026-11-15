@@ -238,7 +238,7 @@ function fileUrl(p) { return "file:///" + p.replace(/\\/g, "/").replace(/#/g, "%
       ["模糊可用时保持 backdrop-filter", settingsProbe.blurAttr === "on" && !/none/i.test(settingsProbe.filter)],
       ["单次刷新 ≤ 16ms", typeof afterPassage.diag.renderMs === "number" && afterPassage.diag.renderMs > 0 && afterPassage.diag.renderMs <= 16],
       ["原生层默认开启", HOST_MODE ? true : afterPassage.native === "on"],
-      ["金钱/时间/星期四格齐", HOST_MODE ? afterPassage.statsCards.length === 4 : (afterPassage.statsCards.length === 4 && afterPassage.statsCards.every((c) => c.chip && c.h >= 44))],
+      ["金钱/时间/星期四格齐", HOST_MODE ? afterPassage.statsCards.length === 4 : (afterPassage.statsCards.length === 4 && afterPassage.statsCards.every((c) => c.chip) && afterPassage.statsCards.find((c) => c.chip === "toggle").h >= 44 && afterPassage.statsCards.filter((c) => c.chip !== "toggle").every((c) => c.h >= 32))],
       ["状态大卡七行且有当前/上限", HOST_MODE ? afterPassage.statCards.length === 7 : (afterPassage.statCards.length === 7 && afterPassage.statCards.every((c) => c.key && c.readout && c.total && c.h >= 24))],
       ["正文选项为整行卡片", HOST_MODE ? !!afterPassage.option : (!!afterPassage.option && afterPassage.option.display === "flex" && afterPassage.option.w > 240 && afterPassage.option.h >= 44)],
       ["无未捕获异常", pageErrors.length === 0]
