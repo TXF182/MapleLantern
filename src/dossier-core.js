@@ -14,7 +14,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  var VERSION = "1.4.5";
+  var VERSION = "1.4.6";
   var SETTINGS_KEY = "MapleLanternDossier.settings.v1";
 
   var FITS = ["cover", "contain", "fill"];
@@ -34,6 +34,12 @@
     btnZoom: 100,
     btnX: 50,
     btnY: 50,
+    cardOn: false,
+    cardOpacity: 70,
+    cardFit: "cover",
+    cardZoom: 100,
+    cardX: 50,
+    cardY: 50,
     fontScale: 100,
     surfaceAlpha: 90,
     syncMl: true,
@@ -187,6 +193,14 @@
     out.btnX = clampStep(raw.btnX, 0, 100, 1, out.btnX);
     out.btnY = clampStep(raw.btnY, 0, 100, 1, out.btnY);
 
+    /* 浮窗卡片：游戏原生弹窗（#customOverlayContent / #ui-dialog-body）的底图 */
+    if (typeof raw.cardOn === "boolean") out.cardOn = raw.cardOn;
+    out.cardOpacity = clampStep(raw.cardOpacity, 0, 100, 5, out.cardOpacity);
+    if (FITS.indexOf(raw.cardFit) >= 0) out.cardFit = raw.cardFit;
+    out.cardZoom = clampStep(raw.cardZoom, 50, 200, 5, out.cardZoom);
+    out.cardX = clampStep(raw.cardX, 0, 100, 1, out.cardX);
+    out.cardY = clampStep(raw.cardY, 0, 100, 1, out.cardY);
+
     out.fontScale = clampStep(raw.fontScale, 80, 140, 5, out.fontScale);
     out.surfaceAlpha = clampStep(raw.surfaceAlpha, 0, 100, 5, out.surfaceAlpha);
     if (typeof raw.syncMl === "boolean") out.syncMl = raw.syncMl;
@@ -254,6 +268,13 @@
     pickNum("btnX", 0, 100, 1);
     pickNum("btnY", 0, 100, 1);
 
+    pickBool("cardOn", out.custom);
+    pickNum("cardOpacity", 0, 100, 5);
+    pickFit("cardFit");
+    pickNum("cardZoom", 50, 200, 5);
+    pickNum("cardX", 0, 100, 1);
+    pickNum("cardY", 0, 100, 1);
+
     pickNum("fontScale", 80, 140, 5);
     pickNum("surfaceAlpha", 0, 100, 5);
     pickBool("syncMl", out.custom);
@@ -279,11 +300,13 @@
   var RESET_GROUPS = {
     bg: ["bgOn", "bgOpacity", "bgFit", "bgZoom", "bgX", "bgY", "bgSoft"],
     btn: ["btnOn", "btnOpacity", "btnFit", "btnZoom", "btnX", "btnY"],
+    card: ["cardOn", "cardOpacity", "cardFit", "cardZoom", "cardX", "cardY"],
     colors: ["colors"],
     type: ["fontScale", "surfaceAlpha"],
     veil: ["surfaceAlpha"],
     all: ["bgOn", "bgOpacity", "bgFit", "bgZoom", "bgX", "bgY", "bgSoft",
       "btnOn", "btnOpacity", "btnFit", "btnZoom", "btnX", "btnY",
+      "cardOn", "cardOpacity", "cardFit", "cardZoom", "cardX", "cardY",
       "fontScale", "surfaceAlpha", "syncMl", "colors"]
   };
 
@@ -328,16 +351,18 @@
    * 并强制一次同步重排。返回状态 + 一句可读的回执（面板直接显示）。
    * ---------------------------------------------------------------------- */
 
-  function appliedSummary(custom, hasBg, hasBtn) {
+  function appliedSummary(custom, hasBg, hasBtn, hasCard) {
     var c = sanitizeCustom(custom);
     var bg = !!(c.bgOn && hasBg);
     var btn = !!(c.btnOn && hasBtn);
+    var card = !!(c.cardOn && hasCard);
     var parts = [
       "背景 " + (bg ? c.bgOpacity + "%" : (hasBg ? "已关闭" : "还没有图")),
       "按钮底纹 " + (btn ? c.btnOpacity + "%" : (hasBtn ? "已关闭" : "还没有图")),
+      "浮窗卡片 " + (card ? c.cardOpacity + "%" : (hasCard ? "已关闭" : "还没有图")),
       "面板遮蔽 " + c.surfaceAlpha + "%"
     ];
-    return { bg: bg, btn: btn, note: "已应用 · " + parts.join(" · ") };
+    return { bg: bg, btn: btn, card: card, note: "已应用 · " + parts.join(" · ") };
   }
 
   /* -------------------------------------------------------------------------
@@ -385,6 +410,13 @@
     md["--mlc-btn-veil"] = veilPct <= 0
       ? "transparent"
       : "color-mix(in srgb, var(--mlc-surface) " + veilPct + "%, transparent)";
+
+    /* 浮窗卡片底图：同样靠同色遮罩降 alpha（图片本身不能单独降） */
+    md["--mlc-card-op"] = String(Number((c.cardOpacity / 100).toFixed(2)));
+    var cardVeilPct = Math.max(0, Math.min(100, 100 - c.cardOpacity));
+    md["--mlc-card-veil"] = cardVeilPct <= 0
+      ? "transparent"
+      : "color-mix(in srgb, var(--mlc-surface) " + cardVeilPct + "%, transparent)";
 
     var mdColors = [
       ["accent", "--mlc-accent"],

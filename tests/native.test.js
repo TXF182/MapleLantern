@@ -204,7 +204,11 @@ test("图标 + 选项：选项被本地化包裹时也能并入同一张卡", as
   const groups = p.querySelectorAll(".ml-option-group");
   assert.equal(groups.length, 1, "包裹层里的选项也应打包");
   assert.equal(groups[0].querySelector("a.macro-link") !== null, true);
-  assert.equal(p.querySelector(".option-wrap"), null, "空包裹层应被移除");
+  /* 1.4.6：宿主包裹层不再删除，改为隐藏锚点，关闭原生卡片时可原样还原。 */
+  const shell = p.querySelector(".option-wrap");
+  assert.ok(shell, "包裹层应保留");
+  assert.equal(shell.getAttribute("data-ml-empty-holder"), "1", "包裹层应打隐藏标记");
+  assert.equal(shell.children.length, 0, "包裹层内不应残留内容");
   assert.equal(p.querySelectorAll("br").length, 0, "组前空行应被清掉");
 });
 
@@ -224,9 +228,14 @@ test("图标 + 选项：图标与链接同在一个容器内时也能进同一�
     assert.equal(group.querySelector("a.macro-link") !== null, true);
     assert.equal(group.children.length, 2, "卡片内只应保留图标与链接");
   }
-  assert.equal(p.querySelector(".option-line"), null, "空容器应被移除");
-  assert.equal(p.querySelectorAll("br").length, 0, "容器内的换行不应留下空行");
-});
+  /* 1.4.6：容器不删除，改为隐藏锚点，保证关闭原生卡片后可还原。 */
+  const shells = p.querySelectorAll(".option-line");
+  assert.equal(shells.length, 2, "空容器应保留为还原锚点");
+  for (const s of shells) {
+    assert.equal(s.getAttribute("data-ml-empty-holder"), "1", "容器应打隐藏标记");
+    assert.equal(s.children.length, 0, "容器内不应残留内容");
+  }
+  assert.equal(p.querySelectorAll("br").length, 0, "容器内的换行不应留下空行");});
 
 test("正文选项：场景图标包在装饰层里时也能进同一张卡", async () => {
   const { w } = createEnv();

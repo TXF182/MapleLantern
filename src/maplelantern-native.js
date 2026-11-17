@@ -154,7 +154,9 @@
 
   function readPercent(card) {
     try {
-      var meter = card.querySelector(".meter");
+      /* 关闭「显示状态文本」时，宿主把条形容器类名换成 rightMeter，
+         只查 .meter 会读不到宽度，百分比整列变空。 */
+      var meter = card.querySelector(".meter, .rightMeter");
       if (!meter) { return null; }
       var fill = meter.querySelector("div");
       if (!fill) { return 0; }
@@ -175,6 +177,26 @@
     return match ? match[1] : "";
   }
 
+  /* 少数卡片（实测 oxygencaption）没有 title；天真卡片的变量名是 awareness，
+     显示值取绝对值。这里只读 State.variables，不写入宿主状态。 */
+  var STAT_VAR = { innocence: "awareness" };
+
+  function readStatValue(card, key) {
+    var fromTitle = parseStatValue(card);
+    if (fromTitle) { return fromTitle; }
+    try {
+      var vars = gameVars();
+      if (!vars) { return ""; }
+      var name = STAT_VAR[key] || key;
+      var raw = vars[name];
+      if (raw === undefined || raw === null || raw === "") { return ""; }
+      var n = Number(raw);
+      if (!isFinite(n)) { return ""; }
+      if (key === "innocence") { n = Math.abs(n); }
+      return String(n);
+    } catch (e) { return ""; }
+  }
+
   function compactStatNumber(raw) {
     var n = Number(raw);
     if (!isFinite(n)) { return ""; }
@@ -182,7 +204,8 @@
   }
 
   /* 原版 title 只有当前值；上限从 State.variables 的 *max 读取（只读）。
-     pain 固定 100，tiredness 固定 2000，allure 由游戏 clamp 到 8000。 */
+     pain 固定 100，tiredness 取 Constants.tiredness.max，allure 由游戏 clamp 到
+     8000 × settings.allureModifier，天真固定 200（原版用 statbarinverted -200）。 */
   var STAT_MAX = {
     pain: 100,
     arousal: 10000,
@@ -191,7 +214,9 @@
     trauma: 5000,
     control: 1000,
     willpower: 1000,
-    allure: 8000
+    allure: 8000,
+    innocence: 200,
+    lewdity: 10000
   };
 
   function readStatMax(key) {
@@ -204,9 +229,23 @@
       if (key === "trauma") { return Number(vars.traumamax) || fallback; }
       if (key === "control") { return Number(vars.controlmax) || fallback; }
       if (key === "willpower") { return Number(vars.willpowermax) || fallback; }
+      if (key === "oxygen") { return Number(vars.oxygenmax) || fallback; }
+      if (key === "lewdity") { return Number(vars.lewditymax) || fallback; }
+      if (key === "allure") {
+        var mod = Number(vars.settings && vars.settings.allureModifier);
+        return isFinite(mod) && mod > 0 ? Math.round(8000 * mod * 100) / 100 : fallback;
+      }
+      if (key === "tiredness") {
+        var c = window.Constants && window.Constants.tiredness;
+        return Number(c && c.max) || fallback;
+      }
     } catch (e) {}
     return fallback;
   }
+
+  /* 原版这几根条是 statbarinverted：填的是「反过来」的宽度。
+     天真 -200、自控、氧气都用反向条，进度要按 100 - 条宽算。 */
+  var INVERTED_STAT = { innocence: 1, control: 1, oxygen: 1 };
 
   function gameVars() {
     var state = window.State ||
@@ -222,8 +261,9 @@
     for (var i = 0; i < cards.length; i++) {
       var card = cards[i];
       var key = card.id.replace(/caption$/, "");
-      var value = parseStatValue(card);
-      var pct = readPercent(card);
+      var value = readStatValue(card, key);
+      var pctRaw = readPercent(card);
+      var pct = pctRaw === null ? null : (INVERTED_STAT[key] ? 100 - pctRaw : pctRaw);
       var max = readStatMax(key);
       setAttr(card, "data-ml-stat-card", "1");
       setAttr(card, "data-ml-stat-key", key);
@@ -564,6 +604,31 @@
     /* 本地化/替换型模组可能在 passageend 之后重建链接，且不一定保留
        macro-link 类名；把 link-internal 也纳入候选，才不至于在 Android 上
        只剩图标留在卡外。没有图标的行内链接会在下面因 icon 为空直接跳过。 */
+    /* 第三方网格/表格页（设置格子、态度页、衣柜分组）依赖单元格容器。
+       把图标和链接搬进新卡、再删掉宿主容器，会让整页布局崩掉，而且关闭
+       原生卡片也还原不回来。这里在搬节点之前先判定布局壳层，命中就整页
+       保持原样（只保留游戏原生链接样式）。 */
+    function layoutShell(node, stop) {
+      var el = node;
+      while (el) {
+        if (el.nodeType === 1) {
+          var tag = el.tagName;
+          if (tag === "TABLE" || tag === "TBODY" || tag === "TR" ||
+              tag === "TD" || tag === "TH" || tag === "THEAD" || tag === "TFOOT") {
+            return true;
+          }
+          if (el.getAttribute && el.getAttribute("data-ml-layout") === "1") { return true; }
+          try {
+            var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+            var d = (cs && cs.display) || (el.style && el.style.display) || "";
+            if (d === "grid" || d === "inline-grid" || d.indexOf("table") === 0) { return true; }
+          } catch (e) { /* 取不到计算样式时按普通流处理 */ }
+        }
+        if (el === stop) { break; }
+        el = el.parentNode;
+      }
+      return false;
+    }
     function optionLinks(passage) {
       return passage.querySelectorAll("a.link-internal.macro-link, a.macro-link, a.link-internal");
     }
@@ -581,6 +646,7 @@
       var groups = passage.querySelectorAll(".ml-option-group");
       for (var g = 0; g < groups.length; g++) {
         var group = groups[g];
+        if (layoutShell(group, passage)) { continue; }
         if (group.querySelector("a.link-internal, a.macro-link")) { continue; }
         var next = group.nextSibling;
         while (next && (blank(next) || (next.nodeType === 1 && next.tagName === "BR"))) {
@@ -601,7 +667,8 @@
         if (!direct) { continue; }
         if (holder && heldLink) {
           group.appendChild(heldLink);
-          if (holder.parentNode && !(holder.textContent || "").trim() && !holder.querySelector("img")) {
+          if (holder.parentNode && !(holder.textContent || "").trim() && !holder.querySelector("img") &&
+              !layoutShell(holder, passage)) {
             holder.parentNode.removeChild(holder);
           }
         } else {
@@ -631,6 +698,7 @@
         var icon = list[k];
         if (icon.closest && icon.closest(".ml-option-group")) { continue; }
         if (!icon.parentNode) { continue; }
+        if (layoutShell(icon, passage)) { continue; }
         var next = icon.nextSibling;
         var link = null;
         for (var s = 0; next && s < 6; s++) {
@@ -671,7 +739,10 @@
        间距撑回一大段。统一在每页收尾时清一遍，含图标的段落不动。 */
     function tidyGroupGaps(passage) {
       var emptyBlock = function (n) {
-        return n && n.nodeType === 1 && /^(P|DIV|SPAN)$/.test(n.tagName) &&
+        if (!n || n.nodeType !== 1) { return false; }
+        /* 隐藏的宿主容器是关闭原生卡片后的还原锚点，不能当空行清掉。 */
+        if (n.getAttribute && n.getAttribute("data-ml-empty-holder")) { return false; }
+        return /^(P|DIV|SPAN)$/.test(n.tagName) &&
           !(n.textContent || "").trim() &&
           !(n.querySelector && n.querySelector("img.icon, .icon-container, a.link-internal, a.macro-link"));
       };
@@ -704,6 +775,7 @@
           if (p.getAttribute && p.getAttribute("data-ml-option-group")) { inGroup = true; break; }
         }
         if (inGroup) { continue; }
+        if (layoutShell(link, passage)) { continue; }
 
         var holder = link.parentNode;
         var icon = iconBefore(link);
@@ -750,11 +822,12 @@
           outer.parentNode.removeChild(outer);
         }
         /* 同容器结构：图标和链接移走后，容器只剩 <br>/空白。把卡片提到
-           容器原来的位置并摘掉容器，否则外层容器仍会占一行。 */
+           容器原来的位置；宿主容器不删除，只打隐藏标记——关闭原生卡片后
+           unpackOptions 才能把图标和链接放回原位。 */
         if (holder !== passage && holder.parentNode) {
           var holderParent = holder.parentNode;
           holderParent.insertBefore(wrap, holder);
-          holderParent.removeChild(holder);
+          holder.setAttribute("data-ml-empty-holder", "1");
         }
         /* 选项卡片之间、以及卡后奖励行之间的连续空行，全部收掉；
            卡片自带 margin，不再靠 <br> 撑距离。 */
@@ -805,8 +878,21 @@
       var group = groups[i];
       var parent = group.parentNode;
       if (!parent) { continue; }
-      while (group.firstChild) { parent.insertBefore(group.firstChild, group); }
+      /* pack 时宿主容器只隐藏不删除，组紧邻的下一个兄弟就是它：
+         先把图标和链接按原顺序放回宿主，再摘组、清隐藏标记。 */
+      var holder = group.nextElementSibling;
+      if (holder && holder.getAttribute && holder.getAttribute("data-ml-empty-holder")) {
+        while (group.firstChild) { holder.appendChild(group.firstChild); }
+        holder.removeAttribute("data-ml-empty-holder");
+      } else {
+        while (group.firstChild) { parent.insertBefore(group.firstChild, group); }
+      }
       parent.removeChild(group);
+    }
+    /* 组在中途被宿主重建掉时，隐藏标记可能留在原地，一并清掉。 */
+    var leftovers = doc.querySelectorAll("[data-ml-empty-holder]");
+    for (var j = 0; j < leftovers.length; j++) {
+      leftovers[j].removeAttribute("data-ml-empty-holder");
     }
   }
 

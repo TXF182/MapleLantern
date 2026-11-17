@@ -45,7 +45,7 @@
   function boot() {
     var settings = migrate(Core.readSettings(storage()));
     Theme.apply(settings);
-    ["bg", "btn"].forEach(function (kind) {
+    ["bg", "btn", "card"].forEach(function (kind) {
       Promise.resolve(Assets.load(kind)).then(function (rec) { attach(kind, rec); });
     });
   }

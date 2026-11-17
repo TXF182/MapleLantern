@@ -26,7 +26,12 @@
   var observer = null;
   var timer = 0;
   var ui = null;              // 当前注入的控件组
-  var img = { bg: null, btn: null };  // { url, w, h, bytes, type }
+  var img = { bg: null, btn: null, card: null };  // { url, w, h, bytes, type }
+  /* 三种可导入的图：显示名 + 对应的开关键。加新槽位只改这两张表，
+     剩下分支一律走这里，避免再散落一串 kind==="bg" ? ... : ... */
+  var KINDS = ["bg", "btn", "card"];
+  var KIND_LABEL = { bg: "背景", btn: "按钮底纹", card: "浮窗卡片" };
+  var KIND_ON = { bg: "bgOn", btn: "btnOn", card: "cardOn" };
   var draft = null;           // 拖动 / 滑杆过程中的临时设置
   var pending = null;         // 待提交的补丁
   var drag = null;
@@ -302,13 +307,15 @@
 
     stage.addEventListener("pointerdown", onStageDown);
     stage.addEventListener("dblclick", function (ev) {
-      var kind = ev.target && ev.target.closest && (ev.target.closest("[data-mlc-stage-opt]") || ev.target.closest(".md-stage-card"))
-        ? "btn" : "bg";
+      var opt = ev.target && ev.target.closest && ev.target.closest("[data-mlc-stage-opt]");
+      var cardHit = ev.target && ev.target.closest && ev.target.closest(".md-stage-card");
+      var kind = opt ? "btn" : (cardHit ? "card" : "bg");
       if (!stageAllowed(kind)) return;
       var p = {};
-      if (kind === "bg") { p.bgX = 50; p.bgY = 50; } else { p.btnX = 50; p.btnY = 50; }
+      var key = kind === "bg" ? "bg" : (kind === "card" ? "card" : "btn");
+      p[key + "X"] = 50; p[key + "Y"] = 50;
       commit(p);
-      flashHint(kind === "bg" ? "背景已居中 50% / 50%" : "按钮底纹已居中 50% / 50%");
+      flashHint(KIND_LABEL[kind] + "已居中 50% / 50%");
     });
     return stage;
   }
@@ -329,15 +336,35 @@
         patch: function (o) { return { bgX: o.x, bgY: o.y }; }
       };
     }
+    if (kind === "card") {
+      if (!img.card) return null;
+      var cb = ui && ui.stage ? ui.stage.querySelector(".md-stage-card") : null;
+      if (!cb) return null;
+      var cr = cb.getBoundingClientRect();
+      if (!cr.width || !cr.height) return null;
+      /* 历史档里 meta 可能缺 w/h（旧图库/手工塞图）：缺就按 3:2 估，
+         别让 h/w 除出 Infinity 把拖动余量算成无穷大、位置写成 NaN。 */
+      var car = (img.card.w > 0 && img.card.h > 0) ? img.card.h / img.card.w : 0.6;
+      var csw = cr.width * c.cardZoom / 100;
+      var csh = c.cardFit === "fill"
+        ? cr.height * c.cardZoom / 100
+        : csw * car;
+      return {
+        boxW: cr.width, boxH: cr.height, bgW: csw, bgH: csh,
+        x: c.cardX, y: c.cardY,
+        patch: function (o) { return { cardX: o.x, cardY: o.y }; }
+      };
+    }
     if (!img.btn) return null;
     var opt = ui && ui.stage ? ui.stage.querySelector("[data-mlc-stage-opt='0']") : null;
     if (!opt) return null;
     var or = opt.getBoundingClientRect();
     if (!or.width || !or.height) return null;
     var sw = or.width * c.btnZoom / 100;
+    var bar = (img.btn.w > 0 && img.btn.h > 0) ? img.btn.h / img.btn.w : 0.6;
     var sh = c.btnFit === "fill"
       ? or.height * c.btnZoom / 100
-      : sw * (img.btn.h / img.btn.w);
+      : sw * bar;
     return {
       boxW: or.width, boxH: or.height, bgW: sw, bgH: sh,
       x: c.btnX, y: c.btnY,
@@ -348,6 +375,7 @@
   function stageAllowed(kind) {
     var s = draft || current();
     if (kind === "bg") return !!(s.custom.bgOn && img.bg);
+    if (kind === "card") return !!(s.custom.cardOn && img.card);
     return !!(s.custom.btnOn && img.btn);
   }
 
@@ -355,13 +383,14 @@
     var stage = ui && ui.stage;
     if (!stage) return;
     var target = ev.target;
-    /* 舞台里样例选项只调底纹位置/缩放；拖其余位置调背景。 */
-    var kind = target && target.closest && (target.closest("[data-mlc-stage-opt]") || target.closest(".md-stage-card"))
-      ? "btn" : "bg";
+    /* 舞台里样例选项只调按钮底纹、样例卡片只调浮窗卡片位置；拖其余位置调背景。 */
+    var optHit = target && target.closest && target.closest("[data-mlc-stage-opt]");
+    var cardHit = target && target.closest && target.closest(".md-stage-card");
+    var kind = optHit ? "btn" : (cardHit ? "card" : "bg");
     if (!stageAllowed(kind)) {
       flashHint(kind === "bg"
         ? "先在下面导入背景图（或把背景开关打开）再拖"
-        : "先在下面导入按钮底纹（或把按钮开关打开）再拖");
+        : "先在下面导入「" + KIND_LABEL[kind] + "」（或把开关打开）再拖");
       return;
     }
     var info = stageInfo(kind);
@@ -371,7 +400,7 @@
     if (info.bgW <= info.boxW + 1 && info.bgH <= info.boxH + 1) {
       flashHint(kind === "bg"
         ? "图已经装得比画面小，没有可移动余量：先把「背景缩放」调大"
-        : "底纹比按钮还小，先把「按钮底纹缩放」调大");
+        : KIND_LABEL[kind] + "底纹比盒子还小，先把缩放调大");
       return;
     }
     drag = {
@@ -445,11 +474,16 @@
     st.style.setProperty("--mlc-stage-ar", vw + " / " + vh);
     st.setAttribute("data-mlc-bg", c.bgOn && img.bg ? "1" : "0");
     st.setAttribute("data-mlc-btn", c.btnOn && img.btn ? "1" : "0");
+    st.setAttribute("data-mlc-stage-card", c.cardOn && img.card ? "1" : "0");
     st.style.setProperty("--mlc-stage-pos", c.bgX + "% " + c.bgY + "%");
     st.style.setProperty("--mlc-stage-btn-pos", c.btnX + "% " + c.btnY + "%");
     st.style.setProperty("--mlc-stage-btn-size", c.btnFit === "fill"
       ? c.btnZoom + "% 100%"
       : c.btnZoom + "% auto");
+    st.style.setProperty("--mlc-stage-card-pos", c.cardX + "% " + c.cardY + "%");
+    st.style.setProperty("--mlc-stage-card-size", c.cardFit === "fill"
+      ? c.cardZoom + "% 100%"
+      : c.cardZoom + "% auto");
 
     var r = st.getBoundingClientRect();
     if (img.bg && r.width && r.height) {
@@ -517,11 +551,10 @@
         bytes: rec.bytes,
         type: rec.type
       });
-      setNote((kind === "bg" ? "背景" : "按钮底纹") + "已更新 · " + rec.w + "×" + rec.h + " · " + Core.formatBytes(rec.bytes) +
+      setNote(KIND_LABEL[kind] + "已更新 · " + rec.w + "×" + rec.h + " · " + Core.formatBytes(rec.bytes) +
         (res.ok ? "" : "（浏览器不让存，本次会话有效）") + warnHint(rec, kind));
       var p = {};
-      var key = kind === "bg" ? "bgOn" : "btnOn";
-      p[key] = true;
+      p[KIND_ON[kind]] = true;
       var extraNote = "";
       if (kind === "bg") {
         /* 灯台面板底板默认 92% 不透明：图铺在下面，屏幕上却几乎没变化。
@@ -539,7 +572,7 @@
         }
       }
       commit(p);
-      if (extraNote) setNote((kind === "bg" ? "背景" : "按钮底纹") + "已更新 · " + rec.w + "×" + rec.h +
+      if (extraNote) setNote(KIND_LABEL[kind] + "已更新 · " + rec.w + "×" + rec.h +
         " · " + Core.formatBytes(rec.bytes) + (res.ok ? "" : "（浏览器不让存，本次会话有效）") +
         warnHint(rec, kind) + extraNote);
       });
@@ -558,7 +591,9 @@
     var w = rec.w || 0;
     var h = rec.h || 0;
     if (w && h && (h / w > 3 || w / h > 3)) {
-      return kind === "bg" ? " · 比例很极端，铺满会裁掉大半，建议选“完整”" : " · 比例很极端，底纹会被压扁";
+      return kind === "bg"
+        ? " · 比例很极端，铺满会裁掉大半，建议选“完整”"
+        : (kind === "card" ? " · 比例很极端，卡片底图会被压扁" : " · 比例很极端，底纹会被压扁");
     }
     return "";
   }
@@ -566,9 +601,9 @@
   function removeImage(kind) {
     setImage(kind, null);
     Assets.drop(kind);
-    setNote((kind === "bg" ? "背景" : "按钮底纹") + "已移除");
+    setNote(KIND_LABEL[kind] + "已移除");
     var p = {};
-    p[kind === "bg" ? "bgOn" : "btnOn"] = false;
+    p[KIND_ON[kind]] = false;
     commit(p);
   }
 
@@ -582,7 +617,7 @@
 
   function applyBackground() {
     setNote("正在应用背景…");
-    var jobs = ["bg", "btn"].map(function (kind) {
+    var jobs = KINDS.map(function (kind) {
       return Assets.load(kind).then(function (rec) {
         if (!rec || !rec.blob) return false;
         return Assets.dataUrlFor(kind, rec.blob).then(function (url) {
@@ -607,7 +642,7 @@
       Theme.apply(s);
       /* 切过标签页或面板滚出视口后，fixed 图层可能不重绘；读一次布局逼它同步重排 */
       if (doc.body) void doc.body.offsetHeight;
-      var sum = Core.appliedSummary(s.custom, !!img.bg, !!img.btn);
+      var sum = Core.appliedSummary(s.custom, !!img.bg, !!img.btn, !!img.card);
       setNote(sum.note);
       paintStage();
       paintPicks();
@@ -617,10 +652,10 @@
     });
   }
 
-  var loaded = { bg: false, btn: false };
+  var loaded = { bg: false, btn: false, card: false };
 
   function loadImages() {
-    ["bg", "btn"].forEach(function (kind) {
+    KINDS.forEach(function (kind) {
       if (loaded[kind]) return;
       loaded[kind] = true;
       Assets.load(kind).then(function (rec) {
@@ -800,7 +835,31 @@
     group.appendChild(bop.node);
     group.appendChild(bzm.node);
 
-    var dragHint = note("背景 / 按钮底纹都可以直接在预览里拖：按住画面拖动即可改位置；缩到比画面还小时拖不动，先把缩放调大");
+    /* —— 浮窗卡片（游戏原生弹窗）—— */
+    var cardRow = el("div", "md-pick-row");
+    cardRow.setAttribute(MARK_ATTR, "card-buttons");
+    var cardPick = el("button", "ml-btn ml-btn-quiet md-pick", { type: "button" });
+    cardPick.textContent = "导入浮窗卡片";
+    var cardDel = el("button", "ml-btn ml-btn-quiet md-pick", { type: "button" });
+    cardDel.textContent = "移除";
+    cardRow.appendChild(cardPick);
+    cardRow.appendChild(cardDel);
+    group.appendChild(field("浮窗卡片", cardRow, "card-buttons"));
+
+    var cardFit = seg([
+      { value: "cover", label: "等比" },
+      { value: "fill", label: "拉伸" }
+    ], current().custom.cardFit === "fill" ? "fill" : "cover", function (v) { commit(one("cardFit", v)); }, "seg-card-fit");
+    group.appendChild(field("浮窗卡片适配", cardFit, "card-fit"));
+
+    var cop = slider("cardOpacity", 0, 100, 5, "浮窗卡片不透明度", function (v) { return v + "%"; });
+    var czm = slider("cardZoom", 50, 200, 5, "浮窗卡片缩放", function (v) { return v + "%"; });
+    group.appendChild(cop.node);
+    group.appendChild(czm.node);
+    var cardHint = note("只改游戏自己的浮窗/弹窗（选项弹窗、存档与设置对话框）的卡片底图；预览里拖那张样例卡片就是调它的位置");
+    group.appendChild(cardHint);
+
+    var dragHint = note("背景 / 按钮底纹 / 浮窗卡片都可以直接在预览里拖：按住对应区域拖动即可改位置；缩到比盒子还小时拖不动，先把缩放调大");
     group.appendChild(dragHint);
 
     /* —— 字号 / 纸面 —— */
@@ -834,6 +893,7 @@
     [
       ["背景", "bg"],
       ["按钮底纹", "btn"],
+      ["浮窗卡片", "card"],
       ["颜色", "colors"],
       ["字号与遮蔽", "type"],
       ["恢复出厂", "all"]
@@ -849,6 +909,8 @@
     bgDel.addEventListener("click", function () { removeImage("bg"); });
     btnPick.addEventListener("click", function () { pickFile("btn"); });
     btnDel.addEventListener("click", function () { removeImage("btn"); });
+    cardPick.addEventListener("click", function () { pickFile("card"); });
+    cardDel.addEventListener("click", function () { removeImage("card"); });
     applyBtn.addEventListener("click", applyBackground);
 
     var note0 = note(loadingNote || "背景建议长边 ≥ 1200 px；导入时窄屏压到 1200 px、宽屏压到 1600 px 再存，单张上限 15 MB");
@@ -864,8 +926,9 @@
       posLine: posLine,
       bgDel: bgDel,
       btnDel: btnDel,
-      op: op, zm: zm, sf: sf, bop: bop, bzm: bzm, fs: fs, sa: sa,
-      bgFit: bgFit, btnFit: btnFit, syncSw: syncSw,
+      cardDel: cardDel,
+      op: op, zm: zm, sf: sf, bop: bop, bzm: bzm, cop: cop, czm: czm, fs: fs, sa: sa,
+      bgFit: bgFit, btnFit: btnFit, cardFit: cardFit, syncSw: syncSw,
       colorRows: colorsBox.querySelectorAll(".md-color-row"),
       paintHint: paintHint
     };
@@ -885,8 +948,9 @@
     });
     if (group === "bg") { Assets.release("bg"); img.bg = null; Theme.attach("bg", null); Assets.drop("bg"); }
     if (group === "btn") { Assets.release("btn"); img.btn = null; Theme.attach("btn", null); Assets.drop("btn"); }
+    if (group === "card") { Assets.release("card"); img.card = null; Theme.attach("card", null); Assets.drop("card"); }
     if (group === "all") {
-      ["bg", "btn"].forEach(function (k) {
+      KINDS.forEach(function (k) {
         Assets.release(k);
         img[k] = null;
         Theme.attach(k, null);
@@ -907,6 +971,8 @@
     ui.sf.paint();
     ui.bop.paint();
     ui.bzm.paint();
+    ui.cop.paint();
+    ui.czm.paint();
     ui.fs.paint();
     ui.sa.paint();
   }
@@ -917,13 +983,14 @@
     var c = (draft || current()).custom;
     var bg = (img.bg && c.bgOn) ? "背景 " + c.bgX + "% / " + c.bgY + "%" : "背景 未启用";
     var bt = (img.btn && c.btnOn) ? "按钮 " + c.btnX + "% / " + c.btnY + "%" : "按钮 未启用";
-    ui.posLine.textContent = "位置 · " + bg + " ｜ " + bt;
+    var cd = (img.card && c.cardOn) ? "卡片 " + c.cardX + "% / " + c.cardY + "%" : "卡片 未启用";
+    ui.posLine.textContent = "位置 · " + bg + " ｜ " + bt + " ｜ " + cd;
   }
 
   /** 没图时「移除」按钮禁用：避免点了没反应，也避免误触丢图。 */
   function paintPicks() {
     if (!ui) return;
-    [[ui.bgDel, !!img.bg], [ui.btnDel, !!img.btn]].forEach(function (pair) {
+    [[ui.bgDel, !!img.bg], [ui.btnDel, !!img.btn], [ui.cardDel, !!img.card]].forEach(function (pair) {
       var b = pair[0];
       if (!b) return;
       var has = pair[1];
@@ -937,7 +1004,9 @@
   function paintSegments() {
     if (!ui) return;
     var c = current().custom;
-    [[ui.bgFit, c.bgFit], [ui.btnFit, c.btnFit === "fill" ? "fill" : "cover"]].forEach(function (spec) {
+    [[ui.bgFit, c.bgFit],
+     [ui.btnFit, c.btnFit === "fill" ? "fill" : "cover"],
+     [ui.cardFit, c.cardFit === "fill" ? "fill" : "cover"]].forEach(function (spec) {
       var group = spec[0];
       var val = spec[1];
       Array.prototype.forEach.call(group.children, function (b) {
@@ -1016,7 +1085,7 @@
     ui = null;
     draft = null;
     pending = null;
-    loaded = { bg: false, btn: false };
+    loaded = { bg: false, btn: false, card: false };
   }
 
   root.MapleLanternDossierPanel = {
@@ -1025,7 +1094,7 @@
     sync: sync,
     destroy: destroy,
     setImage: setImage,
-    images: function () { return { bg: img.bg, btn: img.btn }; },
+    images: function () { return { bg: img.bg, btn: img.btn, card: img.card }; },
     stage: function () { return ui ? ui.stage : null; }
   };
 

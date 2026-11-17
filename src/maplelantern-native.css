@@ -833,7 +833,7 @@ html[data-ml-native="on"] #statmeters > div[id$="caption"] > span {
   display: none !important;
 }
 
-html[data-ml-native="on"] #statmeters .meter {
+html[data-ml-native="on"] #statmeters :is(.meter, .rightMeter) {
   position: relative !important;
   grid-column: 2;
   grid-row: 1;
@@ -847,7 +847,7 @@ html[data-ml-native="on"] #statmeters .meter {
   z-index: auto;
 }
 
-html[data-ml-native="on"] #statmeters .meter > div {
+html[data-ml-native="on"] #statmeters :is(.meter, .rightMeter) > div {
   position: absolute;
   top: 0;
   left: 0;
@@ -1265,6 +1265,12 @@ html[data-ml-native="on"] #passages .passage .ml-option-group:active {
   border-color: var(--mln-accent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 0 0 1px var(--mln-accent);
   transition-duration: 40ms;
+}
+
+/* pack 时宿主容器只隐藏不删除：关闭原生卡片后 unpackOptions 按原位还原，
+   容器本身（含第三方页面依赖的 .cell / 行包裹）不再被摘掉。 */
+html[data-ml-native="on"] #passages .passage [data-ml-empty-holder] {
+  display: none !important;
 }
 
 html[data-ml-native="on"] #passages .passage .ml-option-group > img.icon {
@@ -3296,7 +3302,7 @@ html[data-ml-native="on"] #passages::-webkit-scrollbar-thumb {
 /* ---------------------------------------------------------------- 动效 */
 /* keyframes 见 effects.css；本文件只声明宿主与选择器。 */
 
-html[data-ml-native="on"] #statmeters .meter > div {
+html[data-ml-native="on"] #statmeters :is(.meter, .rightMeter) > div {
   transition: width 180ms ease;
 }
 
@@ -3309,7 +3315,7 @@ html[data-ml-native="on"][data-ml-motion="off"] #customOverlay:not(:has(#cheat_e
 
 html[data-ml-native="on"][data-ml-motion="off"] #passages .passage a.link-internal.macro-link,
 html[data-ml-native="on"][data-ml-motion="off"] #statmeters > div[id$="caption"],
-html[data-ml-native="on"][data-ml-motion="off"] #statmeters .meter > div,
+html[data-ml-native="on"][data-ml-motion="off"] #statmeters :is(.meter, .rightMeter) > div,
 html[data-ml-native="on"][data-ml-motion="off"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
 html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
 html[data-ml-native="on"][data-ml-motion="off"] #overlayButtons button {
@@ -3351,7 +3357,7 @@ html[data-ml-native="on"][data-ml-motion="off"] #menu button:active {
   }
   html[data-ml-native="on"] #passages .passage a.link-internal.macro-link,
   html[data-ml-native="on"] #statmeters > div[id$="caption"],
-  html[data-ml-native="on"] #statmeters .meter > div,
+  html[data-ml-native="on"] #statmeters :is(.meter, .rightMeter) > div,
   html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
   html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
   html[data-ml-native="on"] #overlayButtons button {
@@ -3526,12 +3532,12 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters > div[id$="capt
   color: #C9F4FF !important;
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .meter {
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters :is(.meter, .rightMeter) {
   background: #142036 !important;
   box-shadow: inset 0 0 0 1px rgb(0 229 255 / 10%);
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters .meter > div {
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #statmeters :is(.meter, .rightMeter) > div {
   box-shadow: 0 0 8px currentColor;
 }
 

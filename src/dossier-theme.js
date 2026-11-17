@@ -26,6 +26,7 @@
     settings: null,
     bg: null,     // { url, w, h }
     btn: null,    // { url, w, h }
+    card: null,   // { url, w, h } —— 游戏原生浮窗/弹窗底图
     mlSnapshot: {},
     applied: [],
     resizeBound: false,
@@ -155,6 +156,7 @@
       e.setAttribute("data-mlc", "on");
       e.setAttribute("data-mlc-bg", s.custom.bgOn && state.bg ? "on" : "off");
       e.setAttribute("data-mlc-btn", s.custom.btnOn && state.btn ? "on" : "off");
+      e.setAttribute("data-mlc-card", s.custom.cardOn && state.card ? "on" : "off");
     }
 
     if (state.bg && s.custom.bgOn) setVar("--mlc-bg-img", 'url("' + state.bg.url + '")');
@@ -171,6 +173,20 @@
       dropVar("--mlc-btn-pos");
     }
 
+    /* 浮窗卡片：与按钮底纹同一套尺寸口径（不依赖卡片盒子的实时尺寸，
+       原生弹窗宽度随内容跳变，按盒子算会在每次开合时抖）。 */
+    if (state.card && s.custom.cardOn) {
+      setVar("--mlc-card-img", 'url("' + state.card.url + '")');
+      setVar("--mlc-card-size", s.custom.cardFit === "fill"
+        ? s.custom.cardZoom + "% 100%"
+        : s.custom.cardZoom + "% auto");
+      setVar("--mlc-card-pos", s.custom.cardX + "% " + s.custom.cardY + "%");
+    } else {
+      dropVar("--mlc-card-img");
+      dropVar("--mlc-card-size");
+      dropVar("--mlc-card-pos");
+    }
+
     applyBackgroundGeometry();
     bindResize();
   }
@@ -181,9 +197,10 @@
     return !!(c.accent || c.surface || c.text || c.line);
   }
 
-  /** kind: "bg" | "btn"; img: { url, w, h } | null */
+  /** kind: "bg" | "btn" | "card"; img: { url, w, h } | null */
   function attach(kind, img) {
     if (kind === "bg") state.bg = img || null;
+    else if (kind === "card") state.card = img || null;
     else state.btn = img || null;
     if (state.settings) apply(state.settings);
   }
@@ -201,12 +218,14 @@
       e.removeAttribute("data-mlc");
       e.removeAttribute("data-mlc-bg");
       e.removeAttribute("data-mlc-btn");
+      e.removeAttribute("data-mlc-card");
     }
     var layer = doc.getElementById("mlc-bg");
     if (layer && layer.parentNode) layer.parentNode.removeChild(layer);
     state.settings = null;
     state.bg = null;
     state.btn = null;
+    state.card = null;
   }
 
   root.MapleLanternDossierTheme = {

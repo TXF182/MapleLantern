@@ -18,6 +18,12 @@ const CUSTOM_DEFAULT = {
   btnZoom: 100,
   btnX: 50,
   btnY: 50,
+  cardOn: false,
+  cardOpacity: 70,
+  cardFit: "cover",
+  cardZoom: 100,
+  cardX: 50,
+  cardY: 50,
   fontScale: 100,
   surfaceAlpha: 90,
   syncMl: true,
@@ -95,7 +101,7 @@ test("读写设置：坏 JSON 回落默认；写入失败返回 false", () => {
 
 test("设置键名与本包版本固定", () => {
   assert.strictEqual(Core.SETTINGS_KEY, "MapleLanternDossier.settings.v1");
-  assert.strictEqual(Core.VERSION, "1.4.5");
+  assert.strictEqual(Core.VERSION, "1.4.6");
 });
 
 /* ---------------------------------------------------------------------------

@@ -129,6 +129,49 @@ html[data-mlc="on"][data-mlc-btn="on"] #passages .passage .ml-option-group > a.l
   color: var(--mlc-text);
 }
 
+/* --- 8b2 浮窗卡片（游戏原生弹窗） ---------------------------------------- */
+
+/* 只作用卡片本体两个容器：#customOverlayContent（游戏浮窗的卡片体）、
+   #ui-dialog-body（ui-dialog 的正文卡片）。外层 #customOverlay / #ui-dialog 不铺 ——
+   它们只是居中定位的框，两层同时上底图会出现双影。
+
+   三条必须守住的对抗（都由真机/真实 CSS 复核得出）：
+   ① 原生层给这两个容器写的是 background-attachment: fixed；换图后必须显式收回
+      scroll，否则图按视口固定、弹窗一动就错位。
+   ② 手机端（≤899px）原生层带 !important 再锁一遍 fixed / cover / no-repeat，
+      且选择器是**双 ID**（#customOverlayContent#customOverlayContent）；
+      我们同样 !important + 双 ID 才压得住（否则 id 数少，手机上必输）。
+   ③ 不抢第三方面板的皮肤：ModLoader 自己的 GUI（#customOverlay[data-overlay="modloader"]）
+      与 CE 作弊面板（#cheat_extended_options / #CE_settingsDiv / .CEtab / .CEbuttonBar /
+      .CEDISPLAY / #mce-root）整条排除，规则沿用 native.css 的同一份名单。
+      排除用 :not(:has(...))：Chrome <105 这类不支持 :has 的 WebView 会把整条选择器判无效，
+      结果是"卡片图不出现"，而不是"把 CE 的底板改坏"——宁可功能缺席，不做破坏性降级。
+
+   另：本包只对 size/position/repeat/attachment 用 !important 保证定位，
+   background-image 不加 —— 第三方自己写的行内 background 仍然优先，不会被强行覆盖。 */
+html[data-mlc="on"][data-mlc-card="on"] #customOverlay:not([data-overlay="modloader"]) #customOverlayContent#customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--mlc-card-veil, transparent), var(--mlc-card-veil, transparent)),
+    var(--mlc-card-img, none);
+  background-size: auto, var(--mlc-card-size, 100% auto) !important;
+  background-position: 0 0, var(--mlc-card-pos, 50% 50%) !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: scroll, scroll !important;
+}
+
+/* 对话弹窗单独一条：与上一条同声明，拆开是为了让 :has 不可用时至少这里不受连带失效。 */
+html[data-mlc="on"][data-mlc-card="on"] #ui-dialog-body#ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: transparent;
+  background-image:
+    linear-gradient(var(--mlc-card-veil, transparent), var(--mlc-card-veil, transparent)),
+    var(--mlc-card-img, none);
+  background-size: auto, var(--mlc-card-size, 100% auto) !important;
+  background-position: 0 0, var(--mlc-card-pos, 50% 50%) !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-attachment: scroll, scroll !important;
+}
+
 /* --- 8c 设置页：预览舞台 ------------------------------------------------ */
 
 html[data-mlc="on"] .md-custom {
@@ -313,13 +356,13 @@ html[data-mlc="on"] .md-stage-card {
   background-color: var(--mlc-surface-a, var(--mlc-surface));
 }
 
-html[data-mlc="on"][data-mlc-btn="on"] .md-stage-card {
+html[data-mlc="on"][data-mlc-stage-card="1"] .md-stage-card {
   background-image:
-    linear-gradient(var(--mlc-btn-veil, transparent), var(--mlc-btn-veil, transparent)),
+    linear-gradient(var(--mlc-card-veil, transparent), var(--mlc-card-veil, transparent)),
     linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 38%),
-    var(--mlc-btn-img, none);
-  background-size: auto, auto, var(--mlc-stage-btn-size, 100% auto);
-  background-position: 0 0, 0 0, var(--mlc-stage-btn-pos, 50% 50%);
+    var(--mlc-card-img, none);
+  background-size: auto, auto, var(--mlc-stage-card-size, 100% auto);
+  background-position: 0 0, 0 0, var(--mlc-stage-card-pos, 50% 50%);
   background-repeat: no-repeat, no-repeat, no-repeat;
 }
 

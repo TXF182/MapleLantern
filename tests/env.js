@@ -50,9 +50,10 @@ function createEnv(opts) {
   opts = opts || {};
   const seed = opts.seed || { v: 1, lang: "zh", motion: false };
   const vars = opts.vars || baseVars();
+  const page = opts.html || HTML;
   let writes = 0;
 
-  const dom = new JSDOM(HTML, {
+  const dom = new JSDOM(page, {
     runScripts: "dangerously",
     pretendToBeVisual: true,
     url: "http://localhost/",

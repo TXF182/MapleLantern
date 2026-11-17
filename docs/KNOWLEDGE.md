@@ -188,16 +188,23 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ## 5. 验证命令（当前链路）
 
 ```powershell
-node --test tests\*.test.js
-pwsh -File pack.ps1
-$env:ML_ZIP="dist\MapleLantern-1.3.8.mod.zip"; node tools\game-smoke.js
+node --test tests\*.test.js                                  # 157 项：契约 / 原生 / 自定义 / DOM
+python tests\custom_host.py                                  # 真实 DOM 宿主 58 断言（含像素取色）
+python tests\custom_viewports.py                             # 六档视口 49 断言（实测「应用背景」可点）
+python tests\custom_formats.py                               # 图片格式矩阵（自建 tests\fmt 素材）
+python tests\_diag_csp.py                                    # CSP A/B：blob 被拦 / data 出图
+python tests\_diag_realinject.py                             # 真实 64MB 页面注入 + 像素判据
+pwsh -File pack.ps1                                          # 确定性 zip（14 条目）
+$env:ML_ZIP="dist\MapleLantern-1.4.6.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.3.8.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.4.6.mod.zip
 ```
 
-`boot.json` 必须是 **UTF-8 无 BOM**；版本双源为 `src/core.js VERSION` 与 `src/boot.json version`，两处必须一致。
+`boot.json` 必须是 **UTF-8 无 BOM**；**版本双源**为 `src\dossier-core.js` 的 `VERSION` 与 `src\boot.json` 的 `version`（1.4.x 起；1.3.x 及以前是 `src\core.js`），两处必须一致，且已由 `tests\contract.test.js` 强制断言——漏改一处会表现为「包是新的、行为是旧的」。
+
+`tests\_edge_profile_*` / `tests\shots` / `tests\fmt` / `tests\fixtures` 全部是**可再生产物**（脚本自建），不入库、可随时删除；删掉后重跑对应脚本会重新生成。
 
 ### 1.3.8 孩子详情恢复原版正文色（2026-11-15）
 
@@ -353,3 +360,52 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 根因：顶栏被写成四列定宽 `28px | 1fr | 46px | 44px`。日期格只有 44px，中文完整日期 `星期日 9月4日` 文本约 61.5px，`scrollWidth 54 > clientWidth 42`；金额格在容器变窄时被 `minmax(0,1fr)` 压到 37px，`overflow:hidden` 直接裁字。原版 `#stats .centered-elements` 是 `display:flex; justify-content:center; gap:20px`，本来允许收缩换行，不是固定四列。
 - 修复：改成两行三列 `28px minmax(0,1fr) 64px`，`grid-template-areas: "toggle money time" / "toggle day day"`；开关跨两行，金额+时间在上，日期独占整行。280 宽日期格 233px，216 宽 169px，180 宽仍有 133px。`markStats()` 增加 `ml-src` / `ml-replaced-src` 与中文星期文本兜底，翻译改图后日期格不再丢标记。
 - 防复发：`#stats` 内容区固定 280 宽，不要再按视口加第 4 列；验收必须同时量 280/216/180 三档的 `scrollWidth/clientWidth`，只看截图会漏掉尾部裁切。
+
+## 7. 玩家自定义外观（1.4.0 → 1.4.6，1.4.6 增加浮窗卡片底图）
+
+### 7.1 分层与数据流
+
+```
+玩家选文件  <input type=file>
+   → Assets.process(file)        Image/ImageBitmap 解码，长边压到 1200（窄屏）/1600（宽屏），上限 15MB
+   → Assets.save(key, blob)      IndexedDB: MapleLanternDossier.assets.v1 / store=images / key=bg|btn
+   → Assets.dataUrlFor(key, blob) FileReader.readAsDataURL → data: URL（按 blob 缓存同一串）
+   → Theme.attach(kind, url)     探针 Image onload 后才写变量
+   → Theme.apply()               Core.planVars(settings) → 一组 --mlc-* 变量 + data-mlc / data-mlc-bg / data-mlc-btn
+```
+
+- 设置持久化：`localStorage` 键 `MapleLanternDossier.settings.v1`；图库在 IndexedDB，两者分开，**恢复出厂不动图库**。
+- 承载：背景 `#mlc-bg`（`position:fixed; inset:0; z-index:-1`）画在 `body` 底色之上、内容之下；底纹挂 `#passages .passage a.link-internal:not(.macro-link)`。
+- 舞台：`paintStage()` 用 `cap=min(max(240, vh*0.46), 420)` 定高，比例取当前视口，**与真实页面同构**（预览通过 ≠ 真机通过，见 LRN-20261117-009）。
+
+### 7.2 硬约束：DoL 的 CSP 只认 `'self'` 与 `data:`
+
+`game\Degrees of Lewdity.html` 的 `<head>` 内：
+
+```html
+<meta http-equiv="Content-Security-Policy"
+      content="default-src 'self' 'unsafe-eval' 'unsafe-inline' *; img-src 'self' data:; font-src 'self' data:">
+```
+
+- `img-src` 不含 `blob:` ⇒ `URL.createObjectURL` 出来的 `blob:file:///...` 一律被拦，`securitypolicyviolation` 报 `img-src blob`。
+- 后果很反直觉：`--mlc-bg-img` 有值、`#mlc-bg` 的 computed `background-image` 也是合法 url、rect 满屏、opacity 1，**但一个像素都不画**。
+- 因此**图库的一切载体必须是 `data:`**；`Assets.urlFor()` 已降级为「同步取已编码结果」，不再产 blob。
+- 自建宿主 `tests/custom-host.html` 没有这条 CSP，所以在那里 blob 一直是能用的——**宿主不复刻 CSP，就永远测不出这类拦截**（LRN-20261117-011）。
+
+### 7.3 判据（改这块必须过的四道）
+
+| 层 | 命令 | 通过标准 |
+|---|---|---|
+| 纯逻辑/契约 | `node --test tests\*.test.js` | 157/157，含版本双源一致性 |
+| 真实 DOM 宿主 | `python tests\custom_host.py` | 58/0，含「载体必须是 data: URL」与像素取色（B−R ≥ 25） |
+| 六档视口 | `python tests\custom_viewports.py` | 49/0，含「应用背景」44px 可点、面板外透出背景 |
+| 真机 | `python tests\_diag_realinject.py` / `_diag_csp.py` | 页面与舞台取色命中判据图（左红右绿） |
+
+### 7.4 已踩过的坑（按修复顺序）
+
+1. `decode()` 返回 ImageBitmap 本体却被当 `{source,...}` 解构 → 导入必失败（1.4.1，ERR-20261117-007）。
+2. 面板底板 `--ml-surface-alpha` 与滑杆 `--mlc-surface-alpha` 没接线 → 图在上面被自家面板挡住（1.4.2，ERR-20261117-008）。
+3. 选项原版是内联文字链接，底纹只铺文字宽度 → 加 `data-mlc-btn=on` 才立成按钮盒（1.4.3）。
+4. 不透明度 45% 把深色立绘洗成背景色 → 默认 100 + `alignForBackground` 双修正 + 旧档迁移（1.4.4，ERR-20261117-009）。
+5. `blob:` 被 CSP 拦 → `data:` 载体（1.4.5，ERR-20261117-010）。
+
