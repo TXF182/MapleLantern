@@ -1,0 +1,460 @@
+/* ===========================================================================
+ * 灯台 · 自定义外观（MapleLantern 1.4.0）
+ * 只作用于灯台 UI：页面背景层、正文选项底纹、设置页预览舞台与控件。
+ * 变量前缀 --mlc-*，跟灯台主题 token（--mln-*）走，不写死色值。
+ * ========================================================================== */
+
+html[data-mlc="on"] {
+  --mlc-line: var(--mln-border, #2A313A);
+  --mlc-line-2: var(--mln-border-strong, #3A434E);
+  --mlc-accent: var(--mln-accent, #E3B25F);
+  --mlc-text: var(--mln-text, #E9E3D6);
+  --mlc-muted: var(--mln-muted, #9AA3AD);
+  --mlc-faint: var(--mln-faint, #6F7883);
+  --mlc-surface: var(--mln-surface, #12161B);
+  --mlc-surface-2: var(--mln-surface-2, #171C22);
+  --mlc-mono: var(--mln-mono, "Cascadia Mono", "JetBrains Mono", Consolas, "Noto Sans Mono", monospace);
+  --mlc-dash: color-mix(in srgb, var(--mlc-line) 72%, transparent);
+  --mlc-accent-line: color-mix(in srgb, var(--mlc-accent) 52%, var(--mlc-line));
+}
+
+/* ===========================================================================
+ * 8. 玩家自定义外观（v1.4.0）
+ *
+ * 三层：
+ *   8a 页面背景层（#mlc-bg，fixed，z-index:-1）——图片 + 不透明度 + 模糊
+ *   8b 按钮底纹（正文选项 / 灯台按钮）——用“纸面遮罩渐变”压出不透明度，
+ *      因为 background-image 的 url 没法单独降 alpha，遮罩色取 --mlc-surface，
+ *      换个皮肤它自己跟着变，不用两套皮肤各写一遍
+ *   8c 设置页里的预览舞台与控件
+ *
+ * 伪元素占用情况（本轮复核）：选项行 ::before 归编号、灯台按钮不使用伪元素，
+ * 所以底纹一律走 background 的多层，不抢这两个伪元素。
+ * ======================================================================== */
+
+/* --- 8a 背景层 ----------------------------------------------------------- */
+
+/* 8a 页面背景层（#mlc-bg）——图片 + 不透明度 + 模糊
+   实测真机 DoL：html 背景 none、body 底色 rgb(17,17,17) 不透明、#story 是 static（z-index 不生效），
+   所以 z-index:-1 的 fixed 层画在 body 底色之上、所有内容之下，这条路是通的。
+   玩家「导入了但没变」不是被遮挡，是 bgOpacity 默认 60（旧包 45）把暗色图洗没了 —— 默认改 100。 */
+html[data-mlc="on"] #mlc-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: transparent;
+  background-image: var(--mlc-bg-img, none);
+  background-position: var(--mlc-bg-pos, 50% 50%);
+  background-size: var(--mlc-bg-size, cover);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: var(--mlc-bg-op, 1);
+  filter: blur(var(--mlc-bg-soft, 0px));
+}
+
+/* 背景层要压住 html 上的灯台纹理，body 就不能自己铺一层不透明底 */
+html[data-mlc="on"][data-mlc-bg="on"] body {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* 灯台面板自己的底色走 style.css 的 --ml-panel-bg = rgba(主题色, var(--ml-surface-alpha))。
+   不接这一条，"面板遮蔽"滑杆只动得了本包舞台，动不了真正盖住背景图的那层 92% 底板 —— 
+   玩家导入完背景会得到"图铺上了但屏幕没变"的结果。 */
+html[data-mlc="on"] #ml-root {
+  --ml-surface-alpha: var(--mlc-surface-alpha, .92);
+}
+
+/* --- 8b 按钮底纹 --------------------------------------------------------- */
+
+html[data-mlc="on"] #passages .passage a.link-internal:not(.macro-link) {
+  background-color: var(--mlc-surface-a, var(--mlc-surface));
+  font-size: calc(1em * var(--mlc-font-scale, 1));
+}
+
+/* 普通选项在原版是内联文字链接（宿主实测 rect 107×25）：图铺上去只有"文字宽度"一条，
+   玩家看到的是一块贴字底纹，不是按钮。开底纹时才把选项立成整行按钮盒；关掉即回原样。 */
+html[data-mlc="on"][data-mlc-btn="on"] #passages .passage a.link-internal:not(.macro-link) {
+  display: flex !important;
+  align-items: center;
+  width: 100% !important;
+  min-width: 0;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  margin: 3px 0 !important;
+  padding: 10px 14px !important;
+  border: 1px solid var(--mlc-line);
+  border-radius: 3px;
+  line-height: 1.4;
+  text-decoration: none !important;
+  -webkit-tap-highlight-color: transparent;
+  background-image:
+    linear-gradient(var(--mlc-btn-veil, transparent), var(--mlc-btn-veil, transparent)),
+    linear-gradient(90deg, rgba(255, 255, 255, .040), rgba(255, 255, 255, .012) 46%, transparent),
+    var(--mlc-btn-img, none);
+  background-size: auto, auto, var(--mlc-btn-size, 100% auto);
+  background-position: 0 0, 0 0, var(--mlc-btn-pos, 50% 50%);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+/* 灯台自己的选项分组（.ml-option-group）**本身已经是一张卡片**：grid 28px 图标列 + 1fr 内容列，
+   带自己的 border、hover 位移。所以底纹要铺在卡片本体上；
+   只把底纹排给里头那个 <a> 的话，它落在 28px 图标列里，宽屏下会被压成 30px 一小块。
+   里面的 <a> 只规范成文字行（不加第二层边框/背景，避免"卡片里再嵌按钮"）。 */
+html[data-mlc="on"][data-mlc-btn="on"] #passages .passage .ml-option-group {
+  border-radius: 3px;
+  background-color: var(--mlc-surface-a, var(--mlc-surface));
+  background-image:
+    linear-gradient(var(--mlc-btn-veil, transparent), var(--mlc-btn-veil, transparent)),
+    linear-gradient(90deg, rgba(255, 255, 255, .040), rgba(255, 255, 255, .012) 46%, transparent),
+    var(--mlc-btn-img, none);
+  background-size: auto, auto, var(--mlc-btn-size, 100% auto);
+  background-position: 0 0, 0 0, var(--mlc-btn-pos, 50% 50%);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+html[data-mlc="on"][data-mlc-btn="on"] #passages .passage .ml-option-group > a.link-internal:not(.macro-link) {
+  display: flex !important;
+  align-items: center;
+  width: 100% !important;
+  min-width: 0;
+  min-height: 44px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 8px 10px !important;
+  line-height: 1.4;
+  text-decoration: none !important;
+  font-size: calc(1em * var(--mlc-font-scale, 1));
+  color: var(--mlc-text);
+}
+
+/* --- 8c 设置页：预览舞台 ------------------------------------------------ */
+
+html[data-mlc="on"] .md-custom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0 4px;
+  padding: 12px 10px 10px;
+  border: 1px solid var(--mlc-line);
+  border-top: 2px solid var(--mlc-accent-line);
+  border-radius: 3px;
+  /* 分组卡片也跟着「面板遮蔽」走：写死 88% 的话，面板已经调透了，卡片还替它挡着背景图，
+     玩家在设置页里依旧看不到自己导入的图。默认 90% 与原来的观感一致。 */
+  background: var(--mlc-surface-a, color-mix(in srgb, var(--mlc-surface) 88%, transparent));
+}
+
+html[data-mlc="on"] .md-custom-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+html[data-mlc="on"] .md-custom-h {
+  font: 600 11px/1.4 var(--mlc-mono);
+  letter-spacing: .16em;
+  color: var(--mlc-accent);
+}
+
+html[data-mlc="on"] .md-custom-tag {
+  font: 600 9px/1 var(--mlc-mono);
+  letter-spacing: .1em;
+  color: var(--mlc-faint);
+}
+
+/* 「应用背景」：导入图之后手动重放一次（重挂图 + 重应用设置），不用刷新游戏 */
+html[data-mlc="on"] .md-apply {
+  width: 100%;
+  min-height: 44px;
+  margin: 2px 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--mlc-accent-line);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--mlc-accent) 12%, transparent);
+  color: var(--mlc-accent);
+  font: 600 12px/1.2 var(--mlc-mono);
+  letter-spacing: .12em;
+  text-align: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html[data-mlc="on"] .md-apply:hover {
+  background: color-mix(in srgb, var(--mlc-accent) 22%, transparent);
+  border-color: var(--mlc-accent);
+}
+
+html[data-mlc="on"] .md-apply:active {
+  transform: translateY(1px);
+}
+
+html[data-mlc="on"] .md-apply:focus-visible {
+  outline: 2px solid var(--mlc-accent);
+  outline-offset: 2px;
+}
+
+html[data-mlc="on"] .md-stage {
+  position: relative;
+  box-sizing: border-box;
+  /* 舞台的最终宽高由 panel.js 按「当前屏幕比例」算成 px 写进 inline（147×261 @320 屏等）。
+     这里的 100% 只是 panel 还没跑到时的兜底：flex item 带左右 auto margin 会关掉
+     cross-axis stretch，退化成 shrink-to-fit，所以 fallback 也不能靠 auto margin。 */
+  width: 100%;
+  align-self: stretch;
+  margin: 6px 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--mlc-line);
+  border-radius: 3px;
+  background: var(--mlc-surface-2);
+  color: var(--mlc-text);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+html[data-mlc="on"] .md-stage[data-mlc-bg="1"][data-mlc-movable="1"],
+html[data-mlc="on"] .md-stage[data-mlc-btn="1"] {
+  cursor: grab;
+}
+
+html[data-mlc="on"] .md-stage[data-mlc-drag] {
+  cursor: grabbing;
+}
+
+html[data-mlc="on"] .md-stage-bg {
+  position: absolute;
+  inset: 0;
+  background-image: var(--mlc-bg-img, none);
+  background-position: var(--mlc-stage-pos, 50% 50%);
+  background-size: var(--mlc-stage-size, cover);
+  background-repeat: no-repeat;
+  opacity: var(--mlc-bg-op, .6);
+  filter: blur(var(--mlc-bg-soft, 0px));
+  pointer-events: none;
+}
+
+html[data-mlc="on"] .md-stage[data-mlc-bg="0"] .md-stage-bg {
+  background-image: none;
+}
+
+html[data-mlc="on"] .md-stage-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 9px 8px;
+  box-sizing: border-box;
+}
+
+html[data-mlc="on"] .md-stage-title {
+  font: 600 8px/1.2 var(--mlc-mono);
+  letter-spacing: .14em;
+  color: var(--mlc-faint);
+  opacity: .8;
+}
+
+html[data-mlc="on"] .md-stage-p {
+  margin: 0;
+  font-size: 9.5px;
+  line-height: 1.55;
+  color: var(--mlc-muted);
+  opacity: .92;
+}
+
+html[data-mlc="on"] .md-stage-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid var(--mlc-line);
+  border-left: 2px solid var(--mlc-accent-line);
+  border-radius: 3px;
+  background-color: var(--mlc-surface-a, var(--mlc-surface));
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--mlc-text);
+}
+
+html[data-mlc="on"][data-mlc-btn="on"] .md-stage-opt {
+  background-image:
+    linear-gradient(var(--mlc-btn-veil, transparent), var(--mlc-btn-veil, transparent)),
+    linear-gradient(90deg, rgba(255, 255, 255, .040), rgba(255, 255, 255, .012) 46%, transparent),
+    var(--mlc-btn-img, none);
+  background-size: auto, auto, var(--mlc-stage-btn-size, 100% auto);
+  background-position: 0 0, 0 0, var(--mlc-stage-btn-pos, 50% 50%);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+html[data-mlc="on"] .md-stage-no {
+  flex: 0 0 auto;
+  font: 600 8px/1 var(--mlc-mono);
+  letter-spacing: .1em;
+  color: var(--mlc-muted);
+}
+
+html[data-mlc="on"] .md-stage-tx {
+  min-width: 0;
+}
+
+html[data-mlc="on"] .md-stage-card {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding: 8px;
+  border: 1px solid var(--mlc-line);
+  border-top: 2px solid var(--mlc-accent-line);
+  border-radius: 3px;
+  background-color: var(--mlc-surface-a, var(--mlc-surface));
+}
+
+html[data-mlc="on"][data-mlc-btn="on"] .md-stage-card {
+  background-image:
+    linear-gradient(var(--mlc-btn-veil, transparent), var(--mlc-btn-veil, transparent)),
+    linear-gradient(180deg, rgba(255, 255, 255, .028), transparent 38%),
+    var(--mlc-btn-img, none);
+  background-size: auto, auto, var(--mlc-stage-btn-size, 100% auto);
+  background-position: 0 0, 0 0, var(--mlc-stage-btn-pos, 50% 50%);
+  background-repeat: no-repeat, no-repeat, no-repeat;
+}
+
+html[data-mlc="on"] .md-stage-rail {
+  flex: 0 0 auto;
+  padding-right: 8px;
+  border-right: 1px dashed var(--mlc-dash);
+}
+
+html[data-mlc="on"] .md-stage-cbody {
+  min-width: 0;
+}
+
+html[data-mlc="on"] .md-stage-name {
+  font-size: 10.5px;
+  color: var(--mlc-text);
+}
+
+html[data-mlc="on"] .md-stage-meta {
+  font: 600 8px/1.6 var(--mlc-mono);
+  letter-spacing: .04em;
+  color: var(--mlc-faint);
+}
+
+html[data-mlc="on"] .md-stage-hint {
+  font: 600 8px/1.3 var(--mlc-mono);
+  letter-spacing: .04em;
+  color: var(--mlc-faint);
+  opacity: .85;
+}
+
+html[data-mlc="on"] .md-stage-hint.is-warn {
+  color: var(--mlc-accent);
+  opacity: 1;
+}
+
+/* 位置读数：舞台下方一行，拖动时就地变数字 */
+html[data-mlc="on"] .md-stage-pos {
+  margin: 2px 0 6px;
+  font: 600 9.5px/1.5 var(--mlc-mono);
+  letter-spacing: .04em;
+  color: var(--mlc-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 8c 设置页：控件 ----------------------------------------------------- */
+
+html[data-mlc="on"] .md-pick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+html[data-mlc="on"] .md-pick {
+  min-height: 34px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+html[data-mlc="on"] .md-pick.is-off,
+html[data-mlc="on"] .md-pick:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+html[data-mlc="on"] .md-color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0;
+}
+
+html[data-mlc="on"] .md-color-k {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 10px/1.6 var(--mlc-mono);
+  letter-spacing: .08em;
+  color: var(--mlc-muted);
+}
+
+html[data-mlc="on"] .md-color-input {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid var(--mlc-line);
+  border-radius: 2px;
+  background: var(--mlc-surface-2);
+  cursor: pointer;
+}
+
+html[data-mlc="on"] .md-color-row[data-mlc-follow="1"] .md-color-input {
+  opacity: .65;
+}
+
+html[data-mlc="on"] .md-mini {
+  flex: 0 0 auto;
+  min-height: 26px;
+  padding: 0 6px;
+  white-space: nowrap;
+  border: 1px solid var(--mlc-line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--mlc-muted);
+  font: 600 8.5px/1 var(--mlc-mono);
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+
+html[data-mlc="on"] .md-color-row[data-mlc-follow="1"] .md-mini {
+  color: var(--mlc-accent);
+  border-color: var(--mlc-accent-line);
+}
+
+html[data-mlc="on"] .md-color-hint {
+  margin: 2px 0 0;
+  font: 400 9.5px/1.5 var(--mlc-mono);
+  color: var(--mlc-faint);
+}
+
+html[data-mlc="on"] .md-resets {
+  margin-top: 4px;
+}
+
+@media (max-width: 430px) {
+  html[data-mlc="on"] .md-custom {
+    padding: 10px 8px 8px;
+  }
+
+  html[data-mlc="on"] .md-pick {
+    flex: 1 1 auto;
+    min-height: 40px;
+  }
+}
+

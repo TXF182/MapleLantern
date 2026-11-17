@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-ml-native="on" data-ml-theme="star" data-ml-motion="full" data-ml-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MapleLantern 自定义外观宿主测试</title>
+<!-- 真实宿主样式：按游戏里的加载顺序，MapleLantern 三件在前，custom.css 收尾 -->
+<link rel="stylesheet" href="../src/style.css">
+<link rel="stylesheet" href="../src/maplelantern-native.css">
+<link rel="stylesheet" href="../src/custom.css">
+<style>
+  /* 只补测试页骨架，不参与被断言的外观：面板在游戏里是 fixed 浮层，这里照样固定，避免与 passage 文字重叠 */
+  body { margin: 0; min-height: 100vh; }
+  #passages { max-width: 760px; margin: 0 auto; padding: 8px 12px 40px; }
+  /* 面板底色跟游戏一致走 --ml-panel-bg（style.css 里是 rgba(…, var(--ml-surface-alpha)))，
+     硬编码 94% 会把「面板遮蔽」滑杆和背景图的可见性一起测漏 */
+  #ml-root { position: fixed; left: 8px; right: 8px; top: 8px; bottom: 8px; z-index: 6; overflow: auto;
+    max-width: 420px; margin: 0 auto; padding: 12px 10px; border-radius: 6px;
+    background-color: var(--ml-panel-bg, rgba(9, 13, 18, .94)); }
+  #ml-pane { padding-top: 6px; }
+</style>
+</head>
+<body>
+
+<div id="passages">
+  <div class="passage">
+    <p>你站在家门口，屋里传来孩子的动静。</p>
+    <!-- 灯台真实选项形态：a.link-internal（非 macro-link）才是被卡片化的那一类 -->
+    <a class="link-internal" href="#">01 走进浴室</a><br>
+    <a class="link-internal" href="#">02 翻开日记</a><br>
+    <a class="link-internal" href="#">03 先做饭</a><br>
+    <a class="macro-link" href="#">离开</a>
+    <!-- 灯台在 ≤632px 会给 .ml-option-group > a 压 padding:0 !important / margin:0 !important，
+         这条结构必须留在宿主里，否则"底纹按钮盒"在真机上被压成贴字条也没人发现 -->
+    <div class="ml-option-group">
+      <img class="icon" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+      <a class="link-internal" href="#">04 分组选项</a>
+    </div>
+  </div>
+</div>
+
+<div id="ml-root">
+  <div id="ml-panel">
+    <div id="ml-pane-host">
+      <div id="ml-pane">
+        <div class="ml-resets"><button class="ml-btn ml-btn-quiet" type="button">恢复默认</button></div>
+      </div>
+    </div>
+  </div>
+  <button id="ml-tab-settings" aria-selected="true" type="button">设置</button>
+</div>
+
+<script src="../src/dossier-core.js"></script>
+<script src="../src/dossier-assets.js"></script>
+<script src="../src/dossier-theme.js"></script>
+<script src="../src/dossier-panel.js"></script>
+<script src="../src/custom.js"></script>
+</body>
+</html>

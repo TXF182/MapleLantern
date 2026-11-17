@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-ml-native="on" data-ml-theme="star" data-ml-motion="off" data-ml-lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MapleLantern 多视口适配宿主</title>
+<!-- 加载顺序与游戏一致：灯台本体三件在前，custom.css 收尾 -->
+<link rel="stylesheet" href="../src/style.css">
+<link rel="stylesheet" href="../src/maplelantern-native.css">
+<link rel="stylesheet" href="../src/effects.css">
+<link rel="stylesheet" href="../src/custom.css">
+<style>
+  /* 只补最小骨架：面板几何全部交给 style.css（.ml-panel / data-sheet 由脚本切换），
+     这样量到的是真机尺寸，不是测试页自造尺寸。 */
+  body { margin: 0; min-height: 100vh; }
+  #passages { max-width: 760px; margin: 0 auto; padding: 8px 12px 40px; }
+</style>
+</head>
+<body>
+
+<div id="passages">
+  <div class="passage">
+    <p>你站在家门口，屋里传来孩子的动静。</p>
+    <a class="link-internal" href="#">01 走进浴室</a><br>
+    <a class="link-internal" href="#">02 翻开日记</a><br>
+    <a class="link-internal" href="#">03 先做饭</a><br>
+    <a class="macro-link" href="#">离开</a>
+    <div class="ml-option-group">
+      <img class="icon" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+      <a class="link-internal" href="#">04 分组选项</a>
+    </div>
+  </div>
+</div>
+
+<!-- 真实面板骨架：#ml-root(fixed inset 0, 透明) > .ml-panel(fixed 380 或 sheet 全宽) > .ml-body(唯一滚动容器) -->
+<div id="ml-root" data-theme="star" data-side="left" data-sheet="1" data-orb-zone="top">
+  <div class="ml-panel" data-open="1">
+    <div class="ml-head"><span class="ml-title">灯台</span></div>
+    <div class="ml-tabs">
+      <button class="ml-tab" type="button">此刻</button>
+      <button class="ml-tab" type="button">身心</button>
+      <button class="ml-tab" type="button">着装</button>
+      <button class="ml-tab" type="button">系统</button>
+      <button class="ml-tab" id="ml-tab-settings" aria-selected="true" type="button">设置</button>
+    </div>
+    <div class="ml-body">
+      <div class="ml-pane" id="ml-pane">
+        <div class="ml-resets"><button class="ml-btn ml-btn-quiet" type="button">恢复默认</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../src/dossier-core.js"></script>
+<script src="../src/dossier-assets.js"></script>
+<script src="../src/dossier-theme.js"></script>
+<script src="../src/dossier-panel.js"></script>
+<script src="../src/custom.js"></script>
+</body>
+</html>

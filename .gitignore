@@ -4,3 +4,7 @@ node_modules/
 *.log
 .selfcheck/
 tools/_*.js
+tests/_edge_profile_*/
+tests/shots/
+tests/fmt/
+tests/fixtures/

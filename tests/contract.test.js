@@ -13,6 +13,7 @@ const native = fs.readFileSync(path.join(SRC, "maplelantern-native.js"), "utf8")
 const nativeCss = fs.readFileSync(path.join(SRC, "maplelantern-native.css"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
+const dossierCore = fs.readFileSync(path.join(SRC, "dossier-core.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -22,13 +23,18 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.3.8");
-  assert.match(boot.nickName, /灯台/);
+  assert.equal(boot.version, "1.4.5");
+  /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
+     玩家侧看到的就是「包是新的、行为是旧的」 */
+  assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
-  assert.deepEqual(boot.scriptFileList, ["core.js", "maplelantern-native.js", "render.js"], "core 必须先于 native/render");
-  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式");
+  assert.deepEqual(boot.scriptFileList,
+    ["core.js", "maplelantern-native.js", "render.js",
+     "dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js", "custom.js"],
+    "core 必须先于 native/render；自定义按 core→assets→theme→panel→custom（启动装配）顺序跟在后面");
+  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾");
   for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
