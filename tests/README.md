@@ -31,7 +31,8 @@
 
 `_edge_profile_*`（每个约 12–53 MB）、`shots\`（约 20 MB）、`fmt\`（约 1 MB）、`fixtures\`（玩家素材副本）都在 `.gitignore` 里。删掉不影响仓库，重跑对应脚本会重建。
 
-## 4. 两条铁律
+## 4. 三条铁律
 
 1. **宿主页必须复刻真机 CSP**：`custom-host.html` 与真机差异最大的地方就是 CSP——不复刻就会把「被 CSP 拦」验成绿（ERR-20261117-010 / LRN-20261117-011）。
 2 **computed style 有 url ≠ 像素画出来**：可见性一律以截图取色为准，颜色判据用纯红/纯绿，不靠肉眼。
+3. **宿主页必须从工程根起服务**：脚本是 `../src/*.js`，以 `tests\` 为根会 404、探针全 false（ERR-20261118-009）。直接跑 `pwsh -NoProfile -File tools\host-probe.ps1`，它负责起服务、跑探针并收尾。

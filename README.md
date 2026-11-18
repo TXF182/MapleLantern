@@ -87,11 +87,13 @@ Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改
 ## 开发
 
 ```powershell
-node --test tests\*.test.js
-pwsh -File pack.ps1
+node --test tests\core.test.js tests\native.test.js tests\contract.test.js tests\dom.test.js tests\custom.test.js tests\native-round2.test.js tests\custom-card.test.js
+pwsh -NoProfile -File .\pack.ps1
+pwsh -NoProfile -File tools\host-probe.ps1
 ```
 
 `pack.ps1` 产物在 `dist\`，并写入 `dist\SHA256.txt`。UI 包结构校验使用 `dol-ui-design` 技能内的 `check_ui_mod.py`。
+`host-probe.ps1` 从工程根起 HTTP 服务跑 `tests\custom-host.html`，断言四个全局装配、版本双源与卡片默认键（服务根写错会全 false，见 `.learnings\ERRORS.md#ERR-20261118-009`）。发布流程与便携版 git 的调用方式见 `C:\Users\27352\Doubao\skills\dol-lantern\SKILL.md`。
 
 1.3.8 产物：`dist\MapleLantern-1.3.8.mod.zip`，**115,287 B / 8 条目 / SHA256 `6b240707ed49ed385578c2ac1762814195b0ba47cdd6ea1364e860a542d62d05`**。
 1.3.7 产物：`dist\MapleLantern-1.3.7.mod.zip`，**115,043 B / 8 条目 / SHA256 `07b604d31c73faa4985a75432b8f946c35aece1bebff7f00c425728d47f050b7`**。
