@@ -13,7 +13,7 @@
 
 单档调试：`$env:VP_ONLY_FIRST="1"; python tests\custom_viewports.py`。
 
-1.4.6 增补断言：着装页优先读 ModI18N 的 `cn_name_cap / cn_name`（14 槽、空白中文名回落、中文/英文双向渲染），页签单一 `.ml-tab-glint` 按真实 offset 滑动；全量 **188 / 0**。
+1.4.7 增补断言：着装页优先读 ModI18N 的 `cn_name_cap / cn_name`（14 槽、空白中文名回落、中文/英文双向渲染），页签单一 `.ml-tab-glint` 按真实 offset 滑动；全量 **188 / 0**。
 
 ## 2. 取证脚本（不进门槛，改这块时才跑）
 

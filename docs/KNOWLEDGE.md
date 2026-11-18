@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-15 / 1.3.8 孩子详情恢复原版正文色；131/131 PASS，check_ui / game-smoke 以本节实测为准
+> 最后核对：2026-11-18 / 1.4.7 着装页接游戏汉化字段 + 页签单一光线；188/188 PASS，check_ui / game-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -195,11 +195,11 @@ python tests\custom_formats.py                               # 图片格式矩�
 python tests\_diag_csp.py                                    # CSP A/B：blob 被拦 / data 出图
 python tests\_diag_realinject.py                             # 真实 64MB 页面注入 + 像素判据
 pwsh -File pack.ps1                                          # 确定性 zip（14 条目）
-$env:ML_ZIP="dist\MapleLantern-1.4.6.mod.zip"; node tools\game-smoke.js
+$env:ML_ZIP="dist\MapleLantern-1.4.7.mod.zip"; node tools\game-smoke.js
 node tools\compat-smoke.js
 $env:COMPAT_HOSTS="1"; node tools\compat-smoke.js
 node tools\bench-native.js
-python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.4.6.mod.zip
+python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\MapleLantern-1.4.7.mod.zip
 ```
 
 `boot.json` 必须是 **UTF-8 无 BOM**；**版本双源**为 `src\dossier-core.js` 的 `VERSION` 与 `src\boot.json` 的 `version`（1.4.x 起；1.3.x 及以前是 `src\core.js`），两处必须一致，且已由 `tests\contract.test.js` 强制断言——漏改一处会表现为「包是新的、行为是旧的」。
@@ -361,7 +361,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 修复：改成两行三列 `28px minmax(0,1fr) 64px`，`grid-template-areas: "toggle money time" / "toggle day day"`；开关跨两行，金额+时间在上，日期独占整行。280 宽日期格 233px，216 宽 169px，180 宽仍有 133px。`markStats()` 增加 `ml-src` / `ml-replaced-src` 与中文星期文本兜底，翻译改图后日期格不再丢标记。
 - 防复发：`#stats` 内容区固定 280 宽，不要再按视口加第 4 列；验收必须同时量 280/216/180 三档的 `scrollWidth/clientWidth`，只看截图会漏掉尾部裁切。
 
-## 7. 玩家自定义外观（1.4.0 → 1.4.6，1.4.6 增加浮窗卡片底图）
+## 7. 玩家自定义外观（1.4.0 → 1.4.7，1.4.7 增加汉化服饰名与页签光线）
 
 ### 7.1 分层与数据流
 
