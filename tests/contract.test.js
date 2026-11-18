@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.7");
+  assert.equal(boot.version, "1.4.8");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -549,12 +549,12 @@ test("1.1.21：弹层容器的层级必须低于 Dynamicest 浮动提醒", () =>
     "弹层内容自身仍要在容器内保持在遮罩之上");
 });
 
-test("原生样式：所有规则都以原生开启属性为前导，且不动 #ml-root", () => {
+test("原生样式：所有规则都以原生开启/让位属性为前导，且不动 #ml-root", () => {
   const selectors = strip(nativeCss).match(/[^{}]+(?=\{)/g) || [];
   for (const raw of selectors) {
     const sel = raw.trim();
     if (!sel || sel.startsWith("@") || /^\d+%$/.test(sel) || /^(from|to)$/.test(sel)) { continue; }
-    assert.ok(sel.startsWith('html[data-ml-native="on"]'), "未作用域的原生选择器: " + sel);
+    assert.ok(/^html\[data-ml-native="(on|off)"\]/.test(sel), "未作用域的原生选择器: " + sel);
     assert.ok(!sel.includes("#ml-root"), "原生层不应命中浮卡: " + sel);
   }
   assert.match(nativeCss, /#statmeters > div\[id\$="caption"\]::after/);
@@ -563,6 +563,18 @@ test("原生样式：所有规则都以原生开启属性为前导，且不动 #
   assert.match(nativeCss, /\.settingsToggleItem/);
   assert.match(nativeCss, /appearance: none !important/);
   assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)/);
+});
+
+test("第三方美化页：入口不再被跳过，默认不套原生层，设置页有启用开关", () => {
+  assert.ok(!native.includes("if (thirdPartyOverlay(overlay)) { return; }"),
+    "入口插入不得再被第三方检测直接拦住");
+  assert.match(native, /thirdPartyNative/);
+  assert.match(native, /data-ml-thirdparty/);
+  assert.match(nativeCss, /html\[data-ml-native="off"\] \.ml-native-entry/,
+    "原生层关闭时入口必须有可用的基础样式");
+  assert.match(core, /thirdPartyNative: false/);
+  assert.match(core, /"settings\.thirdPartyNative"/);
+  assert.match(index, /switchControl\("thirdPartyNative"/);
 });
 
 test("原生脚本：只读标记、无轮询、恒按开关挂载与幂等入口", () => {

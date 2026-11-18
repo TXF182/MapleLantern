@@ -3273,6 +3273,32 @@ html[data-ml-native="on"] .ml-native-entry:hover {
   background: var(--mln-surface-3);
 }
 
+/* 原生层为第三方美化页让位时（data-ml-native=off），入口仍必须在，
+   否则玩家既看不到灯台 UI，也进不去面板。这里给一套不依赖主题变量的基础样式。 */
+html[data-ml-native="off"] .ml-native-entry-wrap {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgb(227 178 95 / 24%);
+}
+
+html[data-ml-native="off"] .ml-native-entry {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgb(227 178 95 / 45%);
+  border-radius: var(--mln-radius-sm, 10px);
+  background: linear-gradient(180deg, rgb(227 178 95 / 10%), transparent), var(--mln-surface-2, #171c22);
+  color: var(--mln-accent, #E3B25F);
+  font-family: var(--mln-font, inherit);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+html[data-ml-native="off"] .ml-native-entry:hover {
+  border-color: var(--mln-accent, #E3B25F);
+  background: var(--mln-surface-3, #232a33);
+}
+
 /* ---------------------------------------------------------------- 滚动条 */
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),

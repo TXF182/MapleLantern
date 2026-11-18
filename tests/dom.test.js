@@ -473,7 +473,21 @@ test("快捷键：Alt+L 开合，输入框内不抢键", () => {
   assert.equal(w.document.getElementById("ml-panel").getAttribute("data-open"), "0");
 });
 
-test("设置页：原生卡片与悬浮灯台两个总开关", async () => {
+test("设置页：第三方美化页开关默认关闭，点击后持久化", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const sw = w.document.querySelector('button.ml-switch[aria-label="美化页启用灯台 UI"]');
+  assert.ok(sw, "设置页必须有第三方美化页启用开关");
+  assert.equal(sw.getAttribute("aria-checked"), "false", "默认不启用");
+  sw.click();
+  assert.equal(sw.getAttribute("aria-checked"), "true");
+  await new Promise((r) => setTimeout(r, 50));
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(saved.thirdPartyNative, true);
+});
+
+test("设置页：原生卡片、悬浮灯台与美化页三个总开关", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
   w.MapleLantern.open();
   w.document.querySelector('[data-tab="settings"]').click();

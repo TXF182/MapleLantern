@@ -118,8 +118,10 @@
       "settings.position": "悬浮球位置",
       "settings.native": "原生卡片",
       "settings.panel": "悬浮灯台",
+      "settings.thirdPartyNative": "美化页启用灯台 UI",
       "settings.nativeHint": "把原版侧栏、状态、正文选项和弹层统一换成卡片；关闭后恢复原版外观",
       "settings.panelHint": "关闭后不常驻悬浮球；仍可从选项里的「灯台」入口打开",
+      "settings.thirdPartyNativeHint": "只有检测到第三方美化页时才让位；普通页面仍按「原生卡片」开关立即生效。打开后才会把灯台卡片套到美化页",
       "settings.glassHint": "0 更沉稳 / 100 更通透；只改表面与模糊，不改文字和按钮",
       "settings.motionHint": "关闭后不播任何过渡与动画，操作仍完整",
       "native.entry": "灯台",
@@ -176,8 +178,10 @@
       "settings.position": "Orb position",
       "settings.native": "Native cards",
       "settings.panel": "Floating Lantern",
+      "settings.thirdPartyNative": "Lantern UI on beauty pages",
       "settings.nativeHint": "Cards for the vanilla sidebar, status, passage options and overlays; off restores the original look",
       "settings.panelHint": "When off, no persistent orb; open it from the Lantern entry in Options",
+      "settings.thirdPartyNativeHint": "Only steps aside when a third-party beauty page is detected; normal pages still follow the Native cards switch immediately. Turn on to apply Lantern cards there",
       "settings.glassHint": "0 calmer / 100 clearer; surface and blur only, text and buttons unchanged",
       "settings.motionHint": "When off, no transitions play; every action still works",
       "native.entry": "Lantern",
@@ -227,7 +231,8 @@
     y: 0.78,
     seen: false,
     native: true,
-    panel: false
+    panel: false,
+    thirdPartyNative: false
   });
 
   function isObj(x) { return !!x && typeof x === "object"; }
@@ -243,7 +248,8 @@
       density: DEFAULTS.density,
       motion: DEFAULTS.motion, lang: DEFAULTS.lang, tab: DEFAULTS.tab,
       side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen,
-      native: DEFAULTS.native, panel: DEFAULTS.panel
+      native: DEFAULTS.native, panel: DEFAULTS.panel,
+      thirdPartyNative: DEFAULTS.thirdPartyNative
     };
     var repaired = false;
     if (!isObj(raw)) { return { value: out, repaired: true, migrated: false, empty: true }; }
@@ -298,6 +304,10 @@
     if (raw.panel !== undefined) {
       out.panel = raw.panel === true;
       if (typeof raw.panel !== "boolean") { repaired = true; }
+    }
+    if (raw.thirdPartyNative !== undefined) {
+      out.thirdPartyNative = raw.thirdPartyNative === true;
+      if (typeof raw.thirdPartyNative !== "boolean") { repaired = true; }
     }
 
     return { value: out, repaired: repaired, migrated: raw.v !== 1, empty: false };

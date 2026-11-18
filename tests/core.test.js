@@ -48,6 +48,15 @@ test("zh / en 文案键完全对齐，且没有空值", () => {
   }
 });
 
+test("第三方美化页：默认不套原生层，开关只接受布尔值", () => {
+  assert.equal(C.DEFAULTS.thirdPartyNative, false, "默认必须在第三方美化页只插入口，不立即改 UI");
+  assert.equal(C.sanitizeSettings({}).value.thirdPartyNative, false);
+  assert.equal(C.sanitizeSettings({ thirdPartyNative: true }).value.thirdPartyNative, true);
+  const bad = C.sanitizeSettings({ thirdPartyNative: "yes" });
+  assert.equal(bad.value.thirdPartyNative, false, "非布尔值不能被当真值");
+  assert.equal(bad.repaired, true, "非布尔值必须让 repaired 可见");
+});
+
 test("设置修复：逐字段回退而不是整包丢弃", () => {
   const bad = C.sanitizeSettings({
     v: 2, theme: "neon", scale: 133, density: "loose", motion: "no",

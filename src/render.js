@@ -936,6 +936,7 @@
 
     switchControl("native", s["settings.native"], s["settings.nativeHint"]);
     switchControl("panel", s["settings.panel"], s["settings.panelHint"]);
+    switchControl("thirdPartyNative", s["settings.thirdPartyNative"], s["settings.thirdPartyNativeHint"]);
 
     pane.appendChild(field(s["settings.theme"], segmented([
       { value: "auto", label: s["theme.auto"] },

@@ -1,6 +1,8 @@
-# 灯台 · Lantern（MapleLantern 1.4.7）
+# 灯台 · Lantern（MapleLantern 1.4.8）
 
-- **1.4.7 服饰名接游戏汉化 + 页签光线**：着装页不再只读 `item.name`，改为优先读 ModI18N 追加的 `cn_name_cap` / `cn_name`（中文界面显示“夏日连衣裙 / 发卡 / 校服鞋 / 女式运动袜 / 普通内裤 / 夏日半身裙”，英文界面仍保留游戏原名），缺失或空白时回落原名，不二次翻译、不伪造。取证：`i18n.json` 的 `clothing-upper.js` 补丁 `Sundress → cn_name_cap:"夏日连衣裙"`、`clothing-feet.js` `School shoes → 校服鞋`、16 处 `Naked → 赤裸`，以及正文 `$worn.upper.cn_name_cap` 等 3,187 条引用；实档 `state.delta[0].variables.worn` 14 槽全部带 `cn_name_cap`。页签下划线由每标签独立淡入改为单一 `.ml-tab-glint` 光线，按真实 `offsetLeft/offsetWidth` 滑向当前标签（ColorOS“光承担状态指引”的延伸）。单测 **188/188** PASS。
+- **1.4.8 · 美化页入口**：检测到 Dynamicest「极致动态」、前景背景 DecoMod 等第三方美化设置页时，仍在该页插入「灯台」入口，不再因为第三方控件存在而整页跳过；只有检测到第三方页且它可见时才默认只插入口、不把原生卡片套到别人的设置页，普通页面仍按「原生卡片」开关立即生效。玩家可在设置「美化页启用灯台 UI」里显式启用，收起第三方页后原生层自动恢复。
+
+- **1.4.7 服饰名接游戏汉化 + 页签光线**：着装页不再只读 `item.name`，改为优先读 ModI18N 追加的 `cn_name_cap` / `cn_name`（中文界面显示“夏日连衣裙 / 发卡 / 校服鞋 / 女式运动袜 / 普通内裤 / 夏日半身裙”，英文界面仍保留游戏原名），缺失或空白时回落原名，不二次翻译、不伪造。取证：`i18n.json` 的 `clothing-upper.js` 补丁 `Sundress → cn_name_cap:"夏日连衣裙"`、`clothing-feet.js` `School shoes → 校服鞋`、16 处 `Naked → 赤裸`，以及正文 `$worn.upper.cn_name_cap` 等 3,187 条引用；实档 `state.delta[0].variables.worn` 14 槽全部带 `cn_name_cap`。页签下划线由每标签独立淡入改为单一 `.ml-tab-glint` 光线，按真实 `offsetLeft/offsetWidth` 滑向当前标签（ColorOS“光承担状态指引”的延伸）。单测 **193/193** PASS。
 
 - **1.4.6 浮窗卡片底图（第三张图）**。设置页「灯台外观」在按钮底纹之后新增第三组：**导入浮窗卡片 / 移除 / 适配（等比 · 拉伸）/ 不透明度 0–100%（默认 70）/ 缩放 50–200%**，图库存键 `card`，与 `bg` / `btn` 互不复用。落点是**游戏原生浮窗的卡片本体** `#customOverlayContent` 与 `#ui-dialog-body`（存档、设置、选项弹窗这一类），外层 `#customOverlay` / `#ui-dialog` 不铺，避免两层底图叠成双影。三条实测口径：① 原生层给这两个容器写的是 `background-attachment: fixed`，换图时必须显式收回 `scroll`，否则图按视口固定、弹窗一动就错位；② 手机端（≤899px）原生还用 **`!important` + 双 ID** 锁死 `fixed/cover/no-repeat`，所以本包规则同样用 `!important` + 双 ID（`#customOverlayContent#customOverlayContent`），并按 Selectors L4 现算特异性做断言（否则手机上必然被反压）；③ 不抢第三方皮肤：ModLoader GUI（`#customOverlay[data-overlay="modloader"]`）与 CE 面板（`#cheat_extended_options / #CE_settingsDiv / .CEtab / .CEbuttonBar / .CEDISPLAY / #mce-root`）整条排除，名单与 native.css 同一份；两条容器规则拆开写，`:has` 不可用的老 WebView 只会「卡片图不出现」，不会把 CE 底板改坏。另：本包只对 `background-size/position/repeat/attachment` 用 `!important` 保证定位，`background-image` 不加，第三方自己写的行内底板仍然优先（CE 面板上卡片图不生效属明确取舍）。预览舞台的样例卡片改为代表浮窗卡片（拖它调 `cardX/cardY`，双击居中），样例选项仍只调按钮底纹；旧档图缺 `w/h` 时按 3:2 估比例，避免拖动余量算出 Infinity。设置键 `cardOn/cardOpacity/cardFit/cardZoom/cardX/cardY`，变量 `--mlc-card-op/-veil/-img/-size/-pos`，属性 `data-mlc-card`（舞台侧 `data-mlc-stage-card`）；复位新增「复位 · 浮窗卡片」。新增 `tests/custom-card.test.js` 10 条（含 mobile 级联对抗），单测 **185/185** PASS；moli 真实浏览器四场景核对：普通浮窗与对话弹窗=卡片图生效（`scroll, scroll / auto, 120% auto / 0px 0px, 30% 80%`），ModLoader GUI=原生 `fixed/cover`，CE 面板=维持原生排除（无卡片图）。
 
@@ -66,7 +68,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.7.mod.zip`；如果已装旧包（含 1.4.6 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.8.mod.zip`；如果已装旧包（含 1.4.7 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

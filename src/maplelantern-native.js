@@ -1380,9 +1380,10 @@
     return kind;
   }
 
+  /* 第三方设置页现在也要插入口：入口是面板入口，不是第三方控件的一部分。
+     默认不套原生卡片（见 apply 的 thirdPartyNative 判定），避免一打开就改别人的布局。 */
   function addEntry(overlay) {
     if (!overlay || overlay.classList.contains("hidden")) { return; }
-    if (thirdPartyOverlay(overlay)) { return; }
     var text = C.strings(state.lang)["native.entry"];
     var hint = C.strings(state.lang)["native.entryHint"];
     var existing = overlay.querySelector('[data-ml-entry="panel"]');
@@ -1423,7 +1424,6 @@
     var overlay = doc.getElementById("customOverlay");
     if (!overlay || overlay.classList.contains("hidden")) { return; }
     if (overlayKey(overlay) !== "options") { return; }
-    if (thirdPartyOverlay(overlay)) { return; }
     addEntry(overlay);
   }
 
@@ -1554,8 +1554,8 @@
     if (!overlay) { return; }
     var key = overlayKey(overlay);
     setAttr(overlay, "data-ml-overlay", key);
-    var third = markThirdPartyOverlay(overlay);
-    if (key === "options" && !third) { addEntry(overlay); }
+    markThirdPartyOverlay(overlay);
+    if (key === "options") { addEntry(overlay); }
     if (key === "gameFeats") { armFeatsIntro(); }
     if (key === "statistics") { alignStatRows(overlay); }
   }
@@ -1657,14 +1657,24 @@
        1.1.6 及以前在 Android 上正是因此出现“面板是 1.1.6、正文却退回
        宿主原生卡片”的分裂状态。 */
     var on = state.settings.native !== false;
-    if (state.nativeOn !== on) { state.ceDirty = true; state.ceReady = false; }
-    state.nativeOn = on;
-    setRoot(on);
+    /* 第三方美化页复用同一层 #customOverlayContent。只有确实检测到第三方美化页
+       且它当前可见时才让位；没有检测到时按 native 开关立即挂载，不受第三方开关影响。
+       让位时默认只插入口，不把灯台的卡片样式套到别人的设置页；玩家可显式启用。
+       收起后原生层必须恢复。 */
+    var overlay = doc.getElementById("customOverlay");
+    var third = thirdPartyOverlay(overlay);
+    var skipThird = !!third && state.settings.thirdPartyNative !== true && nativeLayerVisible(overlay);
+    var effective = on && !skipThird;
+    if (state.nativeOn !== effective) { state.ceDirty = true; state.ceReady = false; }
+    state.nativeOn = effective;
+    setRoot(effective);
     syncSidebar();
-    if (!on) {
+    if (!effective) {
       clearMarks();
       state.packStable = false;
-      /* 入口是面板入口，不是原生样式的一部分；关原生卡片后仍要从选项进得来。 */
+      /* 入口是面板入口，不是原生样式的一部分；关原生卡片或第三方页让位时仍要能进来。 */
+      markThirdPartyOverlay(overlay);
+      if (overlay) { setAttr(overlay, "data-ml-overlay", overlayKey(overlay)); }
       markEntry();
       return;
     }
@@ -1866,8 +1876,24 @@
           }
         } catch (e) { /* 面板未就绪时保持原界面 */ }
       }
+      if (visible !== state.overlayVisible) {
+        state.overlayVisible = visible;
+        /* 第三方页开关与原生层让位都依赖“当前是否可见”，开合时必须重算一次。 */
+        schedule();
+        return;
+      }
       state.overlayVisible = visible;
-      if (!state.nativeOn) { return; }
+      if (!state.nativeOn) {
+        /* 原生层让位时子元素变化不再重排，但页签/内容换面必须重判：
+           从第三方美化页切回普通 OPTIONS 时要恢复原生卡片。 */
+        var keyNow = overlayKey(overlay) || "";
+        var thirdNow = thirdPartyOverlay(overlay) || "";
+        if (keyNow !== (overlay.getAttribute("data-ml-overlay") || "") ||
+            thirdNow !== (overlay.getAttribute("data-ml-thirdparty") || "")) {
+          schedule();
+        }
+        return;
+      }
       var tabs = doc.getElementById("cheat_extended_options");
       var active = isCePanelActive(tabs, doc.getElementById("customOverlay"));
       if (!active) {

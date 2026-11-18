@@ -779,37 +779,109 @@ test("1.1.18：CE 关闭后 #customOverlay 的内联宽度必须还原", async (
     "CE 关闭后 content 必须回到打开前的 inline style");
 });
 
-test("第三方页面：Dynamicest / 前景背景复用 options 容器时不插灯台入口", async () => {
+test("第三方页面：Dynamicest / 前景背景复用 options 容器时仍插入口，默认不套原生层", async () => {
   const { w } = createEnv();
   await tick(w);
   openOptions(w);
   await tick(w);
   const overlay = w.document.getElementById("customOverlay");
   const content = w.document.getElementById("customOverlayContent");
+  overlay.getBoundingClientRect = () => ({ width: 500, height: 600, left: 0, top: 0, right: 500, bottom: 600 });
 
   content.innerHTML = '<h3>极致动态</h3><img src="img/dynamicest/logo.png"><div class="settingsGrid"></div>';
   w.MapleLanternNative.refresh();
   await tick(w);
-  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
-    "Dynamicest 设置页不能被塞「灯台」按钮");
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off",
+    "第三方美化页默认只插入口，不应立即套原生卡片");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
+    "Dynamicest 设置页也要能从选项进灯台");
   assert.equal(overlay.getAttribute("data-ml-thirdparty"), "dynamicest");
   assert.equal(content.getAttribute("data-ml-thirdparty"), "dynamicest");
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0,
+    "默认不套原生层时不能残留状态卡标记");
 
   content.innerHTML = '<div id="decoImageSelector"></div><div id="decoImagePreset"></div>';
   w.MapleLanternNative.refresh();
   await tick(w);
-  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
-    "前景背景设置页不能被塞「灯台」按钮");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
+    "前景背景设置页也要能从选项进灯台");
   assert.equal(overlay.getAttribute("data-ml-thirdparty"), "decorations");
   assert.equal(content.getAttribute("data-ml-thirdparty"), "decorations");
 
   content.innerHTML = "<p>选项</p>";
   w.MapleLanternNative.refresh();
   await tick(w);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on",
+    "离开第三方页后原生层必须恢复");
   assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
-    "回到普通 OPTIONS 主菜单后入口必须恢复");
+    "回到普通 OPTIONS 主菜单后入口必须保留");
   assert.equal(overlay.hasAttribute("data-ml-thirdparty"), false);
   assert.equal(content.hasAttribute("data-ml-thirdparty"), false);
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 7);
+});
+
+test("未检测到第三方美化页：第三方开关关闭也立即套原生层", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", thirdPartyNative: false } });
+  await tick(w);
+  openOptions(w);
+  await tick(w);
+  const overlay = w.document.getElementById("customOverlay");
+  overlay.getBoundingClientRect = () => ({ width: 500, height: 600, left: 0, top: 0, right: 500, bottom: 600 });
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on",
+    "没有第三方美化页时必须立即套原生层");
+  assert.equal(overlay.hasAttribute("data-ml-thirdparty"), false);
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1);
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 7);
+});
+
+test("第三方美化页：启用开关后套原生卡片，关闭后恢复入口-only", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  openOptions(w);
+  await tick(w);
+  const overlay = w.document.getElementById("customOverlay");
+  const content = w.document.getElementById("customOverlayContent");
+  overlay.getBoundingClientRect = () => ({ width: 500, height: 600, left: 0, top: 0, right: 500, bottom: 600 });
+  content.innerHTML = '<h3>极致动态</h3><div class="settingsGrid"></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
+  const entry = overlay.querySelector('[data-ml-entry="panel"]');
+  assert.ok(entry, "默认必须先有入口");
+  entry.click();
+  await tick(w, 80);
+  assert.equal(w.document.getElementById("ml-panel").getAttribute("data-open"), "1",
+    "入口点击必须能打开灯台，即使原生层关闭");
+
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  saved.thirdPartyNative = true;
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify(saved));
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on",
+    "启用后第三方页才允许套原生卡片");
+  assert.equal(overlay.getAttribute("data-ml-thirdparty"), "dynamicest");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1);
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 7);
+
+  saved.thirdPartyNative = false;
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify(saved));
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off",
+    "关闭后必须回到入口-only");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1);
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
+
+  overlay.classList.add("hidden");
+  w.document.getElementById("customOverlayContainer").classList.add("hidden");
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "on",
+    "第三方页收起后原生层必须恢复");
 });
 
 test("第三方标记只看 #customOverlayContent，页签上的 Dynamicest logo 不误伤主菜单", async () => {
@@ -832,16 +904,20 @@ test("第三方标记只看 #customOverlayContent，页签上的 Dynamicest logo
   assert.equal(content.hasAttribute("data-ml-thirdparty"), false);
 });
 
-test("关闭原生卡片时，第三方页同样不插灯台入口", async () => {
+test("关闭原生卡片时，第三方页仍插入口", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, native: false } });
   await tick(w);
   openOptions(w);
   await tick(w);
   const overlay = w.document.getElementById("customOverlay");
   const content = w.document.getElementById("customOverlayContent");
+  overlay.getBoundingClientRect = () => ({ width: 500, height: 600, left: 0, top: 0, right: 500, bottom: 600 });
   content.innerHTML = '<div id="decoImageSelector"></div>';
   w.MapleLanternNative.refresh();
   await tick(w);
-  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 0,
-    "关闭原生卡片后也不能污染第三方设置页");
+  assert.equal(w.document.documentElement.getAttribute("data-ml-native"), "off");
+  assert.equal(overlay.querySelectorAll('[data-ml-entry="panel"]').length, 1,
+    "关闭原生卡片后也必须能进灯台");
+  assert.equal(overlay.getAttribute("data-ml-thirdparty"), "decorations");
+  assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
 });
