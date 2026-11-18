@@ -6,7 +6,7 @@
 
 | 脚本 | 判据 | 期望 | 产物（可再生） |
 |---|---|---|---|
-| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM | **178 / 0** | — |
+| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM | **185 / 0** | — |
 | `tests\custom_host.py` | 真实 DOM 宿主：导入、应用、像素取色、载体必须是 `data:` | **58 / 0** | `_edge_profile_customhost\`、`shots\custom-*.png` |
 | `tests\custom_viewports.py` | 六档视口：320 / 360 / 390 / 430 / 540 / 844×390，44px 触达、滚到可点、面板外透出背景 | **49 / 0** | `_edge_profile_viewports\`、`shots\vp-*.png` |
 | `tests\custom_formats.py` | 图片格式矩阵（Edge/Chromium 实吃哪些格式） | 15 可用 / TIFF 友好拒绝 | `fmt\`（脚本自建）、`_edge_profile_fmt\` |

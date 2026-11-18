@@ -854,4 +854,12 @@ test("流体动效：球心原点 / 回弹令牌 / 凝光层 / 后台暂停 / �
   assert.match(index, /--ml-sheet-dur/, "sheet 释放必须写入速度时长");
   assert.match(index, /function rubber\(/, "球拖拽必须有边缘橡皮筋");
   assert.match(index, /translate3d\(/, "球拖拽必须用 transform 跟手，不逐帧写 left/top");
+  assert.match(index, /function closePanel\(reason\)[\s\S]{0,400}syncPanelOrigin\(\)/,
+    "关闭前必须按当前高度重算原点");
+  assert.match(index, /if \(state\.open\) \{[\s\S]{0,80}syncPanelOrigin\(\)/,
+    "resize 后必须重算原点");
+  assert.match(css, /#ml-root \.ml-orb \{[\s\S]{0,400}touch-action:\s*none/s,
+    "球必须 touch-action:none，否则触摸拖拽被页面滚动掐断");
+  assert.match(css, /#ml-root\[data-dragging="1"\] \.ml-orb \{[\s\S]{0,120}will-change:\s*transform/s,
+    "拖拽期必须提升为合成层");
 });

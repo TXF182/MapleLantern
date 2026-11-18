@@ -388,7 +388,9 @@
   height: 56px;
   border-radius: 50%;
   pointer-events: auto;
-  touch-action: manipulation;
+  /* 拖拽手柄：触摸端禁止浏览器接管成页面滚动，否则 pointermove 会被 pointercancel 掐断。 */
+  touch-action: none;
+  cursor: grab;
   padding: 0;
   transition: transform .2s var(--ml-fx-ease-spring, ease), filter .18s ease;
 }
@@ -451,7 +453,8 @@
 
 #ml-root .ml-orb:hover { transform: translateY(-1px); filter: brightness(1.08); }
 #ml-root .ml-orb:active { transform: scale(.97); }
-#ml-root[data-dragging="1"] .ml-orb { transition: none; filter: brightness(1.12); }
+#ml-root[data-dragging="1"] .ml-orb { transition: none; filter: brightness(1.12); will-change: transform; cursor: grabbing; }
+#ml-root[data-dragging="1"] { -webkit-user-select: none; user-select: none; cursor: grabbing; }
 
 /* keyframes 见 effects.css */
 

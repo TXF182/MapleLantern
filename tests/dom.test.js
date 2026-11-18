@@ -68,6 +68,98 @@ test("悬浮球拖拽：跟手阶段只写 transform，松手才落 left/top", (
   assert.match(orb.style.transform, /scale\(1\.04\)/, "松手后先留 scale 回弹，下一帧再清");
 });
 
+test("松手后立刻再按还能拖：click 抑制不会锁死下一次手势", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  const root = w.document.getElementById("ml-root");
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 820, clientY: 430 }));
+  orb.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true, clientX: 820, clientY: 430 }));
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 700, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 650, clientY: 420 }));
+  assert.equal(root.getAttribute("data-dragging"), "1", "第二次手势必须能重新接管");
+});
+
+test("拖拽中丢失指针捕获也会收尾，不会卡在 pending", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  const root = w.document.getElementById("ml-root");
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 780, clientY: 430 }));
+  assert.equal(root.getAttribute("data-dragging"), "1");
+  orb.dispatchEvent(new w.Event("lostpointercapture"));
+  assert.equal(root.hasAttribute("data-dragging"), false, "丢失捕获必须结束拖拽态");
+});
+
+test("点按（无位移）仍能打开：pending 不能吃掉 click", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  await new Promise((r) => w.requestAnimationFrame(r));
+  assert.equal(w.document.getElementById("ml-panel").getAttribute("data-open"), "1");
+});
+
+test("拖拽结束后紧跟的 click 被吞掉，不会误开面板", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 820, clientY: 430 }));
+  orb.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true, clientX: 820, clientY: 430 }));
+  orb.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  await new Promise((r) => setTimeout(r, 60));
+  assert.notEqual(w.document.getElementById("ml-panel").getAttribute("data-open"), "1", "拖完不能顺手把面板打开");
+});
+
+test("右键不启动拖拽", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 2 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 800, clientY: 400 }));
+  assert.equal(w.document.getElementById("ml-root").hasAttribute("data-dragging"), false);
+});
+
+test("关闭前按当前高度重算原点：切页签长高后不会缩向旧球心", () => {
+  const { w } = createEnv();
+  const panel = w.document.getElementById("ml-panel");
+  const orb = w.document.getElementById("ml-orb");
+  const box = { left: 100, top: 100, width: 380, height: 600 };
+  Object.defineProperties(panel, {
+    offsetLeft: { configurable: true, get: () => box.left },
+    offsetTop: { configurable: true, get: () => box.top },
+    offsetWidth: { configurable: true, get: () => box.width },
+    offsetHeight: { configurable: true, get: () => box.height }
+  });
+  orb.getBoundingClientRect = () => ({ left: 340, top: 680, width: 56, height: 56, right: 396, bottom: 736 });
+  w.MapleLantern.open();
+  assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "592px");
+  /* 切到更高的页签：面板上移、变高 */
+  box.top = 40; box.height = 700;
+  orb.getBoundingClientRect = () => ({ left: 340, top: 740, width: 56, height: 56, right: 396, bottom: 764 });
+  w.MapleLantern.close();
+  assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "692px");
+});
+
+test("窗口 resize 后面板仍开着，原点按新布局重算", async () => {
+  const { w } = createEnv();
+  const panel = w.document.getElementById("ml-panel");
+  const orb = w.document.getElementById("ml-orb");
+  Object.defineProperties(panel, {
+    offsetLeft: { configurable: true, value: 100 },
+    offsetTop: { configurable: true, value: 100 },
+    offsetWidth: { configurable: true, value: 380 },
+    offsetHeight: { configurable: true, value: 600 }
+  });
+  orb.getBoundingClientRect = () => ({ left: 340, top: 680, width: 56, height: 56, right: 396, bottom: 736 });
+  w.MapleLantern.open();
+  orb.getBoundingClientRect = () => ({ left: 60, top: 200, width: 56, height: 56, right: 116, bottom: 256 });
+  w.dispatchEvent(new w.Event("resize"));
+  await new Promise((r) => setTimeout(r, 220));
+  assert.equal(panel.style.getPropertyValue("--ml-origin-x"), "8px");
+  assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "128px");
+});
+
 test("环境层：8 颗粒子 + 天空层 + 1 层慢流，动效关闭时整层 hidden", () => {
   const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   const ambient = on.w.document.querySelector("#ml-root .ml-ambient");

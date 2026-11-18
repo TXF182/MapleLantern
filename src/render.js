@@ -29,6 +29,7 @@
     scrollTimer: 0,
     drag: null,
     orbDrag: null,
+    orbPointer: null,
     disposed: false,
     failed: false
   };
@@ -1151,6 +1152,8 @@
   function closePanel(reason) {
     if (!els.panel || !state.open) { return; }
     state.open = false;
+    /* 关闭前重算一次：切页签会改面板高度，上次打开算的原点已经过期。 */
+    syncPanelOrigin();
     if (els.panel) { els.panel.removeAttribute("data-light"); }
     clearTimeout(state.scrollTimer);
     els.panel.removeAttribute("data-scrolling");
@@ -1258,14 +1261,18 @@
 
   function onOrbDown(e) {
     if (e.button !== undefined && e.button !== 0) { return; }
+    /* 第二根手指不接管：同一时间只允许一个指针按住球。
+       注意不能拿 orbDrag 当锁：它要留 220ms 吞掉拖拽尾随的 click。 */
+    if (state.orbPointer !== null) { return; }
+    var id = e.pointerId;
+    state.orbPointer = id;
     var startX = e.clientX, startY = e.clientY;
     var moved = false;
-    state.orbDrag = null;
-    var id = e.pointerId;
+    state.orbDrag = "pending";
     var size = els.orb.offsetWidth || 56;
     var baseLeft = parseFloat(els.orb.style.left) || 0;
     var baseTop = parseFloat(els.orb.style.top) || 0;
-    var last = { left: baseLeft, top: baseTop, x: startX, y: startY, t: 0, vx: 0, vy: 0 };
+    var last = { left: baseLeft, top: baseTop };
     try { els.orb.setPointerCapture(id); } catch (err) { /* ignore */ }
 
     /* 边缘橡皮筋：拖出可视区只跟 35%，最多 18px，松手弹回。 */
@@ -1283,12 +1290,6 @@
         els.root.setAttribute("data-dragging", "1");
       }
       if (!moved) { return; }
-      var now = ev.timeStamp || Date.now();
-      if (last.t) {
-        last.vx = (ev.clientX - last.x) / Math.max(1, now - last.t);
-        last.vy = (ev.clientY - last.y) / Math.max(1, now - last.t);
-      }
-      last.x = ev.clientX; last.y = ev.clientY; last.t = now;
       size = els.orb.offsetWidth || size;
       var minLeft = 8, maxLeft = Math.max(8, window.innerWidth - size - 8);
       var minTop = 56, maxTop = Math.max(56, window.innerHeight - size - 12);
@@ -1302,10 +1303,13 @@
     }
 
     function onUp() {
+      state.orbPointer = null;
       els.orb.removeEventListener("pointermove", onMove);
       els.orb.removeEventListener("pointerup", onUp);
       els.orb.removeEventListener("pointercancel", onUp);
+      els.orb.removeEventListener("lostpointercapture", onUp);
       if (!moved) {
+        state.orbDrag = null;
         els.root.removeAttribute("data-dragging");
         return;
       }
@@ -1327,6 +1331,7 @@
     els.orb.addEventListener("pointermove", onMove);
     els.orb.addEventListener("pointerup", onUp);
     els.orb.addEventListener("pointercancel", onUp);
+    els.orb.addEventListener("lostpointercapture", onUp);
   }
 
   function onGripDown(e) {
@@ -1409,7 +1414,10 @@
       if (state.disposed) { return; }
       applySettings();
       applyLayout();
-      if (state.open) { renderActive(); }
+      if (state.open) {
+        renderActive();
+        syncPanelOrigin();
+      }
     }, 150);
   }
 
