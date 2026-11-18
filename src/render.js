@@ -422,6 +422,7 @@
     grip.addEventListener("pointerdown", onGripDown);
     body.addEventListener("scroll", markPanelScrolling, { passive: true });
     window.addEventListener("scroll", markPanelScrolling, { passive: true });
+    bindSheen();
   }
 
   function renderChrome() {
@@ -1117,6 +1118,7 @@
     }
 
     renderActive();
+    syncPanelOrigin();
     var first = els.tabs && els.tabs.querySelector('[data-tab="' + state.tab + '"]');
     if (first) {
       first.focus();
@@ -1128,9 +1130,28 @@
     doc.addEventListener("pointerdown", onDocPointer, true);
   }
 
+  /* 面板从球心长出来：把球心换算成面板内坐标，写进 transform-origin 变量。
+     量不到尺寸（隐藏/旧档/jsdom）时 core 会退回 50% 100%，不会写 NaN。 */
+  function syncPanelOrigin() {
+    if (!els.panel || !els.orb) { return; }
+    /* 用布局坐标而不是 getBoundingClientRect：面板此刻还带着 translateY(10px) scale(.98)，
+       量 rect 会把过渡中的形变一起算进去，原点会偏。offset 系列不含 transform。 */
+    var box = {
+      left: els.panel.offsetLeft,
+      top: els.panel.offsetTop,
+      width: els.panel.offsetWidth,
+      height: els.panel.offsetHeight
+    };
+    var orb = els.orb.getBoundingClientRect();
+    var o = C.panelOrigin(box, orb);
+    els.panel.style.setProperty("--ml-origin-x", o.x);
+    els.panel.style.setProperty("--ml-origin-y", o.y);
+  }
+
   function closePanel(reason) {
     if (!els.panel || !state.open) { return; }
     state.open = false;
+    if (els.panel) { els.panel.removeAttribute("data-light"); }
     clearTimeout(state.scrollTimer);
     els.panel.removeAttribute("data-scrolling");
     els.panel.setAttribute("data-open", "0");
@@ -1191,6 +1212,48 @@
     catch (e) { return false; }
   }
 
+  /* 凝光：只在精确指针（鼠标/触控笔）下启用，触摸端退回主题固定光源。
+     每帧只写两个 CSS 变量，面板背景层跟着重绘，不新建节点、不改布局。 */
+  function sheenAllowed() {
+    if (!state.settings.motion || prefersReduced()) { return false; }
+    try {
+      if (window.matchMedia && !window.matchMedia("(pointer: fine)").matches) { return false; }
+    } catch (e) { return false; }
+    return true;
+  }
+
+  var sheenRaf = 0;
+
+  function bindSheen() {
+    if (!els.panel) { return; }
+    els.panel.addEventListener("pointermove", function (ev) {
+      if (!state.open || ev.pointerType === "touch" || !sheenAllowed()) { return; }
+      if (sheenRaf) { return; }
+      var x = ev.clientX;
+      var y = ev.clientY;
+      sheenRaf = window.requestAnimationFrame(function () {
+        sheenRaf = 0;
+        if (!els.panel || !state.open) { return; }
+        var r = els.panel.getBoundingClientRect();
+        if (!r.width || !r.height) { return; }
+        var px = Math.max(0, Math.min(100, ((x - r.left) / r.width) * 100));
+        var py = Math.max(-10, Math.min(110, ((y - r.top) / r.height) * 100));
+        els.panel.style.setProperty("--ml-light-x", px.toFixed(1) + "%");
+        els.panel.style.setProperty("--ml-light-y", py.toFixed(1) + "%");
+        els.panel.setAttribute("data-light", "1");
+      });
+    }, { passive: true });
+    els.panel.addEventListener("pointerleave", function () {
+      if (els.panel) { els.panel.removeAttribute("data-light"); }
+    });
+  }
+
+  /* 后台暂停：只暂停动画播放，不改状态；回到前台自动续播。 */
+  function onVisibility() {
+    if (!els.root) { return; }
+    els.root.setAttribute("data-paused", doc.hidden ? "1" : "0");
+  }
+
   /* ---------------------------------------------------------------- 拖动 */
 
   function onOrbDown(e) {
@@ -1199,29 +1262,63 @@
     var moved = false;
     state.orbDrag = null;
     var id = e.pointerId;
+    var size = els.orb.offsetWidth || 56;
+    var baseLeft = parseFloat(els.orb.style.left) || 0;
+    var baseTop = parseFloat(els.orb.style.top) || 0;
+    var last = { left: baseLeft, top: baseTop, x: startX, y: startY, t: 0, vx: 0, vy: 0 };
     try { els.orb.setPointerCapture(id); } catch (err) { /* ignore */ }
+
+    /* 边缘橡皮筋：拖出可视区只跟 35%，最多 18px，松手弹回。 */
+    function rubber(value, min, max) {
+      if (value < min) { return min - Math.min(18, (min - value) * .35); }
+      if (value > max) { return max + Math.min(18, (value - max) * .35); }
+      return value;
+    }
 
     function onMove(ev) {
       var dx = ev.clientX - startX, dy = ev.clientY - startY;
-      if (!moved && Math.abs(dx) + Math.abs(dy) > 6) { moved = true; state.orbDrag = "moved"; els.root.setAttribute("data-dragging", "1"); }
+      if (!moved && Math.abs(dx) + Math.abs(dy) > 6) {
+        moved = true;
+        state.orbDrag = "moved";
+        els.root.setAttribute("data-dragging", "1");
+      }
       if (!moved) { return; }
-      var size = els.orb.offsetWidth || 56;
-      var left = Math.max(8, Math.min(window.innerWidth - size - 8, startX + dx - size / 2));
-      var top = Math.max(56, Math.min(window.innerHeight - size - 12, startY + dy - size / 2));
-      els.orb.style.left = Math.round(left) + "px";
-      els.orb.style.top = Math.round(top) + "px";
+      var now = ev.timeStamp || Date.now();
+      if (last.t) {
+        last.vx = (ev.clientX - last.x) / Math.max(1, now - last.t);
+        last.vy = (ev.clientY - last.y) / Math.max(1, now - last.t);
+      }
+      last.x = ev.clientX; last.y = ev.clientY; last.t = now;
+      size = els.orb.offsetWidth || size;
+      var minLeft = 8, maxLeft = Math.max(8, window.innerWidth - size - 8);
+      var minTop = 56, maxTop = Math.max(56, window.innerHeight - size - 12);
+      var rawLeft = startX + dx - size / 2;
+      var rawTop = startY + dy - size / 2;
+      last.left = Math.max(minLeft, Math.min(maxLeft, rawLeft));
+      last.top = Math.max(minTop, Math.min(maxTop, rawTop));
+      els.orb.style.transform = "translate3d(" +
+        Math.round(rubber(rawLeft, minLeft, maxLeft) - baseLeft) + "px," +
+        Math.round(rubber(rawTop, minTop, maxTop) - baseTop) + "px,0) scale(1.04)";
     }
 
     function onUp() {
       els.orb.removeEventListener("pointermove", onMove);
       els.orb.removeEventListener("pointerup", onUp);
       els.orb.removeEventListener("pointercancel", onUp);
+      if (!moved) {
+        els.root.removeAttribute("data-dragging");
+        return;
+      }
+      /* 位移先落到 left/top，transform 只留 scale：同一帧完成，不产生跳变；下一帧回弹到 1。 */
+      els.orb.style.left = Math.round(last.left) + "px";
+      els.orb.style.top = Math.round(last.top) + "px";
+      els.orb.style.transform = "scale(1.04)";
       els.root.removeAttribute("data-dragging");
-      if (!moved) { return; }
-      var size = els.orb.offsetWidth || 56;
-      var left = parseFloat(els.orb.style.left) || 16;
-      state.settings.side = (left + size / 2) < window.innerWidth / 2 ? "left" : "right";
-      state.settings.y = Math.max(0.12, Math.min(0.92, (parseFloat(els.orb.style.top) + size / 2) / (window.innerHeight || 1)));
+      window.requestAnimationFrame(function () {
+        if (els.orb) { els.orb.style.transform = ""; }
+      });
+      state.settings.side = (last.left + size / 2) < window.innerWidth / 2 ? "left" : "right";
+      state.settings.y = Math.max(0.12, Math.min(0.92, (last.top + size / 2) / (window.innerHeight || 1)));
       saveSettings();
       placeOrb();
       setTimeout(function () { state.orbDrag = null; }, 220);
@@ -1237,10 +1334,14 @@
     var startY = e.clientY;
     var active = true;
     var id = e.pointerId;
+    var lastY = startY, lastT = e.timeStamp || Date.now(), vel = 0;
     try { els.grip.setPointerCapture(id); } catch (err) { /* ignore */ }
 
     function onMove(ev) {
       if (!active) { return; }
+      var now = ev.timeStamp || Date.now();
+      if (now > lastT) { vel = (ev.clientY - lastY) / (now - lastT); }
+      lastY = ev.clientY; lastT = now;
       var dy = Math.max(0, ev.clientY - startY);
       els.panel.style.setProperty("--ml-sheet-drag", dy + "px");
       els.grip.style.transform = "translateY(" + dy + "px)";
@@ -1249,9 +1350,13 @@
       active = false;
       els.grip.removeEventListener("pointermove", onMove);
       els.grip.removeEventListener("pointerup", onUp);
+      /* 动效按手势速度给时序：快甩 90ms 收住，慢拖 220ms 回弹。 */
+      var ms = Math.abs(vel) > 1.2 ? 90 : Math.abs(vel) > .5 ? 150 : 220;
+      els.panel.style.setProperty("--ml-sheet-dur", ms + "ms");
       els.panel.style.removeProperty("--ml-sheet-drag");
       els.grip.style.transform = "";
       if (ev.clientY - startY > 64) { closePanel("swipe"); }
+      setTimeout(function () { if (els.panel) { els.panel.style.removeProperty("--ml-sheet-dur"); } }, ms + 60);
     }
     els.grip.addEventListener("pointermove", onMove);
     els.grip.addEventListener("pointerup", onUp);
@@ -1344,6 +1449,7 @@
       doc.removeEventListener("keydown", onKeyDown);
       doc.removeEventListener("pointerdown", onDocPointer, true);
       doc.removeEventListener("pointerdown", onPressFx, true);
+      doc.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", onResize);
       if (doc.body) { doc.body.removeEventListener("scroll", markPanelScrolling); }
       window.removeEventListener("scroll", markPanelScrolling);
@@ -1414,6 +1520,8 @@
     doc.addEventListener("dol-ui-runtime-ready", syncHost);
     doc.addEventListener("keydown", onKeyDown);
     doc.addEventListener("pointerdown", onPressFx, true);
+    doc.addEventListener("visibilitychange", onVisibility);
+    onVisibility();
     window.addEventListener("resize", onResize, { passive: true });
   }
 

@@ -22,9 +22,12 @@
   --ml-fx-dur-hairline: 7s;
   --ml-fx-dur-ring: 5.6s;
   --ml-fx-dur-native: 160ms;
+  --ml-fx-dur-press: .18s;
   --ml-fx-ease-out: cubic-bezier(.16, 1, .3, 1);
   --ml-fx-ease-pane: cubic-bezier(.2, .8, .2, 1);
   --ml-fx-ease-ripple: cubic-bezier(.2, .8, .25, 1);
+  /* 过冲回弹：按压释放时用，位移只走 transform，不触发布局。 */
+  --ml-fx-ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 }
 
 /* ---------------------------------------------------------------- 面板与卡片 */

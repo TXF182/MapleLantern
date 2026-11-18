@@ -21,6 +21,53 @@ test("挂载：悬浮球与隐藏面板就位，默认不打扰游戏", () => {
   assert.equal(w.document.querySelector("#ml-panel .ml-tabs").getAttribute("aria-label"), "灯台分类");
 });
 
+test("打开：transform-origin 从球心换算；量不到尺寸时回退百分比", () => {
+  const { w } = createEnv();
+  const panel = w.document.getElementById("ml-panel");
+  const orb = w.document.getElementById("ml-orb");
+  Object.defineProperties(panel, {
+    offsetLeft: { configurable: true, value: 100 },
+    offsetTop: { configurable: true, value: 100 },
+    offsetWidth: { configurable: true, value: 380 },
+    offsetHeight: { configurable: true, value: 600 }
+  });
+  orb.getBoundingClientRect = () => ({ left: 340, top: 680, width: 56, height: 56, right: 396, bottom: 736 });
+  w.MapleLantern.open();
+  assert.equal(panel.style.getPropertyValue("--ml-origin-x"), "268px");
+  assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "592px");
+});
+
+test("凝光：鼠标在面板内移动才点亮，坐标写成百分比变量", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
+  const panel = w.document.getElementById("ml-panel");
+  panel.getBoundingClientRect = () => ({ left: 0, top: 0, width: 380, height: 600, right: 380, bottom: 600 });
+  w.MapleLantern.open();
+  const ev = new w.MouseEvent("pointermove", { bubbles: true, clientX: 190, clientY: 300 });
+  Object.defineProperty(ev, "pointerType", { value: "mouse" });
+  panel.dispatchEvent(ev);
+  await new Promise((r) => w.requestAnimationFrame(r));
+  assert.equal(panel.getAttribute("data-light"), "1");
+  assert.equal(panel.style.getPropertyValue("--ml-light-x"), "50.0%");
+  assert.equal(panel.style.getPropertyValue("--ml-light-y"), "50.0%");
+  w.MapleLantern.close();
+  assert.equal(panel.hasAttribute("data-light"), false, "关闭后必须收掉凝光");
+});
+
+test("悬浮球拖拽：跟手阶段只写 transform，松手才落 left/top", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const orb = w.document.getElementById("ml-orb");
+  const root = w.document.getElementById("ml-root");
+  const left0 = orb.style.left;
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: 900, clientY: 400, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: 760, clientY: 440 }));
+  assert.equal(root.getAttribute("data-dragging"), "1");
+  assert.match(orb.style.transform, /translate3d\(-?\d+px,-?\d+px,0\) scale\(1\.04\)/);
+  assert.equal(orb.style.left, left0, "拖动中不得逐帧写 left/top");
+  orb.dispatchEvent(new w.MouseEvent("pointerup", { bubbles: true, clientX: 760, clientY: 440 }));
+  assert.equal(root.hasAttribute("data-dragging"), false);
+  assert.match(orb.style.transform, /scale\(1\.04\)/, "松手后先留 scale 回弹，下一帧再清");
+});
+
 test("环境层：8 颗粒子 + 天空层 + 1 层慢流，动效关闭时整层 hidden", () => {
   const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   const ambient = on.w.document.querySelector("#ml-root .ml-ambient");

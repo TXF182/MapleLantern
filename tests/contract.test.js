@@ -825,3 +825,33 @@ test("effects.css：组件引用的 keyframes/token 全部有定义，且原生 
   const fxLink = html.indexOf("../src/effects.css");
   assert.ok(nativeLink > 0 && fxLink > nativeLink, "原生 CSS 必须先于 effects.css 加载");
 });
+
+test("流体动效：球心原点 / 回弹令牌 / 凝光层 / 后台暂停 / 速度自适应都在链上", () => {
+  /* 空间连续：scale 原点是变量，默认仍回到底部中心 */
+  assert.match(css, /transform-origin:\s*var\(--ml-origin-x,\s*50%\)\s*var\(--ml-origin-y,\s*100%\)/,
+    "面板 transform-origin 必须消费球心变量");
+  assert.match(index, /syncPanelOrigin\(\);/, "打开面板必须换算一次原点");
+  assert.match(index, /C\.panelOrigin\(box, orb\)/, "原点换算必须走 core 纯函数");
+  /* 柔性反馈：按压释放走弹簧曲线，按下单独用短时长 */
+  assert.match(fx, /--ml-fx-ease-spring:\s*cubic-bezier\(\.34,\s*1\.56,\s*\.64,\s*1\)/,
+    "必须定义过冲回弹曲线");
+  assert.match(css, /transition:\s*transform\s+var\(--ml-fx-dur-press[\s\S]{0,80}var\(--ml-fx-ease-spring/s,
+    "按钮释放必须使用回弹曲线");
+  assert.match(css, /:active,[\s\S]{0,120}\.ml-is-pressed[\s\S]{0,120}transition-duration:\s*\.09s/s,
+    "按下必须用更短的时长，不能回弹到按下状态");
+  /* 凝光：只换背景附加层，且坐标来自指针变量 */
+  assert.match(css, /#ml-root \.ml-panel\[data-light="1"\][\s\S]{0,220}radial-gradient[\s\S]{0,160}var\(--ml-light-x/s,
+    "凝光必须是面板背景的附加层");
+  assert.match(index, /setAttribute\("data-light", "1"\)/, "指针移动必须点亮凝光");
+  assert.match(index, /pointerType === "touch"[\s\S]{0,40}return;/, "触摸端不得启用凝光");
+  /* 后台预算 */
+  assert.match(css, /#ml-root\[data-paused="1"\][\s\S]{0,200}animation-play-state:\s*paused/s,
+    "后台必须暂停动画");
+  assert.match(index, /visibilitychange/, "必须监听页面可见性");
+  /* 速度自适应与球拖拽 */
+  assert.match(css, /transition:\s*opacity \.2s ease, transform var\(--ml-sheet-dur/s,
+    "面板位移必须可被 sheet 时长覆盖");
+  assert.match(index, /--ml-sheet-dur/, "sheet 释放必须写入速度时长");
+  assert.match(index, /function rubber\(/, "球拖拽必须有边缘橡皮筋");
+  assert.match(index, /translate3d\(/, "球拖拽必须用 transform 跟手，不逐帧写 left/top");
+});

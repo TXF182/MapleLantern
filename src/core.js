@@ -502,6 +502,24 @@
 
   function paletteFor(theme) { return PALETTES[theme] || PALETTES.cyberpunk; }
 
+  /* 面板展开原点：把悬浮球中心换算成面板内坐标，让 scale 从球心长出来。
+     尺寸/坐标缺失（jsdom、隐藏、0 尺寸）一律退回底部中心，绝不写 NaN。 */
+  function panelOrigin(box, orb) {
+    var fallback = { x: "50%", y: "100%" };
+    if (!isObj(box) || !isObj(orb)) { return fallback; }
+    var bw = Number(box.width) || 0;
+    var bh = Number(box.height) || 0;
+    if (bw <= 0 || bh <= 0) { return fallback; }
+    var ox = (Number(orb.left) || 0) + (Number(orb.width) || 0) / 2 - (Number(box.left) || 0);
+    var oy = (Number(orb.top) || 0) + (Number(orb.height) || 0) / 2 - (Number(box.top) || 0);
+    if (!isFinite(ox) || !isFinite(oy)) { return fallback; }
+    var pad = 8;
+    return {
+      x: Math.round(Math.max(pad, Math.min(bw - pad, ox))) + "px",
+      y: Math.round(Math.max(pad, Math.min(bh - pad, oy))) + "px"
+    };
+  }
+
   function buildDiagnostics(info) {
     info = isObj(info) ? info : {};
     return {
@@ -551,6 +569,7 @@
     contrast: contrast,
     luminance: luminance,
     paletteFor: paletteFor,
+    panelOrigin: panelOrigin,
     buildDiagnostics: buildDiagnostics
   });
 });

@@ -207,6 +207,19 @@ test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () =>
   }
 });
 
+test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不到尺寸回退百分比", () => {
+  const box = { left: 100, top: 100, width: 380, height: 600 };
+  assert.deepEqual(C.panelOrigin(box, { left: 340, top: 680, width: 56, height: 56 }),
+    { x: "268px", y: "592px" });
+  /* 球在面板外：必须夹在面板内 8px，不能把 scale 原点甩到屏幕外 */
+  assert.deepEqual(C.panelOrigin(box, { left: -200, top: -200, width: 56, height: 56 }),
+    { x: "8px", y: "8px" });
+  /* jsdom / 隐藏 / 0 尺寸：退回底部中心，绝不写 NaN */
+  assert.deepEqual(C.panelOrigin({ left: 0, top: 0, width: 0, height: 0 }, { left: 1, top: 1, width: 1, height: 1 }),
+    { x: "50%", y: "100%" });
+  assert.deepEqual(C.panelOrigin(null, null), { x: "50%", y: "100%" });
+});
+
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");

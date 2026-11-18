@@ -390,7 +390,7 @@
   pointer-events: auto;
   touch-action: manipulation;
   padding: 0;
-  transition: transform .18s ease, filter .18s ease;
+  transition: transform .2s var(--ml-fx-ease-spring, ease), filter .18s ease;
 }
 
 #ml-root .ml-orb[hidden] { display: none; }
@@ -483,13 +483,21 @@
   background-image: var(--ml-tex-panel);
   border: 1px solid rgba(255, 255, 255, var(--ml-edge));
   border-radius: var(--ml-panel-radius);
-  box-shadow: var(--ml-shadow), inset 0 1px 0 rgba(255, 255, 255, calc(var(--ml-edge) * .55));
+  box-shadow: var(--ml-shadow), inset 0 1px 0 rgba(255, 255, 255, calc(var(--ml-edge) * .55)),
+              inset 0 -26px 40px -34px rgba(0, 0, 0, .45);
   contain: layout style;
   overflow: hidden;
   opacity: 0;
   transform: translateY(10px) scale(.98);
-  transform-origin: 50% 100%;
-  transition: opacity .2s ease, transform var(--ml-fx-dur-panel) var(--ml-fx-ease-out), background-color .34s ease, border-color .34s ease;
+  transform-origin: var(--ml-origin-x, 50%) var(--ml-origin-y, 100%);
+  transition: opacity .2s ease, transform var(--ml-sheet-dur, var(--ml-fx-dur-panel)) var(--ml-fx-ease-out), background-color .34s ease, border-color .34s ease;
+}
+/* 凝光：指针位置换算成面板内百分比，只换 background-image 的附加层，不加节点。 */
+#ml-root .ml-panel[data-light="1"] {
+  background-image:
+    radial-gradient(42% 34% at var(--ml-light-x, 78%) var(--ml-light-y, -8%),
+      rgba(255, 255, 255, var(--ml-sheen-alpha, .12)), transparent 72%),
+    var(--ml-tex-panel);
 }
 /* 主题纹理统一由 --ml-tex-panel 提供；旧的三套单层渐变已并入变量。 */
 
@@ -1312,6 +1320,14 @@
 #ml-root[data-motion="off"] .ml-panel { transform: none; }
 #ml-root[data-motion="off"] .ml-panel[data-open="1"] { transform: none; }
 
+/* 切到后台只暂停动画，不回滚状态；23 处 infinite 的常驻开销在这里收口。 */
+#ml-root[data-paused="1"],
+#ml-root[data-paused="1"] *,
+#ml-root[data-paused="1"] *::before,
+#ml-root[data-paused="1"] *::after {
+  animation-play-state: paused !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #ml-root *,
   #ml-root *::before,
@@ -1663,13 +1679,16 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
 
 #ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick) {
   -webkit-tap-highlight-color: transparent;
-  transition: transform .1s ease, filter .1s ease, box-shadow .1s ease,
+  transition: transform var(--ml-fx-dur-press, .18s) var(--ml-fx-ease-spring, ease),
+              filter .16s ease, box-shadow .18s ease,
               background-color .12s ease, border-color .12s ease;
 }
 
 #ml-root :is(.ml-btn, .ml-tab, .ml-seg-btn, .ml-icon, .ml-switch, .ml-quick):active,
 #ml-root .ml-is-pressed {
-  transform: translateY(1px) scale(.972);
+  transform: scale(.972);
+  transition-duration: .09s;
+  transition-timing-function: cubic-bezier(.2, .8, .3, 1);
   filter: brightness(1.14) saturate(1.06);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14),
               0 2px 8px rgba(0, 0, 0, .3),
