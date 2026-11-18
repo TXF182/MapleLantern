@@ -188,7 +188,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ## 5. 验证命令（当前链路）
 
 ```powershell
-node --test tests\*.test.js                                  # 157 项：契约 / 原生 / 自定义 / DOM
+node --test tests\*.test.js                                  # 188 项：契约 / 原生 / 自定义 / DOM
 python tests\custom_host.py                                  # 真实 DOM 宿主 58 断言（含像素取色）
 python tests\custom_viewports.py                             # 六档视口 49 断言（实测「应用背景」可点）
 python tests\custom_formats.py                               # 图片格式矩阵（自建 tests\fmt 素材）
@@ -396,7 +396,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 | 层 | 命令 | 通过标准 |
 |---|---|---|
-| 纯逻辑/契约 | `node --test tests\*.test.js` | 157/157，含版本双源一致性 |
+| 纯逻辑/契约 | `node --test tests\*.test.js` | 188/188，含版本双源一致性 |
 | 真实 DOM 宿主 | `python tests\custom_host.py` | 58/0，含「载体必须是 data: URL」与像素取色（B−R ≥ 25） |
 | 六档视口 | `python tests\custom_viewports.py` | 49/0，含「应用背景」44px 可点、面板外透出背景 |
 | 真机 | `python tests\_diag_realinject.py` / `_diag_csp.py` | 页面与舞台取色命中判据图（左红右绿） |
@@ -408,4 +408,6 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 3. 选项原版是内联文字链接，底纹只铺文字宽度 → 加 `data-mlc-btn=on` 才立成按钮盒（1.4.3）。
 4. 不透明度 45% 把深色立绘洗成背景色 → 默认 100 + `alignForBackground` 双修正 + 旧档迁移（1.4.4，ERR-20261117-009）。
 5. `blob:` 被 CSP 拦 → `data:` 载体（1.4.5，ERR-20261117-010）。
+6. 浮窗卡片底图：原生 `#customOverlayContent` / `#ui-dialog-body` 的 `background-attachment: fixed` 必须收回 `scroll`；手机端用 `!important` + 双 ID 对抗，且排除 ModLoader GUI 与 CE 面板（1.4.6）。
+7. 着装页服饰名：优先 `cn_name_cap` / `cn_name`，中文显示、英文保留原名，空白回落、不二次翻译；页签只保留一个 `.ml-tab-glint`，旧分段 `::after` 删除（1.4.7）。
 
