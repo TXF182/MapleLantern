@@ -162,6 +162,25 @@ test("readModel：完整存档读通，tiredness 上限走 Constants", () => {
   assert.equal(m.degraded, false);
 });
 
+test("readModel：worn 优先取游戏汉化字段 cn_name_cap / cn_name，缺失回落原名", () => {
+  const vars = {
+    worn: {
+      upper: { name: "Sundress", cn_name_cap: "夏日连衣裙" },
+      lower: { name: "Plain panties", cn_name: "普通内裤" },
+      head: { name: "Hairpin", cn_name_cap: " 发卡 " },
+      feet: { name: "School shoes", cn_name_cap: "   " }
+    }
+  };
+  const m = C.readModel({ vars, lang: "zh" });
+  const bySlot = (slot) => m.worn.find((w) => w.slot === slot);
+  assert.equal(bySlot("upper").name, "Sundress");
+  assert.equal(bySlot("upper").cn, "夏日连衣裙");
+  assert.equal(bySlot("lower").cn, "普通内裤");
+  assert.equal(bySlot("head").cn, "发卡");       // 首尾空白被裁掉
+  assert.equal(bySlot("feet").cn, null);          // 空白中文名视为缺失
+  assert.equal(m.wornCount, 4);                   // 计数仍按游戏原名，不因缺中文丢槽
+});
+
 test("readModel：worn 不预置时判空，不抛异常", () => {
   const m = C.readModel({ vars: { willpower: 1, willpowermax: 2 }, time: { hour: 3 } });
   assert.equal(m.worn.length, 14);

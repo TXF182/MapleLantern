@@ -367,6 +367,55 @@ test("私密槽位：不渲染 butt_plug / genitals 的物品名", () => {
   assert.match(text, /Shirt/);
 });
 
+test("着装页：中文界面优先游戏汉化名，英文界面保留游戏原名", () => {
+  const vars = { worn: {
+    upper: { name: "Sundress", cn_name_cap: "夏日连衣裙" },
+    feet: { name: "School shoes", cn_name_cap: "校服鞋" }
+  } };
+  const { w } = createEnv({ vars });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="worn"]').click();
+  const text = pane(w).textContent;
+  assert.match(text, /夏日连衣裙/);
+  assert.match(text, /校服鞋/);
+  assert.ok(!text.includes("Sundress"));
+  assert.ok(!text.includes("School shoes"));
+  const upper = Array.from(w.document.querySelectorAll(".ml-slot-v"))
+    .find((node) => node.textContent === "夏日连衣裙");
+  assert.equal(upper.getAttribute("title"), "夏日连衣裙 · Sundress");
+  assert.match(text, /游戏汉化包/);
+
+  const { w: en } = createEnv({ vars, seed: { v: 1, lang: "en", motion: false } });
+  en.MapleLantern.open();
+  en.document.querySelector('[data-tab="worn"]').click();
+  const enText = pane(en).textContent;
+  assert.match(enText, /Sundress/);
+  assert.match(enText, /School shoes/);
+  assert.ok(!enText.includes("夏日连衣裙"));
+});
+
+test("页签光线：单一指示器跟随选中页签，切换时滑到新位置", () => {
+  const { w } = createEnv();
+  const tabs = w.document.querySelectorAll("#ml-panel .ml-tab");
+  [12, 68, 124, 180, 236].forEach((left, i) => {
+    Object.defineProperties(tabs[i], {
+      offsetLeft: { configurable: true, value: left },
+      offsetWidth: { configurable: true, value: 54 }
+    });
+  });
+  w.MapleLantern.open();
+  const glint = w.document.querySelector(".ml-tab-glint");
+  assert.ok(glint, "缺页签光线指示器");
+  assert.equal(glint.getAttribute("aria-hidden"), "true");
+  assert.equal(glint.style.width, "38px");
+  assert.equal(glint.style.transform, "translateX(20px)");
+  assert.equal(glint.style.opacity, "1");
+
+  w.document.querySelector('[data-tab="worn"]').click();
+  assert.equal(glint.style.transform, "translateX(132px)");
+  assert.equal(glint.style.width, "38px");
+});
+
 test("宿主接入：auto 时转发 accent/radius，不规则宿主不抛错", () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, theme: "auto" }, host: true });
   const root = w.document.getElementById("ml-root");

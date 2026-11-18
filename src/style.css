@@ -643,6 +643,7 @@
 #ml-root .ml-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 #ml-root .ml-tabs {
+  position: relative;
   display: flex;
   gap: 2px;
   padding: 0 12px;
@@ -678,18 +679,22 @@
 }
 #ml-root .ml-tab:hover { color: var(--ml-muted); background: rgba(255, 255, 255, .03); }
 #ml-root .ml-tab[aria-selected="true"] { color: var(--ml-accent); text-shadow: 0 0 10px var(--ml-accent-soft); }
-#ml-root .ml-tab[aria-selected="true"]::after {
-  content: "";
+/* 单一光线指示器：切页签时从旧标签滑向新标签，而不是每个标签各自淡入。
+   位置/宽度由 render.js#syncTabGlint() 按真实 offset 写入，不写死像素。 */
+#ml-root .ml-tab-glint {
   position: absolute;
-  left: 8px;
-  right: 8px;
+  left: 0;
   bottom: -1px;
   height: 2px;
-  background: var(--ml-accent);
+  width: 0;
+  opacity: 0;
   border-radius: 2px;
+  background: var(--ml-accent);
   box-shadow: 0 0 10px var(--ml-accent-soft);
-  transform-origin: left;
-  animation: ml-tabline var(--ml-fx-dur-fast) ease both;
+  pointer-events: none;
+  transition: transform var(--ml-fx-dur-fast) var(--ml-fx-ease-out),
+              width var(--ml-fx-dur-fast) var(--ml-fx-ease-out),
+              opacity .12s ease;
 }
 
 /* ml-hairline / ml-panel-ambient / ml-pane-in / ml-ring-breathe 见 effects.css */
@@ -1426,7 +1431,7 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
   border-bottom-color: rgba(0, 229, 255, .2);
 }
 
-#ml-root:is([data-theme="cyberpunk"], [data-theme="auto"]) .ml-tab[aria-selected="true"]::after {
+#ml-root:is([data-theme="cyberpunk"], [data-theme="auto"]) .ml-tab-glint {
   height: 2px;
   background: linear-gradient(90deg, #FF3D9A, #00E5FF);
   box-shadow: 0 0 10px rgba(0, 229, 255, .42);

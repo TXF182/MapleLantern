@@ -103,7 +103,7 @@
       "vital.missing": "本存档缺少 {n} 项可读字段",
       "vital.none": "读不到状态字段，面板只保留时间与场景",
       "worn.title": "着装", "worn.count": "已记录 {n} / {total} 个槽位",
-      "worn.empty": "无", "worn.note": "服饰名保留游戏内原值，不做二次翻译",
+      "worn.empty": "无", "worn.note": "服饰名优先使用游戏汉化包的中文名，缺失时保留原值",
       "system.title": "系统", "system.copy": "复制诊断", "system.copied": "已复制到剪贴板",
       "system.copyFail": "复制失败，请手动选择文本",
       "sys.version": "模组版本", "sys.game": "游戏版本", "sys.host": "主 UI",
@@ -161,7 +161,7 @@
       "vital.missing": "{n} readable field(s) missing",
       "vital.none": "No state fields readable; only time and scene are shown",
       "worn.title": "Worn", "worn.count": "{n} / {total} slots recorded",
-      "worn.empty": "None", "worn.note": "Item names stay in the game's original wording",
+      "worn.empty": "None", "worn.note": "Item names use the game's Chinese pack when available",
       "system.title": "System", "system.copy": "Copy diagnostics", "system.copied": "Copied to clipboard",
       "system.copyFail": "Copy failed; select the text manually",
       "sys.version": "Mod version", "sys.game": "Game version", "sys.host": "Main UI",
@@ -458,8 +458,16 @@
       var slot = WORN_SLOTS[j];
       var item = vars && isObj(vars.worn) ? vars.worn[slot] : null;
       var name = item && typeof item.name === "string" ? item.name : null;
+      /* 游戏汉化包（ModI18N）给服饰对象追加 cn_name / cn_name_cap；
+         正文也读这两个字段，所以优先取它们，缺失时回落原名。 */
+      var cn = null;
+      if (item) {
+        var cap = typeof item.cn_name_cap === "string" ? item.cn_name_cap.trim() : "";
+        var base = typeof item.cn_name === "string" ? item.cn_name.trim() : "";
+        cn = cap || base || null;
+      }
       if (name) { wornCount++; }
-      worn.push({ slot: slot, name: name });
+      worn.push({ slot: slot, name: name, cn: cn });
     }
 
     return {

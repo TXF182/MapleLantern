@@ -462,6 +462,21 @@
       btn.addEventListener("keydown", onTabKey);
       els.tabs.appendChild(btn);
     });
+    var glint = el("span", "ml-tab-glint", { "aria-hidden": "true" });
+    els.tabs.appendChild(glint);
+    syncTabGlint();
+  }
+
+  /* 光线指示器跟当前页签走：用 offsetLeft/offsetWidth（不含滚动与变换），
+     左右各内缩 8px，与旧的 ::after 下划线视觉宽度一致。 */
+  function syncTabGlint() {
+    if (!els.tabs) { return; }
+    var glint = els.tabs.querySelector(".ml-tab-glint");
+    var active = els.tabs.querySelector('.ml-tab[aria-selected="true"]');
+    if (!glint || !active) { return; }
+    glint.style.width = Math.max(0, active.offsetWidth - 16) + "px";
+    glint.style.transform = "translateX(" + (active.offsetLeft + 8) + "px)";
+    glint.style.opacity = "1";
   }
 
   function renderFooterStatus() {
@@ -483,11 +498,13 @@
     saveSettings();
     if (els.tabs) {
       Array.prototype.forEach.call(els.tabs.children, function (btn) {
+        if (!btn.classList || !btn.classList.contains("ml-tab")) { return; }
         var on = btn.getAttribute("data-tab") === key;
         btn.setAttribute("aria-selected", on ? "true" : "false");
         btn.setAttribute("tabindex", on ? "0" : "-1");
       });
     }
+    syncTabGlint();
     if (focus) {
       var btn = els.tabs && els.tabs.querySelector('[data-tab="' + key + '"]');
       if (btn) { btn.focus(); }
@@ -797,9 +814,10 @@
       var cell = el("div", "ml-slot");
       var sk = el("span", "ml-slot-k");
       sk.textContent = labels[w.slot] || w.slot;
-      var sv = el("span", "ml-slot-v" + (w.name ? "" : " is-empty"));
-      sv.textContent = w.name || s["worn.empty"];
-      if (w.name) { sv.setAttribute("title", w.name); }
+      var shown = state.lang === "zh" && w.cn ? w.cn : w.name;
+      var sv = el("span", "ml-slot-v" + (shown ? "" : " is-empty"));
+      sv.textContent = shown || s["worn.empty"];
+      if (shown) { sv.setAttribute("title", w.cn && w.name ? w.cn + " · " + w.name : shown); }
       cell.appendChild(sk); cell.appendChild(sv);
       grid.appendChild(cell);
     });
@@ -1120,6 +1138,7 @@
 
     renderActive();
     syncPanelOrigin();
+    syncTabGlint();
     var first = els.tabs && els.tabs.querySelector('[data-tab="' + state.tab + '"]');
     if (first) {
       first.focus();
@@ -1417,6 +1436,7 @@
       if (state.open) {
         renderActive();
         syncPanelOrigin();
+        syncTabGlint();
       }
     }, 150);
   }
