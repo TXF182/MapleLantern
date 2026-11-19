@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.13）
+# 灯台 · Lantern（MapleLantern 1.4.14）
+
+- **1.4.14 · 电脑端排版与随身衣物**：非 CE 的 `.settingsToggleItem` 恢复块级流，BasicNeeds 膀胱/大便步进器与说明不再和 `<br>` 挤在一行；MEE 随身衣物槽恢复 `auto-fill` 多列，不再纵向塌成一列。灯台按 `#titleCarriedclothes` / `.clothing-takeback-button-container` 识别随身衣物叠层，补写 MEE 依赖的 `T.currentOverlay`，衣服可以正常“放进随身衣物”。桌面正文宽度改为 `min(100%,1100px)`，不再被压成 72ch 手机栏；`#bn-panel` 8 行改成独立卡面（文字换行与 7px 轨道都不再依赖状态卡皮肤开关）；`#mobileStats` 左轨加上下滚动，第三方追加项不再落到视口外。七文件全量 **206/206** PASS；第三方几何仿真 **45/0**。
 
 - **1.4.13 · 第三方模组适配**：BasicNeeds 0.5.0 的背包详情盒原本挂在 `#customOverlay` 右外侧，被灯台面板 `overflow:hidden` 裁掉，「吃掉/喝掉」点不到；现在只在背包页把它收进面板右侧栏，≤760px 改底部抽屉，内容区留出内边距。MyExhibitionism 1.0.4 的「随身衣物」页被其 `left:10px`、窄屏 `left:-17.6em !important`、`height:40%` 推出屏幕，灯台侧用更高特异性拉回居中全高且不覆盖宽度；四条状态行补 1000 上限。另修正自控/氧气被二次反向的问题（原版 `statbarinverted` 只换配色，条宽仍是 current/max）。七文件全量 **205/205** PASS；第三方几何仿真 **84/0**（1280 / 900 / 761 / 760 / 600 / 540 / 390 七档）。
 
@@ -78,7 +80,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.13.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.14.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

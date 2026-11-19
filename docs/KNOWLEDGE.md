@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.13 适配 BasicNeeds 0.5.0 背包详情盒与 MyExhibitionism 1.0.4 随身衣物页，修正自控/氧气二次反向；205/205 PASS，check_ui / game-smoke 以本节实测为准
+> 最后核对：2026-11-19 / 1.4.14 修复电脑端作弊菜单堆叠、MEE 随身衣物槽塌列与 T.currentOverlay 缺失；BasicNeeds 卡面独立、左轨可滚动；206/206 PASS，45/0 仿真，check_ui 13 PASS / 1 WARN；game-smoke 本轮未跑
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -439,7 +439,6 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 **gate 边界**：CSS 只 gate 纯视觉皮肤规则。结构、可见性与几何约束必须常开——`#customOverlayContainer` 的 z-index/visibility、`#ui-dialog-body#ui-dialog-body` 的视口约束、`@media (max-width:899px)` 下 `#customOverlay` 的左右归零、`#story` 侧栏抽屉；关闭外壳开关不能把弹层推出屏幕，也不能让 `#story` 的 hidden 把它吞掉。JS 侧由 `maplelantern-native.js` 的 `setModuleAttrs()` 写根属性，`markStats/markStatmeters/markRailMeters/markPassages` 按各自键跳过标记或还原文本；`clearMarks()` 同时撤掉全部根属性并还原金额。
 
 ## 9. 第三方模组适配（1.4.13）
-
 只针对具体第三方 DOM 加规则，第三方不存在时选择器不命中；不改第三方包、不改原版 DOM 结构。所有规则仍以 `html[data-ml-native="on"]` 为前导，关闭原生层即回第三方原样。
 
 | 模组 | 页面/结构 | 灯台侧处置 | 判据 |
@@ -450,4 +449,13 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 **反向条口径**：原版 `statbarinverted` 只换配色，条宽仍是 `current/max`；`INVERTED_STAT` 只保留 `innocence`（`awareness -200` 才是无知进度），`control` / `oxygen` 不再二次反向。S7 断言自控 1000/1000→100%、氧气 45/100→45%。
 
-**验证入口**：七文件 `205/205`；`tools\host-probe.ps1` 输出 `version=1.4.13`、`cardKeys=True bgKeys=True scripts=5`；第三方仿真 `%TEMP%\lantern_adapt\thirdparty_probe.py` 84 PASS / 0 FAIL（1280 / 900 / 761 / 760 / 600 / 540 / 390 七档，含 BasicNeeds 详情盒、吃掉命中、MEE 随身衣物页收敛）。
+**验证入口**：七文件 `206/206`；`tools\host-probe.ps1` 输出 `version=1.4.14`、`cardKeys=True bgKeys=True scripts=5`；第三方仿真 `%TEMP%\lantern_adapt\fix_probe.py` 45 PASS / 0 FAIL（1280 / 798 / 390 三档，含作弊页块级断行、步进器无横向溢出、衣物槽多列、正文宽度、BasicNeeds 卡面在状态卡皮肤开/关两态下的文字与 7px 轨道、左轨滚动与视口收束）。
+
+## 10. 1.4.14 电脑端排版与随身衣物
+
+- **flex 是作弊页错位与衣物槽塌列的共同根因**：灯台曾把非 CE 的 `.settingsToggleItem` / `.settingsToggleItemWide` 写成 `display:flex; flex-wrap:wrap`。DoL 原版这些条目靠块级流和 `<br>` 排版，flex 会把 `<br>` 当 flex 项，BasicNeeds 的膀胱/大便步进器与说明挤到一行；MEE 的 `auto-fill` 网格作为 flex 子项按 max-content 计算，8 个空槽纵向堆叠。1.4.14 改回 `display:block`，与 `game_base.css:14211` 原版一致。
+- **步进器宽度只收敛 BasicNeeds 追加项**：`#bn-cheat`、`#bn-cheat-stats` 与 `.settingsToggleItem:has(.bn-water-all)` 内的 `numberStepperContainer` 设 100%，不动原版 Options 的 446px 固定宽度。
+- **MEE 随身衣物需要补 `T.currentOverlay`**：本版游戏 `overlayReplace` 宏写 `T.currentOverlay = T.key`，而 `T.key` 全包无赋值，实际为 `undefined`；MEE `clothingCaptionButtonClick`（`js\mee_js.js:546`）只在 `=== "carriedclothes"` 时调 `putToCarried`，否则走脱衣。灯台 `overlayKey()` 按 `#customOverlayContent` 内的 `#titleCarriedclothes` / `.clothing-takeback-button-container` 结构识别该页，`markOverlay()` 在叠层未 hidden 时补写 `window.T.currentOverlay`；关闭由游戏 `closeOverlay()` 删除，切到其他页时灯台也会清掉该临时值。
+- **桌面正文不再压成 72ch**：`@media (min-width:701px)` 下 `#passages .passage` 改为 `max-width:min(100%,1100px)`；手机仍 72ch。
+- **BasicNeeds 状态列表独立卡面**：`#bn-panel` 的 8 行文字与 7px 轨道只挂在 `data-ml-native="on"`，不再要求 `#statmeters` 祖先或状态卡皮肤开启；`.bn-text` 解除第三方 `nowrap/ellipsis`。关闭「原版数值优化」只回退原版六行，BasicNeeds 作为第三方仍保持卡面。
+- **证据边界**：合成宿主里 `getComputedStyle(.settingsGrid).display` 为 `block`，是该探针宿主 `#grid` 的 id 样式所致，**不能用来判断真实作弊页列数**；真实两列布局仍以游戏 `.settingsGrid` 的 `repeat(auto-fit,minmax(48.5%,1fr))` 为准。真实 `file://` + ModLoader 同时装三模组的点击级验收仍未做。

@@ -1405,6 +1405,12 @@
   }
 
   function overlayKey(overlay) {
+    var content = overlay.querySelector("#customOverlayContent");
+    /* MEE 的「随身携带」页没有稳定 data-overlay，内容里自带 #titleCarriedclothes /
+       衣物槽容器；按结构识别，避免依赖第三方模组去写 T.currentOverlay。 */
+    if (content && content.querySelector("#titleCarriedclothes, .clothing-takeback-button-container")) {
+      return "carriedclothes";
+    }
     var key = (overlay.getAttribute("data-overlay") || "").trim();
     if (key) { return key; }
     var title = doc.getElementById("customOverlayTitle");
@@ -1628,6 +1634,17 @@
     if (!overlay) { return; }
     var key = overlayKey(overlay);
     setAttr(overlay, "data-ml-overlay", key);
+    /* 1.4.13 实测：本版游戏的 overlayReplace 把 T.currentOverlay 写成 T.key，
+       实际是 undefined，MEE 的 clothingCaptionButtonClick 会走「脱衣」而不是
+       「放进随身衣物」。这里按已识别的结构把临时状态补回正确值；关闭仍由
+       closeOverlay() delete，非随身页时也清掉旧值，避免后续叠层误判。 */
+    if (key === "carriedclothes" && !overlay.classList.contains("hidden")) {
+      try { if (window.T && window.T.currentOverlay !== key) { window.T.currentOverlay = key; } }
+      catch (e) { /* 临时变量不可写时保持原界面，不阻断渲染 */ }
+    } else if (key !== "carriedclothes" && window.T && window.T.currentOverlay === "carriedclothes") {
+      /* 从随身衣物页直接换到其他页时，清掉本层补写的临时值，避免后续叠层误判。 */
+      try { delete window.T.currentOverlay; } catch (e) { /* 同上 */ }
+    }
     markThirdPartyOverlay(overlay);
     if (key === "options") { addEntry(overlay); }
     if (key === "gameFeats") { armFeatsIntro(); }

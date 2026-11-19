@@ -954,6 +954,23 @@ html[data-ml-native="on"] #menu-core {
 
 /* ---------------------------------------------------------------- 手机左轨 */
 
+html[data-ml-native="on"] #mobileStats {
+  max-height: calc(var(--ml-vh, 100vh) - 60px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+
+html[data-ml-native="on"] #mobileStats::-webkit-scrollbar {
+  width: 3px;
+}
+
+html[data-ml-native="on"] #mobileStats::-webkit-scrollbar-thumb {
+  border-radius: 2px;
+  background: var(--mln-border-strong);
+}
+
 html[data-ml-native="on"][data-ml-opt-rail-skin="1"] #mobileStats {
   width: 32px;
   box-sizing: border-box;
@@ -1117,6 +1134,14 @@ html[data-ml-native="on"] #passages .passage {
   overflow-wrap: break-word;
   text-wrap: pretty;
   animation: mln-passage-in var(--ml-fx-dur-native) ease-out both;
+}
+
+/* 72ch 是手机版的可读宽度；桌面上沿用会把开始菜单/正文压成一条窄栏，
+   观感等同手机布局。桌面放宽到 1100px，手机仍保持 72ch。 */
+@media (min-width: 701px) {
+  html[data-ml-native="on"] #passages .passage {
+    max-width: min(100%, 1100px);
+  }
 }
 
 /* 孩子详情沿用原版正文色：主题正文色只接管普通 passage 文本，
@@ -2047,6 +2072,97 @@ html[data-ml-native="on"] #customOverlay:has(#bn-bp-detailbox) #customOverlayCon
   }
 }
 
+/* 第三方适配：基本需求（BasicNeeds 0.5.0）侧栏状态面板。
+   8 行 #bn-panel 走 maplebirch StatusBar 注入，原样式给 .bn-text
+   写死 nowrap + ellipsis。卡面独立于「原版数值优化」开关：关掉状态卡
+   皮肤只回退原版六行，BasicNeeds 仍保持完整描述与 7px 轨道。 */
+html[data-ml-native="on"] #bn-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 6px 0 0 !important;
+  padding: 0;
+  box-sizing: border-box;
+  border-top: 1px solid var(--mln-border);
+}
+
+html[data-ml-native="on"] #bn-panel .bn-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 !important;
+  padding: 6px 0;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--mln-border);
+}
+
+html[data-ml-native="on"] #bn-panel .bn-text {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  color: var(--mln-text);
+  font-size: 11px;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+html[data-ml-native="on"] #bn-panel .bn-line:last-child {
+  border-bottom: 0;
+}
+
+html[data-ml-native="on"] #bn-panel .meter {
+  position: relative !important;
+  display: block !important;
+  width: 100% !important;
+  height: 7px !important;
+  margin: 0 !important;
+  border-radius: 999px;
+  background: var(--mln-border-strong) !important;
+  overflow: hidden;
+  z-index: auto;
+}
+
+html[data-ml-native="on"] #bn-panel .meter > div {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 7px !important;
+  max-width: 100%;
+  min-width: 0;
+  border-radius: inherit;
+}
+
+/* 第三方适配：BasicNeeds 在作弊页追加的条目。它们自身也带 <br>，
+   父级恢复块级之后，这里只负责宽度收敛，避免 446px 的步进器撑出格子。 */
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat,
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 只收敛 BasicNeeds 追加的步进器，不碰原版 Options 的 446px 固定宽度。 */
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat .numberStepperContainer,
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .numberStepperContainer,
+html[data-ml-native="on"] #customOverlay .settingsGrid .settingsToggleItem:has(.bn-water-all) .numberStepperContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat .titlePercentage,
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .titlePercentage,
+html[data-ml-native="on"] #customOverlay .settingsGrid .settingsToggleItem:has(.bn-water-all) .titlePercentage {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* MEE 的随身衣物槽是 auto-fill 网格；父级恢复块级后需要显式给宽度，
+   否则网格在收缩容器里仍会按 max-content 算成一列。 */
+html[data-ml-native="on"] #customOverlay:has(#titleCarriedclothes) .clothing-takeback-button-container {
+  width: 100%;
+  box-sizing: border-box;
+  gap: 4px;
+}
+
 /* 第三方适配：露出拓展（MyExhibitionism 1.0.4）的「随身衣物」页
    mee_css.css 对 .customOverlay:has(#titleCarriedclothes) 写了 left:10px，
    窄屏还写 left:-17.6em !important / height:40% / bottom:10px；灯台面板必须把
@@ -2391,16 +2507,18 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsToggleItem,
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsToggleItemWide {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 8px;
+  /* 原版这些条目靠 <br> 和块级流排版；改成 flex 会把 <br> 当成 flex 项，
+     按钮与说明全部挤到一行，MEE 的衣物槽网格也会塌成一列。 */
+  display: block;
   min-height: 38px;
   margin: 2px 0;
   padding: 6px 8px;
   border: 1px solid transparent;
   border-radius: 8px;
   line-height: 1.45;
+  box-sizing: border-box;
+  min-width: 0;
+  overflow-wrap: anywhere;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 

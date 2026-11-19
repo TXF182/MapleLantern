@@ -153,6 +153,34 @@ test("S8 露出拓展「随身衣物」页：灯台把 MEE 的负 left / 40% 高
   assert.match(CSS, /#customOverlay:has\(#titleCarriedclothes\)\s*\{[^}]*left:\s*0 !important[^}]*right:\s*0 !important[^}]*height:\s*calc\(var\(--ml-vh,\s*100vh\) - 96px\) !important/s);
 });
 
+test("S9 桌面版恢复非 CE 条目的块级排版，并识别随身衣物叠层", async () => {
+  assert.match(CSS, /\.settingsToggleItem,[\s\S]*?\.settingsToggleItemWide\s*\{[^}]*display:\s*block;/);
+  assert.match(CSS, /html\[data-ml-native="on"\] #bn-panel \.bn-text[^{]*\{[^}]*white-space:\s*normal !important/s);
+  assert.match(CSS, /html\[data-ml-native="on"\] #bn-panel \.meter[^{]*\{[^}]*height:\s*7px !important/s);
+  assert.doesNotMatch(CSS, /\[data-ml-opt-meter-skin="1"\] #bn-panel \.bn-text/);
+  assert.match(CSS, /html\[data-ml-native="on"\] #mobileStats\s*\{[^}]*overflow-y:\s*auto/s);
+  assert.match(CSS, /@media \(min-width: 701px\)[\s\S]*#passages \.passage[^{]*\{[^}]*max-width:\s*min\(100%,\s*1100px\)/s);
+
+  const html = page("走廊", statmeters([card({ id: "pain", title: "Pain: 0.00", pct: 0 })])) +
+    "<div id='customOverlayContainer'><div id='customOverlay' class='customOverlay'>" +
+    "<div id='customOverlayTitle'><div id='titleCarriedclothes'></div></div>" +
+    "<div id='customOverlayContent'><div class='clothing-takeback-button-container'>" +
+    "<div class='clothing-caption-button'></div><div class='clothing-caption-button'></div>" +
+    "</div></div></div></div>";
+  const w = make(html);
+  w.T = {};
+  await tick(w);
+  w.MapleLanternNative.apply();
+  const overlay = w.document.getElementById("customOverlay");
+  assert.equal(overlay.getAttribute("data-ml-overlay"), "carriedclothes");
+  assert.equal(w.T.currentOverlay, "carriedclothes", "MEE 的随身按钮靠这个临时值决定放进/脱下");
+  // 从随身衣物页换到其他页时，补写的临时值必须清掉，否则后续叠层会继续误判。
+  w.document.getElementById("titleCarriedclothes").remove();
+  overlay.querySelector("#customOverlayContent").innerHTML = "<div class='journal-page'>日志</div>";
+  w.MapleLanternNative.apply();
+  assert.equal(w.T.currentOverlay, undefined, "离开随身衣物页后不得残留 carriedclothes");
+});
+
 test("O1 网格页：不搬节点、不删单元格", async () => {
   const grid = "<div class='pc-grid' style='display:grid;grid-template-columns:1fr 1fr'>" +
     "<div class='cell' id='cellA'><img class='icon' src='a.png'><a class='link-internal macro-link' data-passage='X'>选项 A</a></div>" +
