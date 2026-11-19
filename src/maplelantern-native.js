@@ -244,7 +244,13 @@
     willpower: 1000,
     allure: 8000,
     innocence: 200,
-    lewdity: 10000
+    lewdity: 10000,
+    /* 露出拓展（MyExhibitionism 1.0.4）在 #statmeters 追加四行，宿主固定上限 1000；
+       不给这四项，读数会退化成「当前 · 百分比」，与原版「当前/上限」不一致。 */
+    courage: 1000,
+    calm: 1000,
+    desire: 1000,
+    satisfaction: 1000
   };
 
   function readStatMax(key) {
@@ -271,9 +277,10 @@
     return fallback;
   }
 
-  /* 原版这几根条是 statbarinverted：填的是「反过来」的宽度。
-     天真 -200、自控、氧气都用反向条，进度要按 100 - 条宽算。 */
-  var INVERTED_STAT = { innocence: 1, control: 1, oxygen: 1 };
+  /* 只有天真需要反向：原版用 statbarinverted $awareness -200，条宽是「无知」进度，
+     与 $innocence 的当前值方向相反。自控 / 氧气虽然也走 statbarinverted，
+     但那只是配色宏，条宽仍是 current/max，不能再倒一次。 */
+  var INVERTED_STAT = { innocence: 1 };
 
   function gameVars() {
     var state = window.State ||

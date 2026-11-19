@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.12）
+# 灯台 · Lantern（MapleLantern 1.4.13）
+
+- **1.4.13 · 第三方模组适配**：BasicNeeds 0.5.0 的背包详情盒原本挂在 `#customOverlay` 右外侧，被灯台面板 `overflow:hidden` 裁掉，「吃掉/喝掉」点不到；现在只在背包页把它收进面板右侧栏，≤760px 改底部抽屉，内容区留出内边距。MyExhibitionism 1.0.4 的「随身衣物」页被其 `left:10px`、窄屏 `left:-17.6em !important`、`height:40%` 推出屏幕，灯台侧用更高特异性拉回居中全高且不覆盖宽度；四条状态行补 1000 上限。另修正自控/氧气被二次反向的问题（原版 `statbarinverted` 只换配色，条宽仍是 current/max）。七文件全量 **205/205** PASS；第三方几何仿真 **84/0**（1280 / 900 / 761 / 760 / 600 / 540 / 390 七档）。
 
 - **1.4.12 · CE 设置页恢复桌面双列**：CheatExtended 1.20.4 的设置页复用 DoL 原生 `.settingsGrid`；此前按 520px 最小列宽在常见桌面面板宽度下退成单列，表现为“作弊菜单像手机端”。现在回到原版 48.5% 双列、同一行等高拉伸，卡片不再 `overflow:hidden` 裁 tooltip/焦点框；规则只挂 `#cheat_extended_options ~ *` 与 `#CE_settingsDiv`，游戏原生 Options 在 900px 宽桌面仍保持双列。新增 CE 设置页几何探针 **24/0**（1280 / 900 / 390，含原生 Options 对照、同行等高、越界与互压）；七文件全量 **201/201** PASS。
 
@@ -76,7 +78,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.9.mod.zip`；如果已装旧包（含 1.4.8 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.13.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

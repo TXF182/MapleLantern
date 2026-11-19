@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.12 CE 设置页恢复桌面双列且不外溢原生 Options；201/201 PASS，check_ui / game-smoke 以本节实测为准
+> 最后核对：2026-11-19 / 1.4.13 适配 BasicNeeds 0.5.0 背包详情盒与 MyExhibitionism 1.0.4 随身衣物页，修正自控/氧气二次反向；205/205 PASS，check_ui / game-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -188,7 +188,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ## 5. 验证命令（当前链路）
 
 ```powershell
-node --test tests\*.test.js                                  # 201 项：契约 / 原生 / 自定义 / DOM
+node --test tests\*.test.js                                  # 205 项：契约 / 原生 / 自定义 / DOM
 python tests\custom_host.py                                  # 真实 DOM 宿主 58 断言（含像素取色）
 python tests\custom_viewports.py                             # 六档视口 49 断言（实测「应用背景」可点）
 python tests\custom_formats.py                               # 图片格式矩阵（自建 tests\fmt 素材）
@@ -352,6 +352,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 根因：原版游戏 CSS `@media only screen and (max-width:870px) { .customOverlay { left:-17.6em } }` 用 280px 侧栏宽度做左移。灯台把 `#customOverlayContainer` 改成 `position:fixed; inset:0; width:100vw` 后容器已全视口，这条左移把 `.customOverlay` 整体推到屏幕左侧外 281.6px。540 探针修复前 `#customOverlay` `left:-281.6px`、`x=-281.59`、`width=524`、`right=242.41`；`#customOverlayContent` `x=-273.59`；合成 CE `x=-264.59`。
 - 修复：`src/maplelantern-native.css` 的 `@media (max-width:899px)` 给 `html[data-ml-native="on"] #customOverlay` 补 `left:0 !important; right:0 !important`，宽度继续由既有 `max-width: calc(100vw - 16px)` 约束。540 复测 `left/right=0`、`x=0`、`width=524`，内容 `x=8 / width=508`，CE `x=17 / width=490`；360 复测 `x=0 / width=344`，内容 `x=8 / width=328`。另在 `<=560px` 侧栏展开时给 `#customOverlayContainer` 补 `visibility:visible !important; pointer-events:auto !important`：该容器由 PassageFooter 渲染，可能落在 `#passages` 子树内，`#story` 的抽屉隐藏会连带吞掉作弊层。
 - 防复发：任何把第三方弹层容器改成全视口 fixed 的覆盖，必须同步封回原版针对侧栏宽度的 `left/right/margin` 补偿；验收不能只看盒子 `width`，要同时读 `x/right`，否则“宽度对了但整体在屏外”会被漏掉。合成 CE 探针只能证明几何，真实 CE 入口仍需实机/存档验证。
+- 后续（2026-11-19 复核）：本条历史的「容器全视口」前提已不成立——fixed 包含块实际是游戏缩放祖先，容器改为 `width:100%` 只吃包含块；详见 §8「fixed 弹层容器约束」与 ERR-20261119-004。
 
 ### ERR-20261115-004 `topbar.four-column-clipping`
 
@@ -396,7 +397,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 | 层 | 命令 | 通过标准 |
 |---|---|---|
-| 纯逻辑/契约 | `node --test tests\*.test.js` | 201/201，含版本双源一致性 |
+| 纯逻辑/契约 | `node --test tests\*.test.js` | 205/205，含版本双源一致性 |
 | 真实 DOM 宿主 | `python tests\custom_host.py` | 58/0，含「载体必须是 data: URL」与像素取色（B−R ≥ 25） |
 | 六档视口 | `python tests\custom_viewports.py` | 49/0，含「应用背景」44px 可点、面板外透出背景 |
 | 真机 | `python tests\_diag_realinject.py` / `_diag_csp.py` | 页面与舞台取色命中判据图（左红右绿） |
@@ -427,7 +428,9 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 | `optSidebar` | `data-ml-opt-sidebar` | 侧栏按钮两列卡片 |
 | `optOverlay` | `data-ml-opt-overlay` | 原生弹层外壳圆角/留白/背景 + 属性页卡片皮肤 |
 
-**1.4.12 CE 设置页约束**：CheatExtended 1.20.4 的设置页（`<<CE_options>>`）由 JS 动态建 `.settingsGrid`，子项是原生 `.settingsToggleItem`；其桌面几何必须回到 DoL 原版 `repeat(auto-fit,minmax(48.5%,1fr))`，不能用 520px 最小列宽（否则 900–1000px 面板宽只放一列，表现为手机端）。同一行必须 `align-items:stretch`，否则不同高度的卡片各自起排、看起来错位；卡片不能 `overflow:hidden`，否则 tooltip 与焦点框被裁。规则只允许挂 `#customOverlay #cheat_extended_options ~ *` 与 `#customOverlay #CE_settingsDiv`，不得再挂 `#customOverlayContent`——原生 Options 也在这个容器里，挂上去会把它一起压成单列。几何探针 `tests\ce_settings_probe.py` 24/0（1280/900/390，含原生 Options 双列对照）。
+**1.4.12 CE 设置页约束**：CheatExtended 1.20.4 的设置页（`<<CE_options>>`）由 JS 动态建 `.settingsGrid`；§8 另见 2026-11-19 复核补丁 `fixed 弹层容器约束`，子项是原生 `.settingsToggleItem`；其桌面几何必须回到 DoL 原版 `repeat(auto-fit,minmax(48.5%,1fr))`，不能用 520px 最小列宽（否则 900–1000px 面板宽只放一列，表现为手机端）。同一行必须 `align-items:stretch`，否则不同高度的卡片各自起排、看起来错位；卡片不能 `overflow:hidden`，否则 tooltip 与焦点框被裁。规则只允许挂 `#customOverlay #cheat_extended_options ~ *` 与 `#customOverlay #CE_settingsDiv`，不得再挂 `#customOverlayContent`——原生 Options 也在这个容器里，挂上去会把它一起压成单列。几何探针 `tests\ce_settings_probe.py` 24/0（1280/900/390，含原生 Options 双列对照）。
+
+**1.4.12 复核补丁 fixed 弹层容器约束**：`#customOverlayContainer` 挂在被游戏缩放/平移的 `#story` 祖先里，fixed 包含块不是视口；横向不得用 `100vw`（桌面实测右缘多 320px），改 `width:100%; max-width:100%`，纵向用 `height:var(--ml-vh,100vh)`。`#customOverlay` 不得再用 `top+bottom`，改 `bottom:auto` + `height/max-height:calc(var(--ml-vh,100vh) - 96px)`、`min-height:0`。真实页探针：桌面 `docW=1280`、面板 `920×804`；手机 `docW=390`、面板 `326×748`；CE 设置页真实页模拟桌面 `908×880`/2 列、手机 `326×824`/1 列，均 `out=0/overlaps=0`。
 
 **1.4.11 属性卡约束**：皮肤只改外观，不覆盖原生排版。通用 `.characteristic-box-list` 保持 DoL 原生 `flex-wrap`，属性、技能、成绩、职业页按自身 `min-width` 换行；`#sex-diagram` 单独保留左右 50% 纵排双列，`<=450px` 回 100%。社交页同理：`.relation-box-list` 保留原生 grid 列数，`#global-recognition` 保留原生 `flex-wrap`，不得统一压成单列。属性页真机探针 `tests\sexdiagram_probe.py` 扩到 5 个平铺列表，桌面 + 手机 73/0，含旧 grid 压立绘复现。
 
@@ -435,3 +438,16 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 **gate 边界**：CSS 只 gate 纯视觉皮肤规则。结构、可见性与几何约束必须常开——`#customOverlayContainer` 的 z-index/visibility、`#ui-dialog-body#ui-dialog-body` 的视口约束、`@media (max-width:899px)` 下 `#customOverlay` 的左右归零、`#story` 侧栏抽屉；关闭外壳开关不能把弹层推出屏幕，也不能让 `#story` 的 hidden 把它吞掉。JS 侧由 `maplelantern-native.js` 的 `setModuleAttrs()` 写根属性，`markStats/markStatmeters/markRailMeters/markPassages` 按各自键跳过标记或还原文本；`clearMarks()` 同时撤掉全部根属性并还原金额。
 
+## 9. 第三方模组适配（1.4.13）
+
+只针对具体第三方 DOM 加规则，第三方不存在时选择器不命中；不改第三方包、不改原版 DOM 结构。所有规则仍以 `html[data-ml-native="on"]` 为前导，关闭原生层即回第三方原样。
+
+| 模组 | 页面/结构 | 灯台侧处置 | 判据 |
+|---|---|---|---|
+| BasicNeeds 0.5.0 | `#bn-bp-detailbox` 被 append 到 `#customOverlay`，第三方写 `left:100%` | 仅在 `#customOverlay:has(.bn-bp)` 时把详情盒放回面板内右侧栏（`right:12px`、`top:104px`、`max-height:calc(100% - 116px)`、`overflow:auto`），内容区 `padding-right:312px`；`<=760px` 改底部抽屉（`max-height:32vh` + 内容 `padding-bottom:calc(32vh + 24px)`） | 1280×900：盒 `807→1087`、`dClip=0`、吃掉按钮 `useHit=true`；390×844：盒 `17→373`、`dClip=0`、`useHit=true`；网格与盒交集 0 |
+| MyExhibitionism 1.0.4 | `#statmeters` 内四行 `courage/calm/desire/satisfaction`，上限 1000 | `STAT_MAX` 补四键为 1000，读数统一为 `当前/1000`；不新增 MEE 专用行宽规则 | S5：四条 `data-ml-total=1000`、读数 `307.2/1000` 等；11 行无重叠/无裁切 |
+| MyExhibitionism 1.0.4 | 随身衣物页 `#titleCarriedclothes`，第三方写 `left:10px`，窄屏 `left:-17.6em !important` / `height:40%` | 同页高特异性拉回 `left/right:0`、`margin:auto`、`top:48px`、`height/max-height:calc(var(--ml-vh,100vh) - 96px)`；不覆盖 width | 1280×900 面板 `920×804@180,48`；390×844 面板 `374×748@8,48`；`mee-carry-panel-clamped` PASS |
+
+**反向条口径**：原版 `statbarinverted` 只换配色，条宽仍是 `current/max`；`INVERTED_STAT` 只保留 `innocence`（`awareness -200` 才是无知进度），`control` / `oxygen` 不再二次反向。S7 断言自控 1000/1000→100%、氧气 45/100→45%。
+
+**验证入口**：七文件 `205/205`；`tools\host-probe.ps1` 输出 `version=1.4.13`、`cardKeys=True bgKeys=True scripts=5`；第三方仿真 `%TEMP%\lantern_adapt\thirdparty_probe.py` 84 PASS / 0 FAIL（1280 / 900 / 761 / 760 / 600 / 540 / 390 七档，含 BasicNeeds 详情盒、吃掉命中、MEE 随身衣物页收敛）。

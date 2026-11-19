@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.4.12");
+  assert.equal(C.VERSION, "1.4.13");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "switches", "settings"]);
   assert.equal(C.THEMES.length, 9);
@@ -257,7 +257,7 @@ test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不�
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.4.12");
+  assert.equal(d.version, "1.4.13");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);

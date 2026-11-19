@@ -1921,11 +1921,11 @@ html[data-ml-native="on"] #customOverlayContainer {
   right: 0 !important;
   top: 0 !important;
   bottom: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
-  /* 本地视口就是 body zoom 后的可用宽高：小于 100% 时它比 100vw 大，
-     大于 100% 时它比 100vw 小，直接用它才能铺满屏幕而不是半屏。 */
-  width: var(--ml-vw, 100vw) !important;
+  /* 弹层挂在被游戏缩放/平移过的 #story 祖先里，fixed 的包含块不是视口。
+     100vw 会比包含块宽出一截（桌面实测右缘多 320px），所以横向只吃包含块；
+     纵向仍用 body zoom 后的 --ml-vh，保证缩放档下仍铺满可视高度。 */
+  width: 100% !important;
+  max-width: 100% !important;
   height: var(--ml-vh, 100vh) !important;
   z-index: 1000;
   padding: 0 !important;
@@ -1937,10 +1937,15 @@ html[data-ml-native="on"] #customOverlayContainer {
 html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]) {
   position: fixed !important;
   top: 48px !important;
-  bottom: 48px !important;
+  /* fixed 的包含块被游戏缩放祖先撑高时，top+bottom 会把面板拉出屏幕；
+     改用本地视口显式算高，底边不再参与定位。 */
+  bottom: auto !important;
+  height: calc(100vh - 96px) !important;
+  height: calc(var(--ml-vh, 100vh) - 96px) !important;
+  max-height: calc(var(--ml-vh, 100vh) - 96px) !important;
+  min-height: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  height: auto !important;
   margin: 0 auto !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1996,6 +2001,73 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   font-size: 13px;
   line-height: 1.62;
 }
+
+/* ---------------------------------------------------------------- 第三方适配：基本需求（BasicNeeds 0.5.0）
+   Ban-backpack.css 把详情盒绝对定位到 #customOverlay 的 left:100%（面板右外侧），
+   而灯台面板 overflow:hidden，整盒会被裁掉，「吃掉/喝掉」点不到。
+   这里只在背包页（.bn-bp 存在）生效：详情盒改为面板内右侧栏；窄屏改底部抽屉，
+   并给内容区留出对应内边距，避免盖住网格。 */
+html[data-ml-native="on"] #customOverlay:has(.bn-bp) #bn-bp-detailbox {
+  left: auto !important;
+  right: 12px !important;
+  top: 104px !important;
+  bottom: auto !important;
+  width: min(280px, 32%) !important;
+  max-width: none !important;
+  max-height: calc(100% - 116px) !important;
+  margin-left: 0 !important;
+  overflow: auto !important;
+  box-sizing: border-box;
+  z-index: 4 !important;
+  background: var(--mln-surface-2) !important;
+  border: 1px solid var(--mln-border-strong) !important;
+  border-radius: var(--mln-radius-sm) !important;
+  color: var(--mln-text) !important;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 38%);
+}
+
+html[data-ml-native="on"] #customOverlay:has(#bn-bp-detailbox) #customOverlayContent {
+  padding-right: 312px !important;
+  overflow-x: hidden;
+}
+
+@media (max-width: 760px) {
+  html[data-ml-native="on"] #customOverlay:has(.bn-bp) #bn-bp-detailbox {
+    left: 8px !important;
+    right: 8px !important;
+    top: auto !important;
+    bottom: 8px !important;
+    width: auto !important;
+    max-height: 32vh !important;
+  }
+
+  html[data-ml-native="on"] #customOverlay:has(#bn-bp-detailbox) #customOverlayContent {
+    padding-right: 14px !important;
+    padding-bottom: calc(32vh + 24px) !important;
+  }
+}
+
+/* 第三方适配：露出拓展（MyExhibitionism 1.0.4）的「随身衣物」页
+   mee_css.css 对 .customOverlay:has(#titleCarriedclothes) 写了 left:10px，
+   窄屏还写 left:-17.6em !important / height:40% / bottom:10px；灯台面板必须把
+   位置和高度拉回居中全高，否则整块被推到屏幕外，页面点不到。 */
+html[data-ml-native="on"] #customOverlay:has(#titleCarriedclothes) {
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  top: 48px !important;
+  bottom: auto !important;
+  height: calc(100vh - 96px) !important;
+  height: calc(var(--ml-vh, 100vh) - 96px) !important;
+  max-height: calc(var(--ml-vh, 100vh) - 96px) !important;
+  min-height: 0 !important;
+  transform: none !important;
+}
+
+/* 第三方适配：露出拓展（MyExhibitionism 1.0.4）
+   MEE 的四行沿用原版 .meter/.rightMeter，灯台的 #statmeters 通用卡面已经覆盖；
+   数值口径在 native.js 的 STAT_MAX 里按宿主固定的 1000 补齐，这里不再另加布局规则，
+   避免与通用行/窄屏行抢 grid 列宽。 */
 
 html[data-ml-native="on"] .customOverlayClose {
   width: 44px;

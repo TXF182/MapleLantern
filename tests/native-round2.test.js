@@ -106,6 +106,53 @@ test("S4 氧气：无 title 时从变量取当前值、从 oxygenmax 取上限",
   assert.equal(oxy.getAttribute("data-ml-readout"), "45/100");
 });
 
+test("S5 露出拓展（MyExhibitionism）：四条状态读数是当前/1000，不降级成百分比", async () => {
+  const html = page("走廊", statmeters([
+    card({ id: "courage", title: "勇气: 307.20 | 高勇气值可以帮助突破淫乱、暴露、异种的数值判定", pct: 30, rightMeter: true }),
+    card({ id: "calm", title: "镇静: 292.80 | 高镇静时疼痛、性奋、压力提升速度减慢", pct: 29, rightMeter: true }),
+    card({ id: "desire", title: "欲望: 512.00 | 高欲望时勇气增加、镇静减少，低欲望时反之", pct: 51 }),
+    card({ id: "satisfaction", title: "满足: 300.00 | 满足感值为勇气和镇静的基础值", pct: 30, rightMeter: true })
+  ], true));
+  const w = make(html);
+  await tick(w);
+  const expected = { courage: "307.2/1000", calm: "292.8/1000", desire: "512/1000", satisfaction: "300/1000" };
+  for (const [key, value] of Object.entries(expected)) {
+    const el = w.document.getElementById(key + "caption");
+    assert.equal(el.getAttribute("data-ml-total"), "1000", key + " 上限必须是 1000");
+    assert.equal(el.getAttribute("data-ml-readout"), value, key + " 读数必须与宿主上限同格式");
+    assert.equal(el.getAttribute("data-ml-percent"), parseInt(el.querySelector(".meter > div,.rightMeter > div").style.width, 10) + "%");
+  }
+});
+
+test("S6 基本需求（BasicNeeds）：背包详情盒在灯台面板内，不贴 left:100% 被裁", async () => {
+  const html = page("走廊", statmeters([card({ id: "pain", title: "Pain: 0.00", pct: 0 })])) +
+    "<div id='customOverlay' class='customOverlay'><div id='customOverlayTitle'></div>" +
+    "<div id='customOverlayContent'><div class='bn-bp'><div class='bn-bp-grid'>" +
+    "<div class='bn-bp-item' data-bnbp='apple'>苹果</div></div></div></div>" +
+    "<div id='bn-bp-detailbox'><span class='bn-bp-use' data-bnuse='apple'>吃掉一份</span></div></div>";
+  const w = make(html);
+  await tick(w);
+  assert.match(CSS, /#customOverlay:has\(\.bn-bp\)\s+#bn-bp-detailbox/);
+  assert.match(CSS, /#customOverlay:has\(#bn-bp-detailbox\)\s+#customOverlayContent/);
+  assert.match(CSS, /#bn-bp-detailbox[^{]*\{[^}]*left:\s*auto !important[^}]*right:\s*12px !important/s);
+  assert.match(CSS, /@media \(max-width: 760px\)[\s\S]*#bn-bp-detailbox[^{]*\{[^}]*bottom:\s*8px !important/s);
+});
+
+test("S7 自控 / 氧气条宽是 current/max，不再二次反向", async () => {
+  const html = page("走廊", statmeters([
+    card({ id: "control", title: "Control: 1000.00", pct: 100, rightMeter: true }),
+    card({ id: "oxygen", title: "", pct: 45, colour: "bluebar" })
+  ]));
+  const w = make(html, varsWith({ control: 1000, controlmax: 1000, oxygen: 45, oxygenmax: 100 }));
+  await tick(w);
+  assert.equal(w.document.getElementById("controlcaption").getAttribute("data-ml-percent"), "100%");
+  assert.equal(w.document.getElementById("oxygencaption").getAttribute("data-ml-percent"), "45%");
+});
+
+test("S8 露出拓展「随身衣物」页：灯台把 MEE 的负 left / 40% 高拉回居中全高", async () => {
+  assert.match(CSS, /#customOverlay:has\(#titleCarriedclothes\)\s*\{[^}]*left:\s*0 !important[^}]*right:\s*0 !important[^}]*height:\s*calc\(var\(--ml-vh,\s*100vh\) - 96px\) !important/s);
+});
+
 test("O1 网格页：不搬节点、不删单元格", async () => {
   const grid = "<div class='pc-grid' style='display:grid;grid-template-columns:1fr 1fr'>" +
     "<div class='cell' id='cellA'><img class='icon' src='a.png'><a class='link-internal macro-link' data-passage='X'>选项 A</a></div>" +

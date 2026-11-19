@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.12");
+  assert.equal(boot.version, "1.4.13");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -873,10 +873,16 @@ test("effects.css：组件引用的 keyframes/token 全部有定义，且原生 
 });
 
 test("游戏缩放：原生全屏与面板宽高都消费本地视口变量", () => {
-  assert.match(nativeCss, /#customOverlayContainer \{[\s\S]{0,400}width:\s*var\(--ml-vw,\s*100vw\)\s*!important/s,
-    "小于 100% 时本地视口比 100vw 大，容器必须直接用 --ml-vw 才能铺满");
+  assert.match(nativeCss, /#customOverlayContainer \{[\s\S]{0,400}width:\s*100%\s*!important/s,
+    "fixed 弹层容器只吃包含块宽度；100vw 在被缩放祖先里会横向溢出，桌面实测右缘多 320px");
+  assert.doesNotMatch(nativeCss, /#customOverlayContainer \{[\s\S]{0,400}width:\s*100vw\s*!important/s,
+    "容器不得再用 100vw：包含块是 #story 而不是视口");
   assert.match(nativeCss, /#customOverlayContainer \{[\s\S]{0,450}height:\s*var\(--ml-vh,\s*100vh\)\s*!important/s,
     "容器高度同理，不能只用 100dvh");
+  assert.match(nativeCss, /height:\s*calc\(var\(--ml-vh,\s*100vh\) - 96px\)\s*!important/,
+    "原生弹层面板必须按本地视口显式算高，不能用 top+bottom 让缩放祖先把它拉出屏幕");
+  assert.match(nativeCss, /bottom:\s*auto\s*!important/,
+    "弹层面板底边不得参与定位，否则包含块被内容撑高时会整体下坠");
   assert.ok(nativeCss.includes("calc(var(--ml-vw, 100vw) - 48px)"),
     "原生弹层宽度必须按本地视口收口");
   assert.match(css, /#ml-root \.ml-panel \{[\s\S]{0,260}max-width:\s*calc\(var\(--ml-vw,\s*100vw\) - 32px\)/s,
