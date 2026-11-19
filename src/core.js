@@ -12,7 +12,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.4.9";
+  var VERSION = "1.4.11";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
   var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
@@ -133,7 +133,7 @@
       "opt.meterValue": "状态卡数值", "opt.meterValueHint": "右侧「当前/上限 · 百分比」；关闭只留标签和条",
       "opt.options": "正文选项卡片", "opt.optionsHint": "整行卡片、图标分组与按压反馈；关闭回原版文字链接",
       "opt.sidebar": "侧栏按钮卡片", "opt.sidebarHint": "两列卡片与紧凑字号；关闭回原版纵向按钮",
-      "opt.overlay": "原生弹层外壳", "opt.overlayHint": "圆角、留白、滚动与关闭按钮；关闭回原版弹层外壳",
+      "opt.overlay": "原生弹层/属性卡", "opt.overlayHint": "圆角、留白、滚动、关闭按钮与属性页卡片；关闭回原版弹层与属性页",
       "native.entry": "灯台",
       "native.entryHint": "打开灯台面板",
       "shop.filters": "筛选", "shop.options": "选项", "shop.legend": "图例",
@@ -203,7 +203,7 @@
       "opt.meterValue": "Status values", "opt.meterValueHint": "Current/max · percent on the right; off leaves label and bar only",
       "opt.options": "Passage option cards", "opt.optionsHint": "Full-row cards, icon grouping and press feedback; off restores text links",
       "opt.sidebar": "Sidebar button cards", "opt.sidebarHint": "Two-column cards and compact labels; off restores vertical buttons",
-      "opt.overlay": "Overlay shell", "opt.overlayHint": "Radius, padding, scrolling and close button; off restores the original shell",
+      "opt.overlay": "Overlay / attribute cards", "opt.overlayHint": "Radius, padding, scrolling, close button and attribute cards; off restores the native overlay and attribute page",
       "native.entry": "Lantern",
       "native.entryHint": "Open the Lantern panel",
       "shop.filters": "Filters", "shop.options": "Options", "shop.legend": "Legend",

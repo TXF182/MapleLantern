@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.9");
+  assert.equal(boot.version, "1.4.11");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -339,6 +339,31 @@ test("第三方 cheat overlay：customOverlayContent 排除 CE，CE 面板保留
   assert.match(nativeCss, /data-mln-ce-page="teleport"/, "传送页需要独立标记，不能误伤其它页");
   assert.doesNotMatch(nativeCss, /#customOverlay:has\(#cheat_extended_options/,
     "CE 关键规则不得依赖 :has()");
+});
+
+test("1.4.11：属性卡只换皮不改原生排版，所有 characteristic 列表不得被 grid 覆盖", () => {
+  const charStart = nativeCss.indexOf(".characteristic-box-list {");
+  const relationStart = nativeCss.indexOf(".relation-box-list {", charStart);
+  assert.ok(charStart > -1 && relationStart > charStart, "属性卡规则区必须存在");
+  const relationPrefix = nativeCss.lastIndexOf("html[data-ml-native", relationStart);
+  const charBlock = nativeCss.slice(nativeCss.lastIndexOf("html[data-ml-native", charStart), relationPrefix);
+  assert.equal((charBlock.match(/html\[data-ml-native="on"\] #customOverlayContent/g) || []).length, 0,
+    "属性卡皮肤必须全部挂在 data-ml-opt-overlay 上，关闭开关才能回原版卡片");
+  assert.match(nativeCss, /\[data-ml-opt-overlay="1"\][^{]*\.characteristic-box-list[\s\S]{0,180}display:\s*flex[\s\S]{0,120}flex-wrap:\s*wrap/s,
+    "通用属性卡列表必须保留原生 flex 换行，皮肤不得改布局");
+  assert.doesNotMatch(charBlock, /grid-template-columns|display:\s*grid/,
+    "属性卡规则区不得再出现 grid，否则属性/技能/成绩页会被同一套覆盖改坏");
+  assert.match(nativeCss, /#sex-diagram \.characteristic-box-list \{[\s\S]{0,260}display:\s*flex[\s\S]{0,260}flex-flow:\s*column nowrap[\s\S]{0,120}width:\s*50%/s,
+    "#sex-diagram 必须还原原版左右 50% 双列，不能继承通用列表布局");
+  assert.match(nativeCss, /#sex-diagram \.characteristic-box-list > \.sex-diagram-box \{[\s\S]{0,160}display:\s*flex[\s\S]{0,120}width:\s*100%/s,
+    "左右列的每个 sex-diagram-box 必须撑满列宽");
+  assert.match(nativeCss, /@media \(max-width: 450px\)[\s\S]{0,320}#sex-diagram \.characteristic-box-list[\s\S]{0,80}width:\s*100%/s,
+    "窄屏必须回到原版单列双卡布局，不能留 50% 半宽列");
+  const relationRule = nativeCss.slice(relationStart, nativeCss.indexOf("}", relationStart));
+  assert.doesNotMatch(relationRule, /display:|grid-template-columns|flex-direction/,
+    "社交页 .relation-box-list 也必须保留原生 grid/flex 列数，皮肤不得压成单列");
+  assert.doesNotMatch(nativeCss, /#global-recognition[\s\S]{0,100}display:\s*grid/,
+    "#global-recognition 必须保留原版 flex-wrap，不能再写死两列");
 });
 
 test("1.1.14/1.1.17：CE 状态页两列选项不得横向压叠", () => {

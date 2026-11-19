@@ -1,6 +1,6 @@
 {
   "name": "MapleLantern",
-  "version": "1.4.9",
+  "version": "1.4.11",
   "nickName": "灯台 Lantern",
   "scriptFileList": [
     "core.js",

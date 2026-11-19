@@ -2,7 +2,19 @@
 
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改呈现，不碰游戏数值与存档写入。
 
-当前版本：**1.4.9**（新增「开关」页：9 个原生 UI 优化可逐项关闭，关闭只撤该模块。）
+当前版本：**1.4.11**（属性卡与社交卡改为「只换皮、不改原生排版」，覆盖全部复用原生列表的页面。）
+
+## 1.4.11 重点
+
+- **属性卡不再统一 grid**：通用 `.characteristic-box-list` 恢复 DoL 原生 `flex-wrap`，属性、技能、成绩、职业等页面按自身规则换行；`#sex-diagram` 仍单独还原左右 50% 双列，窄屏回 100% 单列。
+- **社交卡也不压列数**：`.relation-box-list` 不再统一改成单列，`#secondary-npcs` / `#npc-relations` / `#faction-reputations` 保留各自原生网格，`#global-recognition` 保留原生 `flex-wrap`。
+- **验证**：七文件全量 **201 / 201 PASS**；属性页几何探针扩到 5 个平铺列表，桌面 1280 + 手机 390 共 **73 / 0**，含旧 grid 压立绘复现与开关还原。
+
+## 1.4.10 重点
+
+- **属性页恢复原版左右双列**：DoL 的 `#sex-diagram` 用左右两列 50% flex 包住中央立绘，灯台此前把通用卡片列表的 `grid` 套到了这套结构上，导致电脑版属性卡横铺、压住人物。现在对 `#sex-diagram` 显式还原纵排双列，窄屏回 100% 单列。
+- **可单独关闭属性卡皮肤**：「开关」页的「原生弹层/属性卡」关闭后，属性页完全回原版卡片、原版描边与布局，其他模块不受影响。
+- **验证**：七文件全量 **201 / 201 PASS**；属性页真机几何探针 **13 / 0**（桌面 1280 与手机 390，含旧 grid 复现、开关还原）。
 
 ## 1.4.9 重点
 
@@ -37,7 +49,7 @@ Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改
 
 ## 历史版本（1.3.x）
 
-> 以下为 1.3.x 历史记录，当前行为以 1.4.9 与 `src/README.md` 为准。
+> 以下为 1.3.x 历史记录，当前行为以 1.4.11 与 `src/README.md` 为准。
 
 ## 1.3.8 重点
 
@@ -131,7 +143,11 @@ pwsh -NoProfile -File tools\host-probe.ps1
 `pack.ps1` 产物在 `dist\`，并写入 `dist\SHA256.txt`。UI 包结构校验使用 `dol-ui-design` 技能内的 `check_ui_mod.py`。
 `host-probe.ps1` 从工程根起 HTTP 服务跑 `tests\custom-host.html`，断言四个全局装配、版本双源与卡片默认键（服务根写错会全 false，见 `.learnings\ERRORS.md#ERR-20261118-009`）。发布流程与便携版 git 的调用方式见 `C:\Users\27352\Doubao\skills\dol-lantern\SKILL.md`。
 
-1.4.9 产物（当前）：`dist\MapleLantern-1.4.9.mod.zip`，14 条目；体积与 SHA256 以同目录 `dist\SHA256.txt` 为准。
+1.4.11 产物（当前）：`dist\MapleLantern-1.4.11.mod.zip`，**169,416 B / 14 条目 / SHA256 `b912877f4d67ba7b4814cbe09845473a4ea36db4f29f9607c18164350c9c01ff`**。
+
+1.4.10 产物：`dist\MapleLantern-1.4.10.mod.zip`，**168,863 B / 14 条目 / SHA256 `2c20b0ef146ce7814e20aa7d4224eac3946f78bcea1a3fe6d8b4e5a9874e6b6f`**。
+
+1.4.9 产物：`dist\MapleLantern-1.4.9.mod.zip`，14 条目；体积与 SHA256 以同目录 `dist\SHA256.txt` 为准。
 
 历史产物：
 

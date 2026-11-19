@@ -2433,14 +2433,22 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
   color: var(--mln-text);
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 7px;
+/* 原生属性卡只换皮，不改列表排版：DoL 自己用 flex-wrap 决定桌面/手机列数。
+   1.4.10 之前这里把通用 `.characteristic-box-list` 改成 grid，凡是复用这套
+   原生卡片的页面都会继承布局覆盖；属性页 `#sex-diagram` 的左右双列被顶成
+   横铺并在桌面上压住立绘。现在恢复原生 flex，后续新增属性/技能/成绩页
+   也不会再被这套皮肤改坏。 */
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 0;
+  min-width: 0;
+  max-width: 100%;
   margin: 6px 0;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box {
   position: relative;
   display: block;
   min-width: 0;
@@ -2451,14 +2459,14 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   box-sizing: border-box;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-top-line {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-top-line {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-title {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-title {
   flex: 1 1 auto;
   min-width: 0;
   color: var(--mln-text);
@@ -2466,7 +2474,7 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   font-weight: 600;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level {
   flex: 0 0 auto;
   margin-left: auto;
   color: var(--mln-accent);
@@ -2475,16 +2483,16 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   font-variant-numeric: tabular-nums;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level big {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level big {
   font-size: 13px;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level small {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-level small {
   color: var(--mln-muted);
   font-size: 10px;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-description {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-description {
   display: block;
   margin-top: 2px;
   color: var(--mln-muted);
@@ -2492,14 +2500,14 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   line-height: 1.35;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-icon {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-icon {
   width: 22px;
   height: 22px;
   margin: 0;
   object-fit: contain;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box .meter {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box .meter {
   position: absolute;
   left: 9px;
   right: 9px;
@@ -2514,27 +2522,49 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   z-index: 3;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box .meter > div {
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-box .meter > div {
   height: 4px !important;
   border-radius: inherit;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .relation-box-list {
+/* 属性页原版双列：DoL 的 #sex-diagram 用左右两列 50% flex 包住中央立绘。
+   通用卡列表已经恢复原生 flex-wrap；这里再显式固定左右列，避免任何缩放下
+   卡片横铺到中央、压住人物。 */
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #sex-diagram .characteristic-box-list {
   display: flex;
-  flex-direction: column;
-  gap: 7px;
+  flex-flow: column nowrap;
+  width: 50%;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #sex-diagram .characteristic-box-list > .sex-diagram-box {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 450px) {
+  html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #sex-diagram .characteristic-box-list {
+    width: 100%;
+  }
+}
+
+/* 社交卡同样只换皮：DoL 原生用 grid/flex 按页面给不同列宽
+   （#secondary-npcs / #npc-relations / #faction-reputations 各自不同），
+   这里不再统一压成单列，避免桌面端关系页被一并改版。 */
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .relation-box-list {
+  min-width: 0;
   margin: 6px 0;
 }
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .relation-box {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
+  box-sizing: border-box;
   padding: 9px 11px;
   border: 1px solid var(--mln-border);
   border-radius: var(--mln-radius-sm);
   background: var(--mln-surface);
-  box-sizing: border-box;
   overflow: visible;
 }
 
@@ -2597,16 +2627,6 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .relation-box .meter > div {
   height: 4px !important;
   border-radius: inherit;
-}
-
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #global-recognition {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #global-recognition .relation-box:last-child {
-  grid-column: 1 / -1;
 }
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #global-recognition .relation-box {

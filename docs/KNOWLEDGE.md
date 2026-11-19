@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.9 原生 UI 模块开关（「开关」页 9 项独立控制，结构约束常开）；200/200 PASS，check_ui / game-smoke 以本节实测为准
+> 最后核对：2026-11-19 / 1.4.11 属性卡与社交卡去布局覆盖；201/201 PASS，check_ui / game-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -188,7 +188,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ## 5. 验证命令（当前链路）
 
 ```powershell
-node --test tests\*.test.js                                  # 200 项：契约 / 原生 / 自定义 / DOM
+node --test tests\*.test.js                                  # 201 项：契约 / 原生 / 自定义 / DOM
 python tests\custom_host.py                                  # 真实 DOM 宿主 58 断言（含像素取色）
 python tests\custom_viewports.py                             # 六档视口 49 断言（实测「应用背景」可点）
 python tests\custom_formats.py                               # 图片格式矩阵（自建 tests\fmt 素材）
@@ -361,7 +361,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - 修复：改成两行三列 `28px minmax(0,1fr) 64px`，`grid-template-areas: "toggle money time" / "toggle day day"`；开关跨两行，金额+时间在上，日期独占整行。280 宽日期格 233px，216 宽 169px，180 宽仍有 133px。`markStats()` 增加 `ml-src` / `ml-replaced-src` 与中文星期文本兜底，翻译改图后日期格不再丢标记。
 - 防复发：`#stats` 内容区固定 280 宽，不要再按视口加第 4 列；验收必须同时量 280/216/180 三档的 `scrollWidth/clientWidth`，只看截图会漏掉尾部裁切。
 
-## 7. 玩家自定义外观（1.4.0 → 1.4.9，1.4.8 增加第三方美化页入口策略，1.4.9 新增原生模块开关）
+## 7. 玩家自定义外观（1.4.0 → 1.4.11，1.4.8 增加第三方美化页入口策略，1.4.9 新增原生模块开关）
 
 ### 7.1 分层与数据流
 
@@ -396,7 +396,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 | 层 | 命令 | 通过标准 |
 |---|---|---|
-| 纯逻辑/契约 | `node --test tests\*.test.js` | 200/200，含版本双源一致性 |
+| 纯逻辑/契约 | `node --test tests\*.test.js` | 201/201，含版本双源一致性 |
 | 真实 DOM 宿主 | `python tests\custom_host.py` | 58/0，含「载体必须是 data: URL」与像素取色（B−R ≥ 25） |
 | 六档视口 | `python tests\custom_viewports.py` | 49/0，含「应用背景」44px 可点、面板外透出背景 |
 | 真机 | `python tests\_diag_realinject.py` / `_diag_csp.py` | 页面与舞台取色命中判据图（左红右绿） |
@@ -411,7 +411,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 6. 浮窗卡片底图：原生 `#customOverlayContent` / `#ui-dialog-body` 的 `background-attachment: fixed` 必须收回 `scroll`；手机端用 `!important` + 双 ID 对抗，且排除 ModLoader GUI 与 CE 面板（1.4.6）。
 7. 着装页服饰名：优先 `cn_name_cap` / `cn_name`，中文显示、英文保留原名，空白回落、不二次翻译；页签只保留一个 `.ml-tab-glint`，旧分段 `::after` 删除（1.4.7）。
 
-## 8. 原生 UI 模块开关（1.4.9）
+## 8. 原生 UI 模块开关（1.4.9，1.4.10/1.4.11 扩属性卡）
 
 「开关」页位于「系统」与「设置」之间，9 个键默认 `true`，关闭只撤对应模块：
 
@@ -425,7 +425,11 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 | `optMeterValue` | `data-ml-opt-meter-value` | 状态卡「当前/上限 · 百分比」 |
 | `optOptions` | `data-ml-opt-options` | 正文选项整行卡片 |
 | `optSidebar` | `data-ml-opt-sidebar` | 侧栏按钮两列卡片 |
-| `optOverlay` | `data-ml-opt-overlay` | 原生弹层外壳圆角/留白/背景 |
+| `optOverlay` | `data-ml-opt-overlay` | 原生弹层外壳圆角/留白/背景 + 属性页卡片皮肤 |
+
+**1.4.11 属性卡约束**：皮肤只改外观，不覆盖原生排版。通用 `.characteristic-box-list` 保持 DoL 原生 `flex-wrap`，属性、技能、成绩、职业页按自身 `min-width` 换行；`#sex-diagram` 单独保留左右 50% 纵排双列，`<=450px` 回 100%。社交页同理：`.relation-box-list` 保留原生 grid 列数，`#global-recognition` 保留原生 `flex-wrap`，不得统一压成单列。属性页真机探针 `tests\sexdiagram_probe.py` 扩到 5 个平铺列表，桌面 + 手机 73/0，含旧 grid 压立绘复现。
+
+**1.4.10 属性页约束**：DoL 原生 `#sex-diagram` 是左右两列 50% flex，中央 `#player-body` 绝对定位；通用 `.characteristic-box-list` 的 `grid` 不能覆盖它，否则卡片横铺压住人物。修复规则在 `maplelantern-native.css` 的 `#sex-diagram` 专用段：列表纵排、宽 50%，`<=450px` 回 100%；所有 `.characteristic-*` 皮肤规则都挂 `data-ml-opt-overlay="1"`，关闭开关即回原版卡片与布局。
 
 **gate 边界**：CSS 只 gate 纯视觉皮肤规则。结构、可见性与几何约束必须常开——`#customOverlayContainer` 的 z-index/visibility、`#ui-dialog-body#ui-dialog-body` 的视口约束、`@media (max-width:899px)` 下 `#customOverlay` 的左右归零、`#story` 侧栏抽屉；关闭外壳开关不能把弹层推出屏幕，也不能让 `#story` 的 hidden 把它吞掉。JS 侧由 `maplelantern-native.js` 的 `setModuleAttrs()` 写根属性，`markStats/markStatmeters/markRailMeters/markPassages` 按各自键跳过标记或还原文本；`clearMarks()` 同时撤掉全部根属性并还原金额。
 

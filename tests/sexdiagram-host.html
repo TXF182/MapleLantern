@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN" data-ml-native="on" data-ml-theme="cyberpunk" data-ml-opt-overlay="1">
+<head>
+<meta charset="utf-8">
+<title>Sex diagram layout probe</title>
+<style>
+:root { --300:#555b66; --600:#8a92a0; --connector-height:18px; --center-offset:48px; --end-offset:8px; }
+body { margin:0; background:#080a0e; color:#e8eef6; font-family:system-ui,sans-serif; }
+#customOverlayContent { width:100%; max-width:1180px; margin:24px auto; padding:20px; box-sizing:border-box; background:#0d1117; }
+#characteristics-display { position:relative; z-index:2; margin-top:560px; }
+#characteristics-display h4 { margin:18px 0 4px; color:#8ea4c2; font-weight:500; }
+/* 以下是 DoL 原生 style-module-characteristics 的属性页几何（逐条取自主 HTML，未改写） */
+.characteristic-box-list { display: flex; flex-wrap: wrap; }
+.characteristic-box-list .characteristic-box {
+  position: relative; display: inline-flex; flex-direction: column; align-items: center;
+  flex: 1 1 100px; min-width: 18%; margin: 0.15rem; border: 1px solid var(--300);
+  padding: 0.3rem; text-align: center;
+}
+#player-body {
+  position: absolute; width: 256px; left: calc(50% - 152px + 0.3rem);
+  display: flex; justify-content: center; pointer-events: none; z-index: 0;
+}
+#sex-diagram { display: flex; width: calc(100% - 0.3rem); padding: 0.3rem 0.15rem; }
+#sex-diagram .sex-diagram-box { display: flex; }
+#sex-diagram .characteristic-box-list { flex-flow: column nowrap; width: 50%; padding: 0; margin: 0; }
+#sex-diagram .characteristic-box-list .characteristic-box { width: 50%; margin: 0.15rem 0; }
+#sex-diagram .connector-box { position: relative; height: 100%; flex: 1; margin: 0.15rem 0; }
+#sex-diagram .connector-box > div { position: absolute; top: 0; }
+#sex-diagram .connector-box-bottom { height: var(--connector-height); border-bottom: 1px solid var(--300); }
+@media (max-width: 1200px) {
+  .characteristic-box-list .characteristic-box { min-width: 45%; }
+  #player-body { display: none; }
+  #sex-diagram .connector-box { display: none; }
+  #sex-diagram .left-column .connector-box { margin-right: 0.15rem; }
+  #sex-diagram .right-column { margin-left: 0.15rem; }
+}
+@media (max-width: 450px) {
+  #sex-diagram { display: block; }
+  #sex-diagram .characteristic-box-list { width: 100%; }
+  #sex-diagram .left-column .connector-box { margin-right: 0; }
+  #sex-diagram .right-column { margin-left: 0; }
+}
+</style>
+<link rel="stylesheet" href="../src/maplelantern-native.css">
+<style>
+/* 仅探针用：给立绘一个可见占位，避免依赖游戏贴图 */
+#player-body { background:linear-gradient(180deg,#2a3547,#10151d); border-radius:12px; height:520px; }
+#player-body::after { content:"player body"; position:absolute; inset:40% 0 auto; text-align:center; color:#8ea4c2; font-size:12px; }
+.meter { background:#222a35; }
+.meter > div { width:72%; background:linear-gradient(90deg,#b06cff,#ff6ab0); }
+</style>
+</head>
+<body>
+<div id="customOverlayContent">
+  <div id="player-body"></div>
+  <div id="sex-diagram">
+    <div class="characteristic-box-list left-column">
+      <div class="sex-diagram-box">
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">魅惑 (+50%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+      </div>
+      <div class="sex-diagram-box">
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">口部 (+55%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+      </div>
+      <div class="sex-diagram-box">
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">大腿 (+46%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+      </div>
+    </div>
+    <div class="characteristic-box-list right-column">
+      <div class="sex-diagram-box">
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">足部 (+45%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+      </div>
+      <div class="sex-diagram-box">
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">手部 (+40%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+      </div>
+      <div class="sex-diagram-box">
+        <div class="connector-box"><div class="connector-box-bottom"></div></div>
+        <div class="characteristic-box">
+          <div class="characteristic-top-line"><span class="characteristic-title">胸部 (+35%)</span><span class="characteristic-level">SSS 100%</span></div>
+          <div class="characteristic-description">♥♥♥♥♥</div>
+          <div class="meter"><div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="characteristics-display">
+    <h4>Core Characteristics</h4>
+    <div id="base-characteristics" class="characteristic-box-list" data-probe-list="base-characteristics">
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Purity 纯洁</span><span class="characteristic-level">0</span></div><div class="characteristic-description">You are beyond defiled.</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Awareness 意识</span><span class="characteristic-level">1</span></div><div class="characteristic-description">You are innocent.</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Physique 体质</span><span class="characteristic-level">2</span></div><div class="characteristic-description">Your body is soft and supple.</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Willpower 意志</span><span class="characteristic-level">3</span></div><div class="characteristic-description">You are mindful.</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Beauty 美貌</span><span class="characteristic-level">4</span></div><div class="characteristic-description">You are charming.</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Promiscuity 淫乱</span><span class="characteristic-level">5</span></div><div class="characteristic-description">The thought of sexual contact excites you.</div><div class="meter"><div></div></div></div>
+    </div>
+    <h4>Skills</h4>
+    <div id="base-skills" class="characteristic-box-list" data-probe-list="base-skills">
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Athletics 运动</span><span class="characteristic-level">A</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Dancing 舞蹈</span><span class="characteristic-level">B</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Science 科学</span><span class="characteristic-level">C</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Maths 数学</span><span class="characteristic-level">D</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">English 英语</span><span class="characteristic-level">E</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Swimming 游泳</span><span class="characteristic-level">F</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+    </div>
+    <h4>Sexual Skills</h4>
+    <div id="sex-skills" class="characteristic-box-list" data-probe-list="sex-skills">
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Oral 口部</span><span class="characteristic-level">SSS 100%</span></div><div class="characteristic-description">♥♥♥♥♥</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Hands 手部</span><span class="characteristic-level">SSS 100%</span></div><div class="characteristic-description">♥♥♥♥♥</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Thighs 大腿</span><span class="characteristic-level">SSS 100%</span></div><div class="characteristic-description">♥♥♥♥♥</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Feet 足部</span><span class="characteristic-level">SSS 100%</span></div><div class="characteristic-description">♥♥♥♥♥</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Chest 胸部</span><span class="characteristic-level">SSS 100%</span></div><div class="characteristic-description">♥♥♥♥♥</div><div class="meter"><div></div></div></div>
+    </div>
+    <h4>School Grades</h4>
+    <div id="school-grades" class="characteristic-box-list" data-probe-list="school-grades">
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Science 科学</span><span class="characteristic-level">A*</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Maths 数学</span><span class="characteristic-level">A</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">English 英语</span><span class="characteristic-level">B</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">History 历史</span><span class="characteristic-level">C</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Art 美术</span><span class="characteristic-level">D</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Music 音乐</span><span class="characteristic-level">E</span></div><div class="characteristic-description">Grade progress</div><div class="meter"><div></div></div></div>
+    </div>
+    <h4>Professional</h4>
+    <div id="prof" class="characteristic-box-list" data-probe-list="prof">
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Barbering 理发</span><span class="characteristic-level">A</span></div><div class="characteristic-description">Professional skill</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Cooking 烹饪</span><span class="characteristic-level">B</span></div><div class="characteristic-description">Professional skill</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Farming 农业</span><span class="characteristic-level">C</span></div><div class="characteristic-description">Professional skill</div><div class="meter"><div></div></div></div>
+      <div class="characteristic-box"><div class="characteristic-top-line"><span class="characteristic-title">Tailoring 裁缝</span><span class="characteristic-level">D</span></div><div class="characteristic-description">Professional skill</div><div class="meter"><div></div></div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
