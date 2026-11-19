@@ -1634,6 +1634,11 @@
     if (!overlay) { return; }
     var key = overlayKey(overlay);
     setAttr(overlay, "data-ml-overlay", key);
+    /* 灯台把 #customOverlayContainer 撑成全屏；MEE 随身衣物页需要左侧
+       #ui-bar 的衣物图标继续可点，由 CSS 按宿主容器标记只在这一页放行
+       指针事件。标记跟着当前叠层走，切页即更新，不依赖 :has()。 */
+    var host = doc.getElementById("customOverlayContainer");
+    if (host) { setAttr(host, "data-ml-overlay-host", key); }
     /* 1.4.13 实测：本版游戏的 overlayReplace 把 T.currentOverlay 写成 T.key，
        实际是 undefined，MEE 的 clothingCaptionButtonClick 会走「脱衣」而不是
        「放进随身衣物」。这里按已识别的结构把临时状态补回正确值；关闭仍由

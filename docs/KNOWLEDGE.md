@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.14 修复电脑端作弊菜单堆叠、MEE 随身衣物槽塌列与 T.currentOverlay 缺失；BasicNeeds 卡面独立、左轨可滚动；206/206 PASS，45/0 仿真，check_ui 13 PASS / 1 WARN；game-smoke 本轮未跑
+> 最后核对：2026-11-19 / 1.4.15 修复 MEE 随身衣物页左侧衣物图标被全屏容器挡住；七文件 **207/207** PASS，Edge 真实命中测试通过（修复前点容器、修复后点左侧按钮），check_ui 13 PASS / 1 WARN；game-smoke 本轮未跑
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -449,7 +449,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 
 **反向条口径**：原版 `statbarinverted` 只换配色，条宽仍是 `current/max`；`INVERTED_STAT` 只保留 `innocence`（`awareness -200` 才是无知进度），`control` / `oxygen` 不再二次反向。S7 断言自控 1000/1000→100%、氧气 45/100→45%。
 
-**验证入口**：七文件 `206/206`；`tools\host-probe.ps1` 输出 `version=1.4.14`、`cardKeys=True bgKeys=True scripts=5`；第三方仿真 `%TEMP%\lantern_adapt\fix_probe.py` 45 PASS / 0 FAIL（1280 / 798 / 390 三档，含作弊页块级断行、步进器无横向溢出、衣物槽多列、正文宽度、BasicNeeds 卡面在状态卡皮肤开/关两态下的文字与 7px 轨道、左轨滚动与视口收束）。
+**验证入口**：七文件 `207/207`；`tools\host-probe.ps1` 输出 `version=1.4.15`、`cardKeys=True bgKeys=True scripts=5`；第三方仿真 `%TEMP%\lantern_adapt\fix_probe.py` 45 PASS / 0 FAIL（1280 / 798 / 390 三档，含作弊页块级断行、步进器无横向溢出、衣物槽多列、正文宽度、BasicNeeds 卡面在状态卡皮肤开/关两态下的文字与 7px 轨道、左轨滚动与视口收束）。
 
 ## 10. 1.4.14 电脑端排版与随身衣物
 
@@ -459,3 +459,9 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - **桌面正文不再压成 72ch**：`@media (min-width:701px)` 下 `#passages .passage` 改为 `max-width:min(100%,1100px)`；手机仍 72ch。
 - **BasicNeeds 状态列表独立卡面**：`#bn-panel` 的 8 行文字与 7px 轨道只挂在 `data-ml-native="on"`，不再要求 `#statmeters` 祖先或状态卡皮肤开启；`.bn-text` 解除第三方 `nowrap/ellipsis`。关闭「原版数值优化」只回退原版六行，BasicNeeds 作为第三方仍保持卡面。
 - **证据边界**：合成宿主里 `getComputedStyle(.settingsGrid).display` 为 `block`，是该探针宿主 `#grid` 的 id 样式所致，**不能用来判断真实作弊页列数**；真实两列布局仍以游戏 `.settingsGrid` 的 `repeat(auto-fit,minmax(48.5%,1fr))` 为准。真实 `file://` + ModLoader 同时装三模组的点击级验收仍未做。
+
+## 11. 1.4.15 MEE 随身衣物左侧点击
+
+- **全屏容器截走点击**：灯台把 `#customOverlayContainer` 从右侧内容区撑成整屏（`inset:0 / width:100%`），原版 `.customOverlayContainer` 自带的 `pointer-events:all` 随之覆盖左侧 `#ui-bar`。MEE 叠层一打开，左侧衣物图标仍在渲染，但命中落在容器而不是按钮。
+- **字段与规则**：`markOverlay()` 给容器写 `data-ml-overlay-host`（值为当前 `overlayKey`）；只在 `min-width:701px` 且值为 `carriedclothes` 时，容器 `pointer-events:none`、`background:transparent`，`#customOverlay[data-ml-overlay="carriedclothes"]` 恢复 `pointer-events:auto`。不依赖 `:has()`，切页即更新标记。
+- **实测判据**：Edge 1080×900 合成宿主，修复前 `elementFromPoint(左侧衣物按钮)` 返回 `customOverlayContainer`，修复后返回按钮本身；弹层内槽位仍命中 `clothing-takeback-button-container`。全量 `207/207`，CSS `204,760 B`。

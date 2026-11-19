@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.14）
+# 灯台 · Lantern（MapleLantern 1.4.15）
+
+- **1.4.15 · 随身衣物左侧点击修复**：MEE「随身衣物」页打开后，灯台全屏 `#customOverlayContainer` 的 `pointer-events:all` 会挡住左侧 `#ui-bar` 衣物图标。现在只在该页（桌面 ≥701px）给容器加 `data-ml-overlay-host="carriedclothes"` 并放行指针事件，弹层自身恢复点击；切页撤销标记，其他弹层与手机遮罩不受影响。七文件全量 **207/207** PASS；Edge 真实命中测试通过（修复前点容器、修复后点左侧按钮）。
 
 - **1.4.14 · 电脑端排版与随身衣物**：非 CE 的 `.settingsToggleItem` 恢复块级流，BasicNeeds 膀胱/大便步进器与说明不再和 `<br>` 挤在一行；MEE 随身衣物槽恢复 `auto-fill` 多列，不再纵向塌成一列。灯台按 `#titleCarriedclothes` / `.clothing-takeback-button-container` 识别随身衣物叠层，补写 MEE 依赖的 `T.currentOverlay`，衣服可以正常“放进随身衣物”。桌面正文宽度改为 `min(100%,1100px)`，不再被压成 72ch 手机栏；`#bn-panel` 8 行改成独立卡面（文字换行与 7px 轨道都不再依赖状态卡皮肤开关）；`#mobileStats` 左轨加上下滚动，第三方追加项不再落到视口外。七文件全量 **206/206** PASS；第三方几何仿真 **45/0**。
 
@@ -80,7 +82,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.14.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.15.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

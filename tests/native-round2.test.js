@@ -181,6 +181,37 @@ test("S9 桌面版恢复非 CE 条目的块级排版，并识别随身衣物叠�
   assert.equal(w.T.currentOverlay, undefined, "离开随身衣物页后不得残留 carriedclothes");
 });
 
+test("S10 MEE 随身衣物页：全屏容器不得挡住左侧衣物图标的点击", async () => {
+  assert.match(CSS,
+    /@media \(min-width: 701px\)[\s\S]*#customOverlayContainer\[data-ml-overlay-host="carriedclothes"\][^{]*\{[^}]*pointer-events:\s*none !important/s,
+    "桌面并排侧栏时，随身衣物页的全屏容器必须放过左侧点击");
+  assert.match(CSS,
+    /@media \(min-width: 701px\)[\s\S]*#customOverlay\[data-ml-overlay="carriedclothes"\][^{]*\{[^}]*pointer-events:\s*auto !important/s,
+    "容器放行后，弹层需自己恢复接收点击");
+  assert.match(CSS,
+    /#customOverlayContainer\[data-ml-overlay-host="carriedclothes"\][^{]*\{[^}]*background:\s*transparent !important/s,
+    "随身衣物页不应把左侧衣柜盖上一层暗色遮罩");
+
+  let html = page("走廊", statmeters([card({ id: "pain", title: "Pain: 0.00", pct: 0 })])) +
+    "<div id='customOverlayContainer'><div id='customOverlay' class='customOverlay'>" +
+    "<div id='customOverlayTitle'><div id='titleCarriedclothes'></div></div>" +
+    "<div id='customOverlayContent'><div class='clothing-takeback-button-container'>" +
+    "<div class='clothing-caption-button'></div></div></div></div></div>";
+  const w = make(html);
+  w.T = {};
+  await tick(w);
+  w.MapleLanternNative.apply();
+  const host = w.document.getElementById("customOverlayContainer");
+  assert.equal(host.getAttribute("data-ml-overlay-host"), "carriedclothes");
+
+  const overlay = w.document.getElementById("customOverlay");
+  w.document.getElementById("titleCarriedclothes").remove();
+  overlay.querySelector("#customOverlayContent").innerHTML = "<div class='journal-page'>日志</div>";
+  w.MapleLanternNative.apply();
+  assert.notEqual(host.getAttribute("data-ml-overlay-host"), "carriedclothes",
+    "离开随身衣物页后容器标记必须清掉，不能继续放行点击");
+});
+
 test("O1 网格页：不搬节点、不删单元格", async () => {
   const grid = "<div class='pc-grid' style='display:grid;grid-template-columns:1fr 1fr'>" +
     "<div class='cell' id='cellA'><img class='icon' src='a.png'><a class='link-internal macro-link' data-passage='X'>选项 A</a></div>" +

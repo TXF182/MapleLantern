@@ -1142,6 +1142,16 @@ html[data-ml-native="on"] #passages .passage {
   html[data-ml-native="on"] #passages .passage {
     max-width: min(100%, 1100px);
   }
+
+  /* MEE 随身衣物：全屏容器放行左侧衣柜点击。 */
+  html[data-ml-native="on"] #customOverlayContainer[data-ml-overlay-host="carriedclothes"] {
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  html[data-ml-native="on"] #customOverlay[data-ml-overlay="carriedclothes"] {
+    pointer-events: auto !important;
+  }
 }
 
 /* 孩子详情沿用原版正文色：主题正文色只接管普通 passage 文本，
