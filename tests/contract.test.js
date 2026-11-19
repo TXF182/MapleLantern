@@ -167,7 +167,7 @@ test("三套主题动效：环境光、侧栏光带、页签淡入、环形呼�
   assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#ui-bar#ui-bar,[\s\S]*?animation:\s*none !important/s);
 });
 
-test("320/390 窄屏：5 个页签等分，不得把最后一页裁出面板", () => {
+test("320/390 窄屏：6 个页签等分，不得把最后一页裁出面板", () => {
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab\s*\{[^}]*flex:\s*1 1 0[^}]*min-width:\s*0/s);
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tabs\s*\{[^}]*gap:\s*0[^}]*padding:\s*0 6px/s);
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab-label\s*\{[^}]*font-size:\s*calc\(11px/s);

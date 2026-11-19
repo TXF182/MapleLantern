@@ -70,7 +70,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.8.mod.zip`；如果已装旧包（含 1.4.7 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.9.mod.zip`；如果已装旧包（含 1.4.8 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -197,4 +197,5 @@ $env:HOST='1'; node tools\game-smoke.js
 - 页签条在 `320px + 140% 字号` 下需要横向滚动（内容区不溢出；选中页签会自动滚入视野）。
 - 宿主视觉证据来自 Windows + Edge 隔离 profile（Dynamicest + StoneFreeHost + DoLGameUI 四包同装），未覆盖 macOS / Android。
 - 身心页仍只展示 5 项（意志 / 压力 / 创伤 / 兴奋 / 疲惫），不纳入 `pain` / `hygiene` / `oxygen`。
+
 

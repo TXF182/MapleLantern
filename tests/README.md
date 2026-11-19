@@ -6,13 +6,14 @@
 
 | 脚本 | 判据 | 期望 | 产物（可再生） |
 |---|---|---|---|
-| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM | **193 / 0** | — |
+| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM | **200 / 0** | — |
 | `tests\custom_host.py` | 真实 DOM 宿主：导入、应用、像素取色、载体必须是 `data:` | **58 / 0** | `_edge_profile_customhost\`、`shots\custom-*.png` |
 | `tests\custom_viewports.py` | 六档视口：320 / 360 / 390 / 430 / 540 / 844×390，44px 触达、滚到可点、面板外透出背景 | **49 / 0** | `_edge_profile_viewports\`、`shots\vp-*.png` |
 | `tests\custom_formats.py` | 图片格式矩阵（Edge/Chromium 实吃哪些格式） | 15 可用 / TIFF 友好拒绝 | `fmt\`（脚本自建）、`_edge_profile_fmt\` |
 
 单档调试：`$env:VP_ONLY_FIRST="1"; python tests\custom_viewports.py`。
 
+1.4.9 增补断言：新增「开关」页 9 个原生模块独立开关、6 页签集合、游戏缩放 120%/85% 与金额/状态/左轨单模块还原；全量 **200 / 0**。
 1.4.8 增补断言：第三方美化页仍插入灯台入口、默认不套原生层、设置页有「美化页启用灯台 UI」，以及未检测到第三方时开关关闭也立即套原生层；全量 **193 / 0**。
 1.4.7 增补断言：着装页优先读 ModI18N 的 `cn_name_cap / cn_name`（14 槽、空白中文名回落、中文/英文双向渲染），页签单一 `.ml-tab-glint` 按真实 offset 滑动；全量 **188 / 0**。
 
@@ -39,3 +40,4 @@
 1. **宿主页必须复刻真机 CSP**：`custom-host.html` 与真机差异最大的地方就是 CSP——不复刻就会把「被 CSP 拦」验成绿（ERR-20261117-010 / LRN-20261117-011）。
 2 **computed style 有 url ≠ 像素画出来**：可见性一律以截图取色为准，颜色判据用纯红/纯绿，不靠肉眼。
 3. **宿主页必须从工程根起服务**：脚本是 `../src/*.js`，以 `tests\` 为根会 404、探针全 false（ERR-20261118-009）。直接跑 `pwsh -NoProfile -File tools\host-probe.ps1`，它负责起服务、跑探针并收尾。
+

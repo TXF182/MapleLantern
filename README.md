@@ -93,7 +93,7 @@ Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改
 - **主题纹理层**：琥珀纸纤维、赛博霓虹网格、青瓷斜丝/釉光带、石墨碳纤/金属光带、星空星云/银河带、雾港海雾横纹、旧校舍粉笔格与木纹、纸灯宣纸纤维；面板/正文/卡片三层落点，原生顶栏、弹层、状态卡与正文同步。
 - **点击/按压反馈**：按钮、页签、分段控件、图标、开关按下时下沉提亮，面板内生成 20px→3.4 倍双层主题亮环；正文选项卡片同样有 20px→3.1 倍主题色空心环，系统减少动态或设置关闭动效时不播放。
 - **主题环境层**：九套主题各有边缘粒子与专属伪层（雾港双层雾带 + 8 颗随机相位粒子、旧校舍粉笔灰、纸灯纸纤维/朱红墨屑、星空 14 星点 + 天空层、青瓷墨涟漪等），统一 `#ml-root .ml-ambient` 固定底层，`pointer-events:none`、`contain:layout paint style`，中央正文留空；≤600px 只留 5 颗，动效关闭或系统减少动态时整层 `display:none`。粒子只动 `transform/opacity`，不开 `filter: blur()`。面板打开时环境层降到 55%（220ms），标题栏同时一次 420ms 细光扫过；关回后恢复；星空每 15s 一颗右上流星，雾港第二层雾带再叠第三团下缘远景雾。
-- **动效层**：三套主题面板 `::after` 环境光 26/31/22s 往返漂移，`::before` 发丝线 7s 呼吸；原生侧栏 28/32/24s 光带漂移，并保留原 `--mln-bar-texture` 三层纹理；页签 200ms 淡入、表盘 5.6s 呼吸；按钮/分段/卡片 hover 上浮 1–2px、active 回落。`data-motion="off"`、`data-ml-motion="off"` 与 `prefers-reduced-motion: reduce` 三路关断后动画均为 `none`，操作不受影响。320/390 窄屏 5 个页签等分，不横向裁页。动效 token、24 个 keyframes 与工具类已抽到 `src/effects.css`，组件 CSS 只保留选择器。
+- **动效层**：三套主题面板 `::after` 环境光 26/31/22s 往返漂移，`::before` 发丝线 7s 呼吸；原生侧栏 28/32/24s 光带漂移，并保留原 `--mln-bar-texture` 三层纹理；页签 200ms 淡入、表盘 5.6s 呼吸；按钮/分段/卡片 hover 上浮 1–2px、active 回落。`data-motion="off"`、`data-ml-motion="off"` 与 `prefers-reduced-motion: reduce` 三路关断后动画均为 `none`，操作不受影响。320/390 窄屏 6 个页签等分，不横向裁页。动效 token、24 个 keyframes 与工具类已抽到 `src/effects.css`，组件 CSS 只保留选择器。
 - **原生弹层不被正文控件规则接管**：`#customOverlayContainer` 实际在 `#passages` 的 PassageFooter 里；正文按钮规则排除整个弹层子树，枯木逢春/原版作弊页的紧凑 `settingsGrid` 恢复 32px 原始几何，密集按钮不再互相覆盖或出现“看得见、点不到”。
 - **原生 UI 卡片化**：顶栏金钱/时间/星期四格、七行状态数值一张大卡、正文选项整行卡片（地点图标与文字同卡，卡片间距收紧），侧栏入口与弹层统一卡片语言。
 - **星空主题**：固定深空星场铺满整页背景，星点不随长 passage 滚动拉伸；卡片/面板保留银河带与星点纹理。
@@ -107,7 +107,7 @@ Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.8.mod.zip`；如果已装旧包（含 1.4.7 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.9.mod.zip`；如果已装旧包（含 1.4.8 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面，无需重启游戏。
 
 > 把 zip 复制进 `game\` 目录不等于安装：ModLoader 从 `file://` origin 的 IndexedDB 读取模组。
@@ -131,7 +131,7 @@ pwsh -NoProfile -File tools\host-probe.ps1
 `pack.ps1` 产物在 `dist\`，并写入 `dist\SHA256.txt`。UI 包结构校验使用 `dol-ui-design` 技能内的 `check_ui_mod.py`。
 `host-probe.ps1` 从工程根起 HTTP 服务跑 `tests\custom-host.html`，断言四个全局装配、版本双源与卡片默认键（服务根写错会全 false，见 `.learnings\ERRORS.md#ERR-20261118-009`）。发布流程与便携版 git 的调用方式见 `C:\Users\27352\Doubao\skills\dol-lantern\SKILL.md`。
 
-1.4.8 产物（当前）：`dist\MapleLantern-1.4.8.mod.zip`，**162,616 B / 14 条目 / SHA256 `f4a286ebc33909c70215a998a65dbd9f27832309762888b2b912f369f2c909eb`**。
+1.4.8 产物（当前）：`dist\MapleLantern-1.4.9.mod.zip`，**162,616 B / 14 条目 / SHA256 `f4a286ebc33909c70215a998a65dbd9f27832309762888b2b912f369f2c909eb`**。
 
 历史产物：
 
@@ -148,3 +148,4 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 - 当前几何基线、缩放判据、O0O 共存结论、错误台账：`docs/KNOWLEDGE.md`
 - 历史设计稿 / 验证报告：`docs/archive/`（只作追溯，不代表当前行为）
+
