@@ -5,9 +5,9 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.3.8");
+  assert.equal(C.VERSION, "1.4.9");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
-  assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "settings"]);
+  assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "switches", "settings"]);
   assert.equal(C.THEMES.length, 9);
   assert.ok(C.THEMES.includes("cyberpunk"));
   assert.ok(C.THEMES.includes("star"));
@@ -54,6 +54,12 @@ test("第三方美化页：默认不套原生层，开关只接受布尔值", ()
   assert.equal(C.sanitizeSettings({ thirdPartyNative: true }).value.thirdPartyNative, true);
   const bad = C.sanitizeSettings({ thirdPartyNative: "yes" });
   assert.equal(bad.value.thirdPartyNative, false, "非布尔值不能被当真值");
+  for (const key of ["optStats", "optMoney", "optRailSkin", "optRailPct", "optMeterSkin",
+    "optMeterValue", "optOptions", "optSidebar", "optOverlay"]) {
+    assert.equal(C.DEFAULTS[key], true, key + " 默认必须开启，升级不能改变现有外观");
+    assert.equal(C.sanitizeSettings({ [key]: false }).value[key], false);
+    assert.equal(C.sanitizeSettings({ [key]: "yes" }).value[key], true, key + " 非布尔值必须回默认");
+  }
   assert.equal(bad.repaired, true, "非布尔值必须让 repaired 可见");
 });
 
@@ -251,7 +257,7 @@ test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不�
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.3.8");
+  assert.equal(d.version, "1.4.9");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);

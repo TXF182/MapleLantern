@@ -476,8 +476,11 @@
   left: var(--ml-left-safe, 16px);
   bottom: 92px;
   width: 380px;
+  max-width: calc(var(--ml-vw, 100vw) - 32px);
   height: min(70vh, 620px);
+  height: min(620px, calc(var(--ml-vh, 100vh) * .7));
   max-height: min(70vh, 620px);
+  max-height: min(620px, calc(var(--ml-vh, 100vh) * .7));
   display: flex;
   flex-direction: column;
   pointer-events: auto;
@@ -1091,6 +1094,31 @@
   border-bottom: 1px solid var(--ml-line);
 }
 #ml-root .ml-field:first-child { padding-top: 2px; }
+/* 原生模块开关：标签与开关同一行，说明压在标签下方，9 项一屏尽量放下。 */
+#ml-root .ml-field--opt {
+  flex-direction: row;
+  align-items: center;
+  gap: 2px 10px;
+  padding: 9px 0;
+}
+#ml-root .ml-field--opt .ml-field-k {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+#ml-root .ml-field--opt .ml-field-label {
+  color: var(--ml-text);
+  font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  letter-spacing: 0;
+}
+#ml-root .ml-field--opt .ml-note {
+  margin: 0;
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  line-height: 1.4;
+}
+#ml-root .ml-field--opt .ml-switch-wrap { flex: 0 0 auto; }
 #ml-root .ml-field-k { font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-muted); letter-spacing: .1em; }
 #ml-root .ml-seg { display: flex; flex-wrap: wrap; gap: 6px; }
 #ml-root .ml-seg--themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -1199,9 +1227,11 @@
   top: auto;
   bottom: 0;
   width: auto;
+  max-width: none;
   height: auto;
   max-height: 84vh;
   max-height: 84dvh;
+  max-height: calc(var(--ml-vh, 100vh) * .84);
   border-radius: 18px 18px 0 0;
   border-bottom: 0;
   transform: translateY(100%);
@@ -1217,7 +1247,9 @@
     left: 50%;
     right: auto;
     width: min(560px, calc(100vw - 16px));
+    width: min(560px, calc(var(--ml-vw, 100vw) - 16px));
     max-height: 92dvh;
+    max-height: calc(var(--ml-vh, 100vh) * .92);
     transform: translate(-50%, 100%);
   }
   #ml-root[data-sheet="1"] .ml-panel[data-open="1"] {

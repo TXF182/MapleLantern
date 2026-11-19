@@ -89,6 +89,22 @@ test("缩放 85%：--ml-caption-top 按元素本地像素归一化，不写视�
   );
 });
 
+test("game zoom 发布本地视口变量，供 120% 以上收住弹层宽高", async () => {
+  const { w } = createEnv({ width: 390, height: 844 });
+  await tick(w);
+  const img = w.document.createElement("div");
+  img.id = "img";
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 844 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 1012.8, height: 1012.8, width: 468 });
+  w.document.body.appendChild(img);
+  w.document.body.style.zoom = "1.2";
+  w.MapleLanternNative.refresh();
+  await tick(w, 50);
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-vw"), "325px");
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-vh"), "703px");
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-zoom"), "1.2");
+});
+
 test("body zoom 变化会触发一次重算，不必等下一次 passage", async () => {
   const { w } = createEnv();
   await tick(w);
@@ -416,6 +432,57 @@ test("原生卡片关→开：选项弹层不关闭，入口不丢，页签容�
   tabs.querySelector("button").addEventListener("click", () => tabToggle.toggle());
   tabs.querySelector("button").click();
   assert.equal(tabToggle.on, true, "页签按钮仍能调用原版 T.tab.toggle()");
+});
+
+test("原生模块开关：关闭单项只撤该模块，其他模块保持", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false, native: true } });
+  await tick(w);
+  const doc = w.document;
+  const root = doc.documentElement;
+  const allOn = ["stats", "money", "rail-skin", "rail-pct", "meter-skin",
+    "meter-value", "options", "sidebar", "overlay"];
+  for (const key of allOn) {
+    assert.equal(root.getAttribute("data-ml-opt-" + key), "1", key + " 默认必须开启");
+  }
+
+  const money = doc.querySelector("#stats .true");
+  money.textContent = "£1,234";
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(money.textContent, "£1,234.00", "金额两位小数默认生效");
+  assert.ok(doc.querySelector("#statmeters #paincaption").getAttribute("data-ml-readout"), "状态数值默认可读");
+  assert.ok(doc.querySelector("#mobileStats .stat.green").getAttribute("data-ml-rail-pct"), "左轨百分比默认可读");
+  assert.equal(doc.querySelector("#passages a.link-internal.macro-link").getAttribute("data-ml-option"), "1");
+
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify({
+    v: 1, lang: "zh", motion: false, native: true,
+    optMoney: false, optRailPct: false, optMeterValue: false,
+    optOptions: false, optSidebar: false, optOverlay: false
+  }));
+  w.MapleLanternNative.refresh();
+  await tick(w);
+
+  for (const key of ["money", "rail-pct", "meter-value", "options", "sidebar", "overlay"]) {
+    assert.equal(root.getAttribute("data-ml-opt-" + key), null, key + " 必须撤掉根属性");
+  }
+  for (const key of ["stats", "rail-skin", "meter-skin"]) {
+    assert.equal(root.getAttribute("data-ml-opt-" + key), "1", key + " 不能被别的开关误关");
+  }
+  assert.equal(money.textContent, "£1,234", "关闭金额开关只还原金额文本");
+  assert.equal(doc.querySelector("#statmeters #paincaption").getAttribute("data-ml-readout"), null);
+  assert.equal(doc.querySelector("#mobileStats .stat.green").getAttribute("data-ml-rail-pct"), null);
+  assert.equal(doc.querySelector("#mobileStats .stat.green").style.getPropertyValue("--ml-rail-pct"), "");
+  assert.equal(doc.querySelector("#passages a.link-internal.macro-link").getAttribute("data-ml-option"), null);
+  assert.equal(doc.querySelectorAll("#passages .ml-option-group").length, 0, "关闭选项卡片必须把分组拆回正文");
+
+  w.localStorage.setItem("MapleLantern.settings.v1", JSON.stringify({ v: 1, lang: "zh", motion: false, native: true }));
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  for (const key of allOn) {
+    assert.equal(root.getAttribute("data-ml-opt-" + key), "1", key + " 重新开启必须恢复");
+  }
+  assert.equal(money.textContent, "£1,234.00", "重新开启金额开关恢复两位小数");
+  assert.equal(doc.querySelector("#passages a.link-internal.macro-link").getAttribute("data-ml-option"), "1");
 });
 
 test("解析失败：条目保留、卡片标记仍在、不写假数值", async () => {

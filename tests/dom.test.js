@@ -37,6 +37,70 @@ test("打开：transform-origin 从球心换算；量不到尺寸时回退百分
   assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "592px");
 });
 
+test("游戏缩放 120%：悬浮球按本地视口落位，不越出屏幕（动效开启）", async () => {
+  const { w } = createEnv({ width: 390, height: 844, seed: { v: 1, lang: "zh", motion: true } });
+  /* 实机 DoL 用 #img 的视觉高度/布局高度求缩放；jsdom 不认 inline zoom，用同一判据模拟。 */
+  const img = w.document.createElement("div");
+  img.id = "img";
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 844 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 1012.8, height: 1012.8, width: 468 });
+  w.document.body.appendChild(img);
+  const orb = w.document.getElementById("ml-orb");
+  w.document.body.style.zoom = "1.2";
+  w.dispatchEvent(new w.Event("resize"));
+  await new Promise((r) => w.setTimeout(r, 180));
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-vw"), "325px");
+  assert.equal(w.document.documentElement.style.getPropertyValue("--ml-vh"), "703px");
+  assert.equal(orb.style.left, "257px", "390 / 1.2 - 56 - 12");
+  assert.ok(parseFloat(orb.style.left) + 56 <= 325, "球右缘必须在本地视口内");
+});
+
+test("游戏缩放 85%：拖拽位移按本地坐标换算，跟手不缩水", async () => {
+  const { w } = createEnv({ width: 390, height: 844, seed: { v: 1, lang: "zh", motion: false } });
+  const img = w.document.createElement("div");
+  img.id = "img";
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 844 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 717.4, height: 717.4, width: 331.5 });
+  w.document.body.appendChild(img);
+  w.dispatchEvent(new w.Event("resize"));
+  await new Promise((r) => w.setTimeout(r, 180));
+  const orb = w.document.getElementById("ml-orb");
+  const root = w.document.getElementById("ml-root");
+  const left0 = parseFloat(orb.style.left);
+  const top0 = parseFloat(orb.style.top);
+  const cx = (left0 + 28) * 0.85;
+  const cy = (top0 + 28) * 0.85;
+  orb.dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, clientX: cx, clientY: cy, button: 0 }));
+  orb.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: cx - 85, clientY: cy }));
+  assert.equal(root.getAttribute("data-dragging"), "1");
+  assert.match(orb.style.transform, /translate3d\(-100px,0px,0\) scale\(1\.04\)/,
+    "视觉位移 85px 在 85% 缩放里等于本地 100px，不能直接当 85px");
+  assert.equal(orb.style.left, left0 + "px", "拖动中不得写 left");
+});
+
+test("游戏缩放 85%：面板原点先把球的视觉 rect 归一回本地坐标", () => {
+  const { w } = createEnv({ width: 390, height: 844, seed: { v: 1, lang: "zh", motion: false } });
+  const img = w.document.createElement("div");
+  img.id = "img";
+  Object.defineProperty(img, "offsetHeight", { configurable: true, value: 844 });
+  img.getBoundingClientRect = () => ({ top: 0, bottom: 717.4, height: 717.4, width: 331.5 });
+  w.document.body.appendChild(img);
+  const panel = w.document.getElementById("ml-panel");
+  const orb = w.document.getElementById("ml-orb");
+  Object.defineProperties(panel, {
+    offsetLeft: { configurable: true, value: 100 },
+    offsetTop: { configurable: true, value: 100 },
+    offsetWidth: { configurable: true, value: 380 },
+    offsetHeight: { configurable: true, value: 700 }
+  });
+  /* 球本地 340,680 / 56；85% 下视觉 rect 是 289,578 / 47.6 */
+  orb.getBoundingClientRect = () => ({ left: 289, top: 578, width: 47.6, height: 47.6, right: 336.6, bottom: 625.6 });
+  w.document.body.style.zoom = "0.85";
+  w.MapleLantern.open();
+  assert.equal(panel.style.getPropertyValue("--ml-origin-x"), "268px");
+  assert.equal(panel.style.getPropertyValue("--ml-origin-y"), "608px");
+});
+
 test("凝光：鼠标在面板内移动才点亮，坐标写成百分比变量", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
   const panel = w.document.getElementById("ml-panel");
@@ -209,7 +273,7 @@ test("页签：点击与键盘左右键都能切换，内容随之重绘", () =>
   const { w } = createEnv();
   w.MapleLantern.open();
   const tabs = w.document.querySelectorAll("#ml-panel [role=tab]");
-  assert.equal(tabs.length, 5);
+  assert.equal(tabs.length, 6);
 
   w.document.querySelector('[data-tab="vitals"]').click();
   assert.equal(pane(w).getAttribute("aria-labelledby"), "ml-tab-vitals");
@@ -518,4 +582,29 @@ test("按压：pointerdown 在按钮上生成短涟漪并临时标记按压态",
   assert.equal(btn.classList.contains("ml-is-pressed"), true);
   assert.equal(btn.querySelectorAll(".ml-press-ring").length, 1);
   assert.equal(btn.querySelector(".ml-press-ring").getAttribute("style").includes("left: 30px"), true);
+});
+
+test("「开关」页：9 个原生模块独立开关，点一项只撤对应根属性", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const money = w.document.querySelector("#stats .true");
+  money.textContent = "£1,234";
+  w.MapleLanternNative.refresh();
+  await new Promise((r) => w.setTimeout(r, 30));
+  assert.equal(money.textContent, "£1,234.00");
+
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="switches"]').click();
+  assert.equal(w.document.querySelector('[data-tab="switches"] .ml-tab-label').textContent, "开关");
+  assert.equal(w.document.querySelectorAll("#ml-panel .ml-field--opt").length, 9);
+
+  const row = w.document.querySelector('[data-opt-key="optMoney"] .ml-switch');
+  row.click();
+  await new Promise((r) => w.setTimeout(r, 30));
+  const root = w.document.documentElement;
+  assert.equal(root.getAttribute("data-ml-opt-money"), null);
+  assert.equal(root.getAttribute("data-ml-opt-stats"), "1", "只关金额，不能把顶部四格一起关掉");
+  assert.equal(row.getAttribute("aria-checked"), "false");
+  assert.equal(money.textContent, "£1,234");
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(saved.optMoney, false);
 });

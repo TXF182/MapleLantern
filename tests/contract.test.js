@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.8");
+  assert.equal(boot.version, "1.4.9");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -838,6 +838,21 @@ test("effects.css：组件引用的 keyframes/token 全部有定义，且原生 
   const nativeLink = html.indexOf("../src/maplelantern-native.css");
   const fxLink = html.indexOf("../src/effects.css");
   assert.ok(nativeLink > 0 && fxLink > nativeLink, "原生 CSS 必须先于 effects.css 加载");
+});
+
+test("游戏缩放：原生全屏与面板宽高都消费本地视口变量", () => {
+  assert.match(nativeCss, /#customOverlayContainer \{[\s\S]{0,400}width:\s*var\(--ml-vw,\s*100vw\)\s*!important/s,
+    "小于 100% 时本地视口比 100vw 大，容器必须直接用 --ml-vw 才能铺满");
+  assert.match(nativeCss, /#customOverlayContainer \{[\s\S]{0,450}height:\s*var\(--ml-vh,\s*100vh\)\s*!important/s,
+    "容器高度同理，不能只用 100dvh");
+  assert.ok(nativeCss.includes("calc(var(--ml-vw, 100vw) - 48px)"),
+    "原生弹层宽度必须按本地视口收口");
+  assert.match(css, /#ml-root \.ml-panel \{[\s\S]{0,260}max-width:\s*calc\(var\(--ml-vw,\s*100vw\) - 32px\)/s,
+    "浮动面板在 120% 以上必须收住宽度");
+  assert.match(css, /#ml-root \.ml-panel \{[\s\S]{0,300}height:\s*min\(620px,\s*calc\(var\(--ml-vh,\s*100vh\) \* \.7\)\)/s,
+    "面板高度按本地视口取 70%，低缩放档不会只剩半屏");
+  assert.match(css, /#ml-root\[data-sheet="1"\] \.ml-panel \{[\s\S]{0,220}max-height:\s*calc\(var\(--ml-vh,\s*100vh\) \* \.84\)/s,
+    "手机抽屉按本地视口取 84%");
 });
 
 test("流体动效：球心原点 / 回弹令牌 / 凝光层 / 后台暂停 / 速度自适应都在链上", () => {

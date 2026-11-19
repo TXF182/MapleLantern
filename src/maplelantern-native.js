@@ -60,6 +60,26 @@
     return result.value;
   }
 
+  /* 9 个原生模块开关统一写在根节点：CSS 以 html[data-ml-native="on"]
+     + 对应 data-ml-opt-* 为前导，关掉一个模块不会波及其它模块。 */
+  var OPT_ATTRS = {
+    optStats: "data-ml-opt-stats", optMoney: "data-ml-opt-money",
+    optRailSkin: "data-ml-opt-rail-skin", optRailPct: "data-ml-opt-rail-pct",
+    optMeterSkin: "data-ml-opt-meter-skin", optMeterValue: "data-ml-opt-meter-value",
+    optOptions: "data-ml-opt-options", optSidebar: "data-ml-opt-sidebar",
+    optOverlay: "data-ml-opt-overlay"
+  };
+
+  function setModuleAttrs(settings) {
+    var root = doc.documentElement;
+    if (!root) { return; }
+    var keys = Object.keys(OPT_ATTRS);
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      setAttr(root, OPT_ATTRS[key], settings && settings[key] !== false ? "1" : null);
+    }
+  }
+
   function hostEnabled() {
     try {
       var ui = window.DoLGameUI && window.DoLGameUI.ui;
@@ -144,7 +164,15 @@
         var money = node.querySelector(".true .true") || node.querySelector(".true");
         if (money) {
           var amount = (money.textContent || "").trim();
-          if (/^£[0-9,]+$/.test(amount)) { money.textContent = amount + ".00"; }
+          var base = amount.replace(/\.00$/, "");
+          /* 金额两位小数是独立开关：关闭时只还原金额文本，不牵动四格布局。 */
+          if (state.settings.optMoney === false) {
+            if (base !== amount) { money.textContent = base; }
+            setAttr(money, "data-ml-money-base", null);
+          } else if (/^£[0-9,]+$/.test(base)) {
+            setAttr(money, "data-ml-money-base", base);
+            money.textContent = base + ".00";
+          }
         }
       }
     }
@@ -267,6 +295,16 @@
       var max = readStatMax(key);
       setAttr(card, "data-ml-stat-card", "1");
       setAttr(card, "data-ml-stat-key", key);
+      /* 数值开关只控制右侧「当前/上限 · 百分比」与 data-ml-readout；
+         关闭时清掉这五个属性，卡片的颜色/发光/圆角仍由外观开关决定。 */
+      if (state.settings.optMeterValue === false) {
+        setAttr(card, "data-ml-value", null);
+        setAttr(card, "data-ml-current", null);
+        setAttr(card, "data-ml-percent", null);
+        setAttr(card, "data-ml-total", null);
+        setAttr(card, "data-ml-readout", null);
+        continue;
+      }
       var current = "";
       var readout = "";
       var display = "";
@@ -320,6 +358,16 @@
       if (!isFinite(value)) { value = 0; }
       var max = readStatMax(key) || STAT_MAX[key] || 0;
       var pct = max ? Math.max(0, Math.min(100, Math.round(value / max * 100))) : 0;
+      /* 百分比条是独立开关：关闭时只清掉小条数据，左轨胶囊/色条/描边保持。 */
+      if (state.settings.optRailPct === false) {
+        setAttr(node, "data-ml-rail-key", null);
+        setAttr(node, "data-ml-rail-pct", null);
+        if (node.style.getPropertyValue("--ml-rail-pct")) {
+          node.style.removeProperty("--ml-rail-pct");
+          state.perf.writes++;
+        }
+        continue;
+      }
       setAttr(node, "data-ml-rail-key", key);
       setAttr(node, "data-ml-rail-pct", pct);
       var css = pct + "%";
@@ -1028,6 +1076,9 @@
     if (vw <= 899) {
       imp(overlay, "width", "calc(100vw - 16px)");
       imp(overlay, "max-width", "calc(100vw - 16px)");
+      /* 再叠一层本地视口上限：小于 100% 时本地视口比 100vw 大，大于 100% 时更小。 */
+      imp(overlay, "width", "calc(var(--ml-vw, 100vw) - 16px)");
+      imp(overlay, "max-width", "calc(var(--ml-vw, 100vw) - 16px)");
       imp(overlay, "box-sizing", "border-box");
       imp(overlay, "overflow-x", "hidden");
       imp(content, "width", "auto");
@@ -1295,12 +1346,28 @@
     return links + ":" + icons + ":" + groups;
   }
 
-  function markPassages() {    var passages = doc.getElementById("passages");
+  function markPassages() {
+    var passages = doc.getElementById("passages");
     if (!passages) { return; }
-    /* 只标记，不替换链接；CSS 依据 .macro-link 区分正文选项与行内链接。 */
-    var links = passages.querySelectorAll("a.link-internal.macro-link");
+    var optionOn = state.settings.optOptions !== false;
+    /* 只标记，不替换链接；CSS 依据 [data-ml-option] 区分正文选项与行内链接。
+       商店分类链接不在此列，避免关掉「正文选项卡片」时误伤商店导航。 */
+    var links = passages.querySelectorAll("a.link-internal.macro-link, a.macro-link");
     for (var i = 0; i < links.length; i++) {
-      setAttr(links[i], "data-ml-option", "1");
+      var link = links[i];
+      var shop = link.closest && link.closest("#clothingShop-div, .ml-shop-cat");
+      setAttr(link, "data-ml-option", optionOn && !shop ? "1" : null);
+    }
+    if (!optionOn) {
+      /* 结构型开关关闭：把已经搬进 .ml-option-group 的节点放回正文，
+         否则只停 CSS 会留下被重排过的 DOM。 */
+      unpackOptions();
+      state.packStable = false;
+      markShopCats(passages);
+      markShopTools(passages);
+      tidyShopText(passages);
+      markEmptyDetails(passages);
+      return;
     }
     tidySeparators(passages);
     markShopCats(passages);
@@ -1606,12 +1673,30 @@
     }
   }
 
+  /* 侧栏字号是「侧栏按钮卡片」模块的副作用：关闭该模块时必须还原，
+     不能靠整层 clearMarks 才恢复，否则开关切换要先退回原生层再回来。 */
+  function restoreSidebarLabels() {
+    var labels = doc.querySelectorAll("[data-ml-label]");
+    for (var k = 0; k < labels.length; k++) {
+      labels[k].removeAttribute("data-ml-label");
+      if (labels[k].getAttribute("data-ml-label-size")) { labels[k].style.fontSize = labels[k].getAttribute("data-ml-label-size"); }
+      else { labels[k].style.removeProperty("font-size"); }
+      if (labels[k].getAttribute("data-ml-label-spacing")) { labels[k].style.letterSpacing = labels[k].getAttribute("data-ml-label-spacing"); }
+      else { labels[k].style.removeProperty("letter-spacing"); }
+      labels[k].removeAttribute("data-ml-label-size");
+      labels[k].removeAttribute("data-ml-label-spacing");
+    }
+  }
+
   function clearMarks() {
     restoreFeatsIntro();
     unpackOptions();
+    setModuleAttrs(null);
     doc.documentElement.style.removeProperty("--ml-caption-top");
-    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay], [data-ml-save-empty], [data-ml-thirdparty]");
+    var marked = doc.querySelectorAll("[data-ml-chip], [data-ml-stat-card], [data-ml-option], [data-ml-statmeters], [data-ml-dialog], [data-ml-overlay], [data-ml-save-empty], [data-ml-thirdparty], [data-ml-money-base]");
     for (var i = 0; i < marked.length; i++) {
+      var baseMoney = marked[i].getAttribute("data-ml-money-base");
+      if (baseMoney) { marked[i].textContent = baseMoney; }
       marked[i].removeAttribute("data-ml-chip");
       marked[i].removeAttribute("data-ml-stat-card");
       marked[i].removeAttribute("data-ml-stat-key");
@@ -1626,6 +1711,7 @@
       marked[i].removeAttribute("data-ml-overlay");
       marked[i].removeAttribute("data-ml-thirdparty");
       marked[i].removeAttribute("data-ml-save-empty");
+      marked[i].removeAttribute("data-ml-money-base");
     }
     var railStats = doc.querySelectorAll("#mobileStats .stat");
     for (var r = 0; r < railStats.length; r++) {
@@ -1633,21 +1719,25 @@
       railStats[r].removeAttribute("data-ml-rail-pct");
       railStats[r].style.removeProperty("--ml-rail-pct");
     }
-    var labels = doc.querySelectorAll("[data-ml-label]");
-    for (var k = 0; k < labels.length; k++) {
-      labels[k].removeAttribute("data-ml-label");
-      if (labels[k].getAttribute("data-ml-label-size")) { labels[k].style.fontSize = labels[k].getAttribute("data-ml-label-size"); }
-      else { labels[k].style.removeProperty("font-size"); }
-      if (labels[k].getAttribute("data-ml-label-spacing")) { labels[k].style.letterSpacing = labels[k].getAttribute("data-ml-label-spacing"); }
-      else { labels[k].style.removeProperty("letter-spacing"); }
-      labels[k].removeAttribute("data-ml-label-size");
-      labels[k].removeAttribute("data-ml-label-spacing");
-    }
+    restoreSidebarLabels();
+  }
+
+  /* 把 body zoom 后的「本地视口」写进根节点，供原生弹层 / 自定义面板
+     在 120% 以上收住 width/height，避免 100vw 被二次放大后溢出。 */
+  function publishViewport() {
+    var root = doc.documentElement;
+    if (!root) { return; }
+    var vp = C.viewportSize(doc);
+    state.zoom = vp.zoom;
+    root.style.setProperty("--ml-vw", Math.round(vp.width) + "px");
+    root.style.setProperty("--ml-vh", Math.round(vp.height) + "px");
+    root.style.setProperty("--ml-zoom", String(vp.zoom));
   }
 
   function apply() {
     if (state.disposed || !state.mounted) { return; }
     state.perf.applies++;
+    publishViewport();
     state.settings = readSettings();
     state.lang = C.pickLang(state.settings.lang, navigator.language || "zh");
     state.host = hostEnabled();
@@ -1668,6 +1758,7 @@
     if (state.nativeOn !== effective) { state.ceDirty = true; state.ceReady = false; }
     state.nativeOn = effective;
     setRoot(effective);
+    setModuleAttrs(effective ? state.settings : null);
     syncSidebar();
     if (!effective) {
       clearMarks();
@@ -1678,7 +1769,7 @@
       markEntry();
       return;
     }
-    liftOverlay();
+    if (state.settings.optOverlay === false) { restoreOverlay(); } else { liftOverlay(); }
     markCaptionAnchor();
     markStats();
     markStatmeters();
@@ -1686,7 +1777,7 @@
     markPassages();
     markOverlay();
     markSaveRows();
-    fitSidebarLabels();
+    if (state.settings.optSidebar === false) { restoreSidebarLabels(); } else { fitSidebarLabels(); }
     markDialog();
     normalizeCheatLayout();
     watchOverlay();

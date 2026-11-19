@@ -12,9 +12,9 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.3.8";
+  var VERSION = "1.4.9";
   var STORAGE_KEY = "MapleLantern.settings.v1";
-  var TAB_KEYS = ["now", "vitals", "worn", "system", "settings"];
+  var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
   var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
@@ -83,7 +83,7 @@
       "app.name": "灯台", "app.sub": "LANTERN", "app.readonly": "只读 · 不写入存档",
       "orb.label": "灯台：{date} {clock}，点击打开",
       "tab.now": "此刻", "tab.vitals": "身心", "tab.worn": "着装",
-      "tab.system": "系统", "tab.settings": "设置",
+      "tab.system": "系统", "tab.switches": "开关", "tab.settings": "设置",
       "now.progress": "今日已过", "now.money": "金钱", "now.scene": "场景", "now.phase": "时段",
       "now.quick": "身心速览",
       "bridge.title": "联动",
@@ -124,6 +124,16 @@
       "settings.thirdPartyNativeHint": "只有检测到第三方美化页时才让位；普通页面仍按「原生卡片」开关立即生效。打开后才会把灯台卡片套到美化页",
       "settings.glassHint": "0 更沉稳 / 100 更通透；只改表面与模糊，不改文字和按钮",
       "settings.motionHint": "关闭后不播任何过渡与动画，操作仍完整",
+      "switches.note": "逐项控制原生 UI 优化。关掉某一项，只让该模块恢复原版显示，其他模块继续使用灯台样式。",
+      "opt.stats": "顶部四格", "opt.statsHint": "金钱、时间、日期、开关四格卡片化；关闭回原版横排",
+      "opt.money": "金额两位小数", "opt.moneyHint": "整数金额补 .00；关闭恢复原金额",
+      "opt.railSkin": "手机左轨外观", "opt.railSkinHint": "胶囊、色条、描边；关闭回原版圆点/字母",
+      "opt.railPct": "手机左轨百分比", "opt.railPctHint": "七项下方补当前值小条；关闭去掉小条",
+      "opt.meterSkin": "状态大卡外观", "opt.meterSkinHint": "七行收进一张大卡，带颜色、发光、圆角；关闭回原版细条",
+      "opt.meterValue": "状态卡数值", "opt.meterValueHint": "右侧「当前/上限 · 百分比」；关闭只留标签和条",
+      "opt.options": "正文选项卡片", "opt.optionsHint": "整行卡片、图标分组与按压反馈；关闭回原版文字链接",
+      "opt.sidebar": "侧栏按钮卡片", "opt.sidebarHint": "两列卡片与紧凑字号；关闭回原版纵向按钮",
+      "opt.overlay": "原生弹层外壳", "opt.overlayHint": "圆角、留白、滚动与关闭按钮；关闭回原版弹层外壳",
       "native.entry": "灯台",
       "native.entryHint": "打开灯台面板",
       "shop.filters": "筛选", "shop.options": "选项", "shop.legend": "图例",
@@ -143,7 +153,7 @@
       "app.name": "Lantern", "app.sub": "MAPLELANTERN", "app.readonly": "Read-only · never writes saves",
       "orb.label": "Lantern: {date} {clock}, click to open",
       "tab.now": "Now", "tab.vitals": "Vitals", "tab.worn": "Worn",
-      "tab.system": "System", "tab.settings": "Settings",
+      "tab.system": "System", "tab.switches": "Switches", "tab.settings": "Settings",
       "now.progress": "Day elapsed", "now.money": "Money", "now.scene": "Scene", "now.phase": "Phase",
       "now.quick": "Vitals",
       "bridge.title": "Links",
@@ -184,6 +194,16 @@
       "settings.thirdPartyNativeHint": "Only steps aside when a third-party beauty page is detected; normal pages still follow the Native cards switch immediately. Turn on to apply Lantern cards there",
       "settings.glassHint": "0 calmer / 100 clearer; surface and blur only, text and buttons unchanged",
       "settings.motionHint": "When off, no transitions play; every action still works",
+      "switches.note": "Control each native-UI upgrade independently. Turning one off restores only that module; the rest keep the Lantern look.",
+      "opt.stats": "Top four cards", "opt.statsHint": "Money, time, date and toggle as four cards; off restores the original row",
+      "opt.money": "Two-decimal money", "opt.moneyHint": "Whole amounts get .00; off keeps the original amount",
+      "opt.railSkin": "Mobile rail skin", "opt.railSkinHint": "Pills, color bars and outlines; off restores dots/letters",
+      "opt.railPct": "Mobile rail percent", "opt.railPctHint": "A value bar under each of the seven stats; off removes it",
+      "opt.meterSkin": "Status card skin", "opt.meterSkinHint": "Seven rows in one card with color, glow and radius; off restores thin bars",
+      "opt.meterValue": "Status values", "opt.meterValueHint": "Current/max · percent on the right; off leaves label and bar only",
+      "opt.options": "Passage option cards", "opt.optionsHint": "Full-row cards, icon grouping and press feedback; off restores text links",
+      "opt.sidebar": "Sidebar button cards", "opt.sidebarHint": "Two-column cards and compact labels; off restores vertical buttons",
+      "opt.overlay": "Overlay shell", "opt.overlayHint": "Radius, padding, scrolling and close button; off restores the original shell",
       "native.entry": "Lantern",
       "native.entryHint": "Open the Lantern panel",
       "shop.filters": "Filters", "shop.options": "Options", "shop.legend": "Legend",
@@ -232,7 +252,16 @@
     seen: false,
     native: true,
     panel: false,
-    thirdPartyNative: false
+    thirdPartyNative: false,
+    optStats: true,
+    optMoney: true,
+    optRailSkin: true,
+    optRailPct: true,
+    optMeterSkin: true,
+    optMeterValue: true,
+    optOptions: true,
+    optSidebar: true,
+    optOverlay: true
   });
 
   function isObj(x) { return !!x && typeof x === "object"; }
@@ -249,7 +278,12 @@
       motion: DEFAULTS.motion, lang: DEFAULTS.lang, tab: DEFAULTS.tab,
       side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen,
       native: DEFAULTS.native, panel: DEFAULTS.panel,
-      thirdPartyNative: DEFAULTS.thirdPartyNative
+      thirdPartyNative: DEFAULTS.thirdPartyNative,
+      optStats: DEFAULTS.optStats, optMoney: DEFAULTS.optMoney,
+      optRailSkin: DEFAULTS.optRailSkin, optRailPct: DEFAULTS.optRailPct,
+      optMeterSkin: DEFAULTS.optMeterSkin, optMeterValue: DEFAULTS.optMeterValue,
+      optOptions: DEFAULTS.optOptions, optSidebar: DEFAULTS.optSidebar,
+      optOverlay: DEFAULTS.optOverlay
     };
     var repaired = false;
     if (!isObj(raw)) { return { value: out, repaired: true, migrated: false, empty: true }; }
@@ -308,6 +342,15 @@
     if (raw.thirdPartyNative !== undefined) {
       out.thirdPartyNative = raw.thirdPartyNative === true;
       if (typeof raw.thirdPartyNative !== "boolean") { repaired = true; }
+    }
+    var optKeys = ["optStats", "optMoney", "optRailSkin", "optRailPct",
+      "optMeterSkin", "optMeterValue", "optOptions", "optSidebar", "optOverlay"];
+    for (var i = 0; i < optKeys.length; i++) {
+      var optKey = optKeys[i];
+      if (raw[optKey] !== undefined) {
+        out[optKey] = raw[optKey] !== false;
+        if (typeof raw[optKey] !== "boolean") { repaired = true; }
+      }
     }
 
     return { value: out, repaired: repaired, migrated: raw.v !== 1, empty: false };
@@ -520,6 +563,44 @@
 
   function paletteFor(theme) { return PALETTES[theme] || PALETTES.cyberpunk; }
 
+  /* DoL 的「游戏缩放」是 body.style.zoom。固定层 CSS 的 left/top/width/height
+     会被再乘一次 zoom，而 window.innerWidth / clientX 仍是视觉视口坐标；
+     所以布局计算统一用「本地视口」= 视觉尺寸 / zoom。只接受 0.4–4，
+     越界读数回 1，避免异常值把界面写飞。 */
+  function zoomFactor(doc) {
+    doc = doc || (typeof document !== "undefined" ? document : null);
+    if (!doc) { return 1; }
+    var view = doc.defaultView || null;
+    var z = 1;
+    var img = doc.getElementById ? doc.getElementById("img") : null;
+    if (img && Number(img.offsetHeight) > 0) {
+      try {
+        var ratio = Number(img.getBoundingClientRect().height) / Number(img.offsetHeight);
+        if (isFinite(ratio) && ratio > 0) { z = ratio; }
+      } catch (e) { /* 量不到就走 body.zoom */ }
+    }
+    if (!isFinite(z) || z <= 0) {
+      var inline = parseFloat(doc.body && doc.body.style ? doc.body.style.zoom : "");
+      z = inline;
+      if (isFinite(z) && z > 2) { z = z / 100; }
+    }
+    if (!isFinite(z) || z <= 0) {
+      try {
+        z = parseFloat(view && view.getComputedStyle ? view.getComputedStyle(doc.body).zoom : "");
+      } catch (e) { z = NaN; }
+    }
+    return (isFinite(z) && z >= 0.4 && z <= 4) ? z : 1;
+  }
+
+  function viewportSize(doc) {
+    doc = doc || (typeof document !== "undefined" ? document : null);
+    var view = doc && doc.defaultView;
+    var z = zoomFactor(doc);
+    var w = Number(view && view.innerWidth) || 1024;
+    var h = Number(view && view.innerHeight) || 768;
+    return { zoom: z, width: w / z, height: h / z };
+  }
+
   /* 面板展开原点：把悬浮球中心换算成面板内坐标，让 scale 从球心长出来。
      尺寸/坐标缺失（jsdom、隐藏、0 尺寸）一律退回底部中心，绝不写 NaN。 */
   function panelOrigin(box, orb) {
@@ -587,6 +668,8 @@
     contrast: contrast,
     luminance: luminance,
     paletteFor: paletteFor,
+    zoomFactor: zoomFactor,
+    viewportSize: viewportSize,
     panelOrigin: panelOrigin,
     buildDiagnostics: buildDiagnostics
   });

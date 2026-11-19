@@ -30,6 +30,7 @@
     drag: null,
     orbDrag: null,
     orbPointer: null,
+    zoomObserver: null,
     disposed: false,
     failed: false
   };
@@ -43,6 +44,7 @@
     vitals: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12.4h4.2l2.1-5.6 3.2 11 2.3-6.6 1.7 3.4h5.5"/></svg>',
     worn: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3.2l7.4 4.1v9.5h-2.2v-7l-5.2-2.9-5.2 2.9v7H4.6V7.3z"/><path d="M10 20.2v-4.8h4v4.8"/></svg>',
     system: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9L5.4 18.6"/></svg>',
+    switches: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.2"/><circle cx="15" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/></svg>',
     settings: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>',
     close: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
     copy: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8.5" y="3.5" width="12" height="13" rx="2"/><path d="M15.5 20.5h-9a2 2 0 0 1-2-2v-10"/></svg>',
@@ -222,6 +224,17 @@
     try {
       doc.documentElement.setAttribute("data-ml-motion", state.settings.motion ? "on" : "off");
       doc.documentElement.setAttribute("data-ml-lang", state.lang);
+      var optAttrs = {
+        optStats: "data-ml-opt-stats", optMoney: "data-ml-opt-money",
+        optRailSkin: "data-ml-opt-rail-skin", optRailPct: "data-ml-opt-rail-pct",
+        optMeterSkin: "data-ml-opt-meter-skin", optMeterValue: "data-ml-opt-meter-value",
+        optOptions: "data-ml-opt-options", optSidebar: "data-ml-opt-sidebar",
+        optOverlay: "data-ml-opt-overlay"
+      };
+      Object.keys(optAttrs).forEach(function (key) {
+        if (state.settings[key] === false) { doc.documentElement.removeAttribute(optAttrs[key]); }
+        else { doc.documentElement.setAttribute(optAttrs[key], "1"); }
+      });
     } catch (e) { /* documentElement 不可写时忽略 */ }
     els.root.style.setProperty("--ml-scale", String(state.settings.scale / 100));
     var glass = Math.max(0, Math.min(100, Number(state.settings.glass)));
@@ -263,6 +276,24 @@
 
   /* ---------------------------------------------------------------- 布局 */
 
+  /* body.style.zoom 会把固定层的 px 再乘一次；所有落位计算统一走本地视口，
+     并把 --ml-vw / --ml-vh 写给 CSS，让 120% 以上也能收住宽高。 */
+  function viewport() {
+    return C.viewportSize ? C.viewportSize(doc) : {
+      zoom: 1,
+      width: window.innerWidth || 1024,
+      height: window.innerHeight || 768
+    };
+  }
+
+  function publishViewport(vp) {
+    var root = doc.documentElement;
+    if (!root) { return; }
+    root.style.setProperty("--ml-vw", Math.round(vp.width) + "px");
+    root.style.setProperty("--ml-vh", Math.round(vp.height) + "px");
+    root.style.setProperty("--ml-zoom", String(vp.zoom));
+  }
+
   function computeSheet() {
     var w = window.innerWidth || 1024;
     var h = window.innerHeight || 768;
@@ -288,13 +319,15 @@
 
   function leftSafe() {
     var bar = doc.getElementById("ui-bar");
-    var base = window.innerWidth <= 560 ? 12 : 16;
+    var physical = window.innerWidth || 1024;
+    var vp = viewport();
+    var base = physical <= 560 ? 12 : 16;
     if (bar) {
       try {
         var cs = window.getComputedStyle(bar);
         if (cs.display !== "none" && cs.visibility !== "hidden") {
-          var w = bar.getBoundingClientRect().width;
-          if (w > 0 && (window.innerWidth || 0) > 900) { base = Math.round(w + 10); }
+          var w = bar.getBoundingClientRect().width / vp.zoom;
+          if (w > 0 && physical > 900) { base = Math.round(w + 10); }
         }
       } catch (e) { /* 侧栏读不到就用默认边距 */ }
     }
@@ -303,10 +336,13 @@
 
   function placeOrb() {
     if (!els.orb) { return; }
-    var w = window.innerWidth || 1024;
-    var h = window.innerHeight || 768;
+    var vp = viewport();
+    var w = vp.width;
+    var h = vp.height;
+    publishViewport(vp);
     var size = els.orb.offsetWidth || 56;
-    var margin = (w <= 560 ? 12 : 16) + (state.settings.side === "right" ? safeInset("r") : 0);
+    var margin = ((window.innerWidth || 1024) <= 560 ? 12 : 16) +
+      (state.settings.side === "right" ? safeInset("r") : 0);
     var y = state.settings.y;
     var top = Math.round(y * h - size / 2);
     top = Math.max(64, Math.min(h - size - 20, top));
@@ -447,7 +483,7 @@
     if (!els.tabs) { return; }
     var s = C.strings(state.lang);
     els.tabs.textContent = "";
-    var keys = ["now", "vitals", "worn", "system", "settings"];
+    var keys = C.TAB_KEYS;
     keys.forEach(function (key) {
       var btn = el("button", "ml-tab", {
         type: "button", role: "tab", id: "ml-tab-" + key,
@@ -541,6 +577,7 @@
     else if (state.tab === "vitals") { renderVitals(pane, modelSafe); }
     else if (state.tab === "worn") { renderWorn(pane, modelSafe); }
     else if (state.tab === "system") { renderSystem(pane); }
+    else if (state.tab === "switches") { renderSwitches(pane); }
     else { renderSettings(pane); }
     els.body.appendChild(pane);
 
@@ -903,6 +940,53 @@
     });
   }
 
+  /* 原生模块开关：只控制原版 UI 的替换层，不控制灯台浮窗自己的页签/页脚。 */
+  function renderSwitches(pane) {
+    var s = C.strings(state.lang);
+    var note = el("p", "ml-note");
+    note.textContent = s["switches.note"];
+    pane.appendChild(note);
+
+    var items = [
+      { key: "optStats", label: s["opt.stats"], hint: s["opt.statsHint"] },
+      { key: "optMoney", label: s["opt.money"], hint: s["opt.moneyHint"] },
+      { key: "optRailSkin", label: s["opt.railSkin"], hint: s["opt.railSkinHint"] },
+      { key: "optRailPct", label: s["opt.railPct"], hint: s["opt.railPctHint"] },
+      { key: "optMeterSkin", label: s["opt.meterSkin"], hint: s["opt.meterSkinHint"] },
+      { key: "optMeterValue", label: s["opt.meterValue"], hint: s["opt.meterValueHint"] },
+      { key: "optOptions", label: s["opt.options"], hint: s["opt.optionsHint"] },
+      { key: "optSidebar", label: s["opt.sidebar"], hint: s["opt.sidebarHint"] },
+      { key: "optOverlay", label: s["opt.overlay"], hint: s["opt.overlayHint"] }
+    ];
+
+    items.forEach(function (item) {
+      var box = el("div", "ml-field ml-field--opt", { "data-opt-key": item.key });
+      var k = el("div", "ml-field-k");
+      var label = el("span", "ml-field-label");
+      label.textContent = item.label;
+      k.appendChild(label);
+      var hint = el("p", "ml-note is-faint");
+      hint.textContent = item.hint;
+      k.appendChild(hint);
+      var wrap = el("div", "ml-switch-wrap");
+      var sw = el("button", "ml-switch", {
+        type: "button", role: "switch",
+        "aria-checked": state.settings[item.key] === false ? "false" : "true",
+        "aria-label": item.label
+      });
+      sw.appendChild(el("span", "ml-knob", { "aria-hidden": "true" }));
+      sw.addEventListener("click", function () {
+        var next = state.settings[item.key] === false;
+        state.settings[item.key] = next;
+        sw.setAttribute("aria-checked", next ? "true" : "false");
+        setSetting(item.key, next, false);
+      });
+      wrap.appendChild(sw);
+      box.appendChild(k); box.appendChild(wrap);
+      pane.appendChild(box);
+    });
+  }
+
   function renderSettings(pane) {
     var s = C.strings(state.lang);
 
@@ -1163,7 +1247,15 @@
       width: els.panel.offsetWidth,
       height: els.panel.offsetHeight
     };
-    var orb = els.orb.getBoundingClientRect();
+    /* 球 rect 已乘过 body zoom，面板 offset 没有；先除以 zoom 再进同一坐标系。 */
+    var vp = viewport();
+    var rect = els.orb.getBoundingClientRect();
+    var orb = {
+      left: rect.left / vp.zoom,
+      top: rect.top / vp.zoom,
+      width: rect.width / vp.zoom,
+      height: rect.height / vp.zoom
+    };
     var o = C.panelOrigin(box, orb);
     els.panel.style.setProperty("--ml-origin-x", o.x);
     els.panel.style.setProperty("--ml-origin-y", o.y);
@@ -1286,7 +1378,9 @@
     if (state.orbPointer !== null) { return; }
     var id = e.pointerId;
     state.orbPointer = id;
-    var startX = e.clientX, startY = e.clientY;
+    var startClientX = e.clientX, startClientY = e.clientY;
+    var startX = startClientX / viewport().zoom;
+    var startY = startClientY / viewport().zoom;
     var moved = false;
     state.orbDrag = "pending";
     var size = els.orb.offsetWidth || 56;
@@ -1303,7 +1397,9 @@
     }
 
     function onMove(ev) {
-      var dx = ev.clientX - startX, dy = ev.clientY - startY;
+      var vp = viewport();
+      var dx = (ev.clientX - startClientX) / vp.zoom;
+      var dy = (ev.clientY - startClientY) / vp.zoom;
       if (!moved && Math.abs(dx) + Math.abs(dy) > 6) {
         moved = true;
         state.orbDrag = "moved";
@@ -1311,8 +1407,8 @@
       }
       if (!moved) { return; }
       size = els.orb.offsetWidth || size;
-      var minLeft = 8, maxLeft = Math.max(8, window.innerWidth - size - 8);
-      var minTop = 56, maxTop = Math.max(56, window.innerHeight - size - 12);
+      var minLeft = 8, maxLeft = Math.max(8, vp.width - size - 8);
+      var minTop = 56, maxTop = Math.max(56, vp.height - size - 12);
       var rawLeft = startX + dx - size / 2;
       var rawTop = startY + dy - size / 2;
       last.left = Math.max(minLeft, Math.min(maxLeft, rawLeft));
@@ -1341,8 +1437,9 @@
       window.requestAnimationFrame(function () {
         if (els.orb) { els.orb.style.transform = ""; }
       });
-      state.settings.side = (last.left + size / 2) < window.innerWidth / 2 ? "left" : "right";
-      state.settings.y = Math.max(0.12, Math.min(0.92, (last.top + size / 2) / (window.innerHeight || 1)));
+      var vp = viewport();
+      state.settings.side = (last.left + size / 2) < vp.width / 2 ? "left" : "right";
+      state.settings.y = Math.max(0.12, Math.min(0.92, (last.top + size / 2) / (vp.height || 1)));
       saveSettings();
       placeOrb();
       setTimeout(function () { state.orbDrag = null; }, 220);
@@ -1442,6 +1539,20 @@
     }, 150);
   }
 
+  /* body.zoom 变化不派发 resize；观察 body[style]，有效缩放变了才重排。 */
+  function watchZoom() {
+    if (state.zoomObserver || typeof window.MutationObserver !== "function" || !doc.body) { return; }
+    var last = viewport().zoom;
+    state.zoomObserver = new window.MutationObserver(function () {
+      if (state.disposed) { return; }
+      var next = viewport().zoom;
+      if (!isFinite(next) || Math.abs(next - last) < 0.005) { return; }
+      last = next;
+      onResize();
+    });
+    state.zoomObserver.observe(doc.body, { attributes: true, attributeFilter: ["style"] });
+  }
+
   function onKeyDown(e) {
     if (state.disposed) { return; }
     var t = e.target;
@@ -1483,6 +1594,7 @@
       if (doc.body) { doc.body.removeEventListener("scroll", markPanelScrolling); }
       window.removeEventListener("scroll", markPanelScrolling);
     } catch (e) { /* ignore */ }
+    if (state.zoomObserver) { state.zoomObserver.disconnect(); state.zoomObserver = null; }
     if (els.root && els.root.parentNode) { els.root.parentNode.removeChild(els.root); }
     els = {};
   }
@@ -1552,6 +1664,7 @@
     doc.addEventListener("visibilitychange", onVisibility);
     onVisibility();
     window.addEventListener("resize", onResize, { passive: true });
+    watchZoom();
   }
 
   function mount() {
