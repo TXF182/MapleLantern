@@ -116,7 +116,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `#passages a.link-internal.macro-link` | `data-ml-option="1"`；有前置 `img.icon` 时加 `data-ml-option-group="1"` | 整行卡片，序号与时耗保持原文本，不重写 passage；「图标 + 选项」收进同一张 `ml-option-group` 卡，图标 30px 在左、文字在右，并摘掉组前空行；无图标选项保持整行卡 |
 | `#overlayButtons` / `#menu` 按钮 | 双 ID 反制 + `data-ml-label` | 两列卡片按钮，≥44px；`sidebarButtonSplit` 拆平为 `display:contents`，清掉原版占格 `<br>`，8 个入口四行对齐，`JOURNAL` / `OPTIONS` 不再退省略号 |
 | `#customOverlay` / `#ui-dialog` | `data-ml-overlay` / `data-ml-dialog` | 圆角外壳、固定 48px 上下留白、单轴滚动、44×44 关闭按钮 |
-| `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，5 个页签换行不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
+| `#customOverlayTitle` / `#overlayTabs` | 无标记，纯选择器 | 标题栏按页签自动增高，6 个页签不裁切；`OPTIONS` 的 Date Format 三段等宽胶囊、分隔符不占宽 |
 | `#customOverlayContent` 内层 | 无标记，纯选择器 | `settingsGrid` 分节卡片、`settingsToggleItem` 行、自绘 checkbox/radio、`select` 与段落/表格统一配色；`statistics` 下 11 个 `.foldout` 改折叠卡，展开体按「标签 : 值」拆成两栏行并带 160ms 逐行淡入；`gameFeats` 顶部科普包成 `data-ml-feats-intro` 说明卡 |
 | `#ui-bar` 窄屏档 | 无标记，原生几何 | **1.3.0 不覆盖侧栏宽度**：`#ui-bar` 保持原生 280px，`#img left:64`、canvas 256 不回退；顶栏四格、金额单行、日期横排、状态卡 `#stats 100%` 保留，窄屏选项单列。 |
 | 衣柜内层（`Wardrobe`） | `data-ml-option` + `tidySeparators` | warmth 50px 条压成 16px 圆角条，温度说明独立卡；`Close wardrobe` / `Strip all` 等动作两列，裸 `\|` 全清；`#listoutfits` 双列、四张 outfit 卡左对齐等宽 |
@@ -173,7 +173,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，8/8 `clicked:true`、`overlayHidden:false`、`errors:[]`；OPTIONS 页灯台入口保留
 - `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
 - 动效实机（540×1170，Edge 隔离 profile，三套主题）：`#ml-panel::after` `ml-panel-ambient` 26/31/22s、`::before` `ml-hairline`、`.ml-pane` `ml-pane-in`、`.ml-ring::after` `ml-ring-breathe` 5.6s；`#ui-bar` `mln-bar-drift` 28/32/24s，`background-size` 5 层（2 环境光 + 3 纹理）；hover `matrix(1,0,0,1,0,-1)`；关断后 panel/ring/bar/pane 全 `none`；0 pageerror。
-- 窄屏回归（390×844、320×568，paper）：面板宽 390/320，5 个页签 71/61×44 全部可见；320 主题网格 3×91×44，文档无横向溢出；`ml-pane-in` / `ml-panel-ambient` / `mln-bar-drift` 仍运行，0 pageerror。面板 `scrollWidth` 的额外值来自 `::after ambient` 负 inset，不是内容溢出。
+- 窄屏回归（390×844、320×568，paper）：面板宽 390/320，6 个页签等分且全部可见；320 主题网格 3×91×44，文档无横向溢出；`ml-pane-in` / `ml-panel-ambient` / `mln-bar-drift` 仍运行，0 pageerror。面板 `scrollWidth` 的额外值来自 `::after ambient` 负 inset，不是内容溢出。
 
 - Edge 隔离 profile 纯净档：`#ml-root` 注入、面板 380×504、z 89900、0 未捕获异常，**18 项 PASS**
 - 宿主档（DoLGameUI 4.2.0 启用）：**23 项 PASS**，含「宿主下原生层仍按玩家开关挂载」、宿主 token 已读、面板仍 380×504
