@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="zh-CN" data-ml-native="on" data-ml-theme="cyberpunk" data-ml-opt-overlay="1">
+<head>
+<meta charset="utf-8">
+<title>CheatExtended settings layout probe</title>
+<style>
+:root { --300:#555b66; --500:#777f8c; --700:#3a414c; --800:#20252d; --850:#171b21; --gold:#d8b04a; }
+body { margin:0; background:#080a0e; color:#e8eef6; font-family:system-ui,sans-serif; }
+#customOverlay { width:100%; padding:12px; box-sizing:border-box; }
+#customOverlayContent { width:100%; max-width:1120px; margin:0 auto; padding:20px; box-sizing:border-box; background:#0d1117; }
+/* DoL 原生 settings 几何（逐条取自游戏主 HTML） */
+.settingsGrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(48.5%,1fr)); grid-gap:14px; margin:10px; }
+.settingsToggleItem { border:1px solid var(--700); padding:8px; height:100%; box-sizing:border-box; }
+.settingsHeader { grid-column:1/-1; color:var(--gold); text-align:center; font-weight:bold; padding:6px 0; }
+.settingsToggleItemWide { border:1px solid var(--700); padding:8px; grid-column:1/-1; }
+.small-description { color:#bfc7d1; margin-bottom:8px; }
+/* CE 1.20.4 菜单/页签容器（只保留影响几何的部分） */
+.CEDISPLAY { display:flex; flex-direction:column; gap:10px; width:100%; box-sizing:border-box; padding:5px; border:1px solid #ccc; }
+.CEbuttonBar { display:flex; flex-wrap:nowrap; overflow-x:auto; gap:2px; padding:0; width:100%; }
+.CEbuttonBar > * { display:inline-flex !important; flex:0 0 auto !important; white-space:nowrap !important; }
+.CEbuttonBar.CE-two-level-tabs { flex-direction:column; align-items:stretch; }
+.CEbuttonBar.CE-two-level-tabs > .CE-category-bar,
+.CEbuttonBar.CE-two-level-tabs > .CE-subtab-bar { display:flex !important; width:100%; box-sizing:border-box; }
+.CE-category-bar,.CE-subtab-bar { display:flex; flex-wrap:nowrap; overflow-x:auto; gap:2px; width:100%; }
+.CE-category-bar > *,.CE-subtab-bar > * { flex:0 0 auto !important; white-space:nowrap !important; }
+.CEbuttonBar button { flex:0 0 auto; width:100px; height:36px; padding:0 8px; border:1px solid var(--gold); border-radius:5px; background:#222; color:#fff; }
+.CEDISPLAY_setting { flex:1 1 auto; min-height:100px; border:1px solid #999; border-radius:4px; padding:5px; overflow:auto; box-sizing:border-box; }
+.CE-options { width:100%; }
+.settingsHeader.options { color:var(--gold); }
+</style>
+<link rel="stylesheet" href="../src/maplelantern-native.css">
+</head>
+<body>
+<div id="customOverlay">
+  <div id="customOverlayContent">
+
+    <!-- 原生 Options 对照组：不在 CE 页签后面，验证 CE 规则不外溢 -->
+    <div class="settingsGrid" id="nativeSettingsGrid" data-probe-native-grid>
+      <div class="settingsHeader">Options</div>
+      <div class="settingsToggleItem"><div class="small-description">原生选项 A</div><label><input type="checkbox" checked> 启用 A</label></div>
+      <div class="settingsToggleItem"><div class="small-description">原生选项 B</div><label><input type="checkbox"> 启用 B</label></div>
+      <div class="settingsToggleItem"><div class="small-description">原生选项 C</div><label><input type="checkbox" checked> 启用 C</label></div>
+      <div class="settingsToggleItem"><div class="small-description">原生选项 D</div><label><input type="checkbox"> 启用 D</label></div>
+    </div>
+
+    <div class="CEDISPLAY">
+      <div id="cheat_extended_options" class="CEbuttonBar CE-two-level-tabs">
+        <div class="CE-category-bar">
+          <button data-category-id="general" class="CEbuttonBarSelected">一般</button>
+          <button data-category-id="status">状态</button>
+          <button data-category-id="world">世界</button>
+          <button data-category-id="combat">战斗</button>
+          <button data-category-id="map">地图</button>
+          <button data-category-id="extra">其他</button>
+        </div>
+        <div class="CE-subtab-bar">
+          <button class="CEbuttonBarSelected">作弊拓展选项</button>
+          <button>DEBUG</button>
+          <button>语言</button>
+        </div>
+      </div>
+
+      <div class="CEDISPLAY_setting">
+        <div id="CE_settingsDiv" class="no-numberify">
+          <div class="CE-options">
+            <div class="settingsHeader options"><span class="gold">--作弊拓展選項--</span></div>
+            <div class="settingsGrid" data-probe-outer>
+              <section class="CE-optionGroupSection" style="grid-column:1/-1;min-width:0;margin:0 0 12px;">
+                <div class="CE-optionGroupHeading" style="font-weight:bold;margin:8px 0 6px;padding:5px 8px;border-bottom:1px solid currentColor;opacity:.85;">一般設定</div>
+                <div class="settingsGrid" data-probe-ce-grid>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">設定作弊拓展介面使用的中文顯示方式。</div>
+                    <label>介面語言：<select><option>繁體中文</option><option>简体中文</option></select></label>
+                    <mouse class="tooltip linkBlue">(?)<span>繁體中文為作弊拓展的原始介面語言。</span></mouse>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">強制啟用作弊模式</div>
+                    <label><input type="checkbox"> 強制啟用作弊</label>
+                    <mouse class="tooltip linkBlue">(?)<span>啟用原版的作弊模式就不需要開。</span></mouse>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">啟用作弊拓展側邊 Icon 按鈕，這是一段刻意較長的描述用來檢查卡片內換行是否正常。</div>
+                    <label><input type="checkbox"> 啟用側邊 Icon 按鈕</label>
+                    <mouse class="tooltip linkBlue">(?)<span>啟用後左側狀態欄收合時會出現按鈕。</span></mouse>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">禁用作弊拓展狀態欄操作介面</div>
+                    <label><input type="checkbox"> 禁用狀態欄操作介面</label>
+                    <mouse class="tooltip linkBlue">(?)<span>勾選後將失去操作介面。</span></mouse>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">設定除錯訊息輸出等級。</div>
+                    <label>等級：<select><option>關閉</option><option>一般</option><option>詳細</option></select></label>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">設定自動保存間隔。</div>
+                    <label>分鐘：<input type="text" value="5"></label>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">顯示隱藏頁籤。</div>
+                    <label><input type="checkbox"> 顯示已隱藏頁籤</label>
+                    <hr>
+                  </div>
+                  <div class="settingsToggleItem">
+                    <div class="small-description">重置所有作弊拓展設定。</div>
+                    <label><button>重置</button></label>
+                    <hr>
+                  </div>
+                </div>
+              </section>
+              <div><button>保存設置</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

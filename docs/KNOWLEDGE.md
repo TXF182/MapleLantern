@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.11 属性卡与社交卡去布局覆盖；201/201 PASS，check_ui / game-smoke 以本节实测为准
+> 最后核对：2026-11-19 / 1.4.12 CE 设置页恢复桌面双列且不外溢原生 Options；201/201 PASS，check_ui / game-smoke 以本节实测为准
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -411,7 +411,7 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 6. 浮窗卡片底图：原生 `#customOverlayContent` / `#ui-dialog-body` 的 `background-attachment: fixed` 必须收回 `scroll`；手机端用 `!important` + 双 ID 对抗，且排除 ModLoader GUI 与 CE 面板（1.4.6）。
 7. 着装页服饰名：优先 `cn_name_cap` / `cn_name`，中文显示、英文保留原名，空白回落、不二次翻译；页签只保留一个 `.ml-tab-glint`，旧分段 `::after` 删除（1.4.7）。
 
-## 8. 原生 UI 模块开关（1.4.9，1.4.10/1.4.11 扩属性卡）
+## 8. 原生 UI 模块开关（1.4.9，1.4.10/1.4.11/1.4.12 扩属性卡与 CE）
 
 「开关」页位于「系统」与「设置」之间，9 个键默认 `true`，关闭只撤对应模块：
 
@@ -426,6 +426,8 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 | `optOptions` | `data-ml-opt-options` | 正文选项整行卡片 |
 | `optSidebar` | `data-ml-opt-sidebar` | 侧栏按钮两列卡片 |
 | `optOverlay` | `data-ml-opt-overlay` | 原生弹层外壳圆角/留白/背景 + 属性页卡片皮肤 |
+
+**1.4.12 CE 设置页约束**：CheatExtended 1.20.4 的设置页（`<<CE_options>>`）由 JS 动态建 `.settingsGrid`，子项是原生 `.settingsToggleItem`；其桌面几何必须回到 DoL 原版 `repeat(auto-fit,minmax(48.5%,1fr))`，不能用 520px 最小列宽（否则 900–1000px 面板宽只放一列，表现为手机端）。同一行必须 `align-items:stretch`，否则不同高度的卡片各自起排、看起来错位；卡片不能 `overflow:hidden`，否则 tooltip 与焦点框被裁。规则只允许挂 `#customOverlay #cheat_extended_options ~ *` 与 `#customOverlay #CE_settingsDiv`，不得再挂 `#customOverlayContent`——原生 Options 也在这个容器里，挂上去会把它一起压成单列。几何探针 `tests\ce_settings_probe.py` 24/0（1280/900/390，含原生 Options 双列对照）。
 
 **1.4.11 属性卡约束**：皮肤只改外观，不覆盖原生排版。通用 `.characteristic-box-list` 保持 DoL 原生 `flex-wrap`，属性、技能、成绩、职业页按自身 `min-width` 换行；`#sex-diagram` 单独保留左右 50% 纵排双列，`<=450px` 回 100%。社交页同理：`.relation-box-list` 保留原生 grid 列数，`#global-recognition` 保留原生 `flex-wrap`，不得统一压成单列。属性页真机探针 `tests\sexdiagram_probe.py` 扩到 5 个平铺列表，桌面 + 手机 73/0，含旧 grid 压立绘复现。
 

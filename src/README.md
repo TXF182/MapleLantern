@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.11）
+# 灯台 · Lantern（MapleLantern 1.4.12）
+
+- **1.4.12 · CE 设置页恢复桌面双列**：CheatExtended 1.20.4 的设置页复用 DoL 原生 `.settingsGrid`；此前按 520px 最小列宽在常见桌面面板宽度下退成单列，表现为“作弊菜单像手机端”。现在回到原版 48.5% 双列、同一行等高拉伸，卡片不再 `overflow:hidden` 裁 tooltip/焦点框；规则只挂 `#cheat_extended_options ~ *` 与 `#CE_settingsDiv`，游戏原生 Options 在 900px 宽桌面仍保持双列。新增 CE 设置页几何探针 **24/0**（1280 / 900 / 390，含原生 Options 对照、同行等高、越界与互压）；七文件全量 **201/201** PASS。
 
 - **1.4.11 · 属性卡/社交卡去布局覆盖**：通用 `.characteristic-box-list` 恢复原生 `flex-wrap`，属性、技能、成绩、职业页不再被统一 grid 挤压；`.relation-box-list` 与 `#global-recognition` 同样保留原生网格/换行。`#sex-diagram` 仍保留左右 50% 双列与窄屏 100% 单列。桌面上不再出现「很多选项错位」。属性页几何探针扩到 5 个平铺列表，桌面 + 手机 **73/0**；七文件全量 **201/201** PASS。
 

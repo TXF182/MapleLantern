@@ -4201,26 +4201,29 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlay .CEDISPLAY but
   line-height: 1.2 !important;
 }
 
-/* CE「狀態」頁是 DoL 原版 .settingsGrid + numberStepper。桌面兩列時每格只有
-   半寬；`numberStepper` 的 6 個箭頭在大字體/高縮放下會橫向撐破格子，右列卡片
-   的左箭頭組因此侵入左列，形成「選項互相疊在一起」。
-   這裡三層收口：格子按能容納 460px 的寬度自適應（窄桌面自動降為單列）、
-   stepper 容器收回格子寬、箭頭恢復固定緊湊寬度且不再吃按鈕外距。 */
-html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .settingsGrid {
+/* CE「狀態/設置」頁是 DoL 原版 .settingsGrid；桌面必須保持原版 48.5% 雙列，
+   不能按 520px 退成手機單列。規則只掛 CE 容器，不能掛 #customOverlayContent，
+   否則遊戲原生 Options 也會被壓成單列。 */
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .settingsGrid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)) !important;
+  grid-template-columns: repeat(auto-fit, minmax(48.5%, 1fr)) !important;
   grid-auto-rows: auto !important;
-  align-items: start !important;
-  gap: 12px !important;
+  align-items: stretch !important;
+  gap: 14px !important;
   min-width: 0 !important;
 }
-html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .settingsGrid > * {
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .settingsGrid > * {
   min-width: 0 !important;
   max-width: 100% !important;
-  overflow: hidden !important;
+  overflow: visible !important;
+  overflow-wrap: anywhere;
   box-sizing: border-box !important;
 }
-html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .numberStepperContainer {
+/* CE 的「保存設置」是無 class 的直屬 div，讓它獨佔整行，避免只占左半格。 */
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .settingsGrid > div:not([class]) {
+  grid-column: 1/-1 !important;
+}
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .numberStepperContainer {
   width: 100% !important;
   max-width: 100% !important;
   min-width: 0 !important;
@@ -4231,7 +4234,7 @@ html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#custom
   justify-content: flex-start !important;
   gap: 4px !important;
 }
-html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .numberStepperGroup {
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .numberStepperGroup {
   min-width: 0 !important;
   overflow: hidden !important;
   flex: 0 0 auto !important;
@@ -4239,8 +4242,8 @@ html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#custom
 /* 紧凑箭头只在桌面启用：手机端仍由 JS 保持 34px，避免 30px 触控区
    低于原版可点性。 */
 @media (min-width: 900px) {
-  html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .numberStepper,
-  html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .numberStepper:disabled {
+  html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .numberStepper,
+  html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .numberStepper:disabled {
     flex: 0 0 28px !important;
     width: 28px !important;
     min-width: 28px !important;
@@ -4253,7 +4256,7 @@ html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#custom
     line-height: 1 !important;
   }
 }
-html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv,#customOverlayContent) .titlePercentage {
+html[data-ml-native="on"] :is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .titlePercentage {
   min-width: 0 !important;
   flex: 1 1 60px !important;
   overflow: hidden !important;

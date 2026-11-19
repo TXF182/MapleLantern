@@ -8,12 +8,14 @@
 |---|---|---|---|
 | `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM | **201 / 0** | — |
 | `tests\sexdiagram_probe.py` | 属性页真机几何 + 5 个平铺属性列表：原生 flex 换行、卡片不越界/不互压、左右 50% 双列、旧 grid 可复现、开关回原版 | **73 / 0** | `_edge_profile_sexdiagram\`、`shots\sexdiagram_*.png` |
+| `tests\ce_settings_probe.py` | CE 1.20.4 设置页：桌面双列、同行等高、不越界/不互压/不裁切，原生 Options 不被外溢；手机单列 | **24 / 0** | `_edge_profile_ce_settings\`、`shots\ce_settings_*.png` |
 | `tests\custom_host.py` | 真实 DOM 宿主：导入、应用、像素取色、载体必须是 `data:` | **58 / 0** | `_edge_profile_customhost\`、`shots\custom-*.png` |
 | `tests\custom_viewports.py` | 六档视口：320 / 360 / 390 / 430 / 540 / 844×390，44px 触达、滚到可点、面板外透出背景 | **49 / 0** | `_edge_profile_viewports\`、`shots\vp-*.png` |
 | `tests\custom_formats.py` | 图片格式矩阵（Edge/Chromium 实吃哪些格式） | 15 可用 / TIFF 友好拒绝 | `fmt\`（脚本自建）、`_edge_profile_fmt\` |
 
 单档调试：`$env:VP_ONLY_FIRST="1"; python tests\custom_viewports.py`。
 
+1.4.12 增补断言：CE 设置页 `settingsGrid` 回到 48.5% 双列且 `align-items:stretch`，规则不得再挂 `#customOverlayContent`；几何探针 24/0（1280/900/390）。
 1.4.11 增补断言：通用 `.characteristic-box-list` 禁止 grid、5 个平铺属性列表保持 flex/wrap 且不越界不互压、`.relation-box-list` 不覆盖原生列数、`#global-recognition` 保留 flex-wrap；真机几何探针 73/0。
 1.4.10 增补断言：`#sex-diagram` 恢复左右 50% 双列、属性卡皮肤全部挂 `optOverlay`、窄屏回 100% 单列；全量 **201 / 0**。
 1.4.9 增补断言：新增「开关」页 9 个原生模块独立开关、6 页签集合、游戏缩放 120%/85% 与金额/状态/左轨单模块还原；全量 **200 / 0**。

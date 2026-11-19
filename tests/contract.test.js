@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.11");
+  assert.equal(boot.version, "1.4.12");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -366,15 +366,18 @@ test("1.4.11：属性卡只换皮不改原生排版，所有 characteristic 列�
     "#global-recognition 必须保留原版 flex-wrap，不能再写死两列");
 });
 
-test("1.1.14/1.1.17：CE 状态页两列选项不得横向压叠", () => {
+test("1.4.12：CE 设置页恢复桌面双列，且不得外溢到原生 Options", () => {
   assert.match(nativeCss,
-    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.settingsGrid[\s\S]{0,500}grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(100%,\s*520px\),\s*1fr\)\) !important/s,
-    "桌面格子必须按可容纳 520px 的宽度自适应，窄桌面自动降为单列");
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.settingsGrid[\s\S]{0,500}grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(48\.5%,\s*1fr\)\) !important/s,
+    "CE 桌面格子必须回到原版 48.5% 双列，不能再按 520px 退成手机单列");
   assert.match(nativeCss,
-    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.numberStepperContainer[\s\S]{0,260}max-width:\s*100% !important[\s\S]{0,260}flex-wrap:\s*wrap !important/s,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.settingsGrid[\s\S]{0,500}align-items:\s*stretch !important/s,
+    "同一行选项卡必须等高拉伸，不能按内容高度各自起排造成错位");
+  assert.match(nativeCss,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.numberStepperContainer[\s\S]{0,260}max-width:\s*100% !important[\s\S]{0,260}flex-wrap:\s*wrap !important/s,
     "stepper 容器必须收回格子宽度，并允许箭头组换行而不是横向压到邻格");
   assert.match(nativeCss,
-    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.numberStepper[\s\S]{0,300}flex:\s*0 0 28px !important[\s\S]{0,220}margin:\s*0 !important[\s\S]{0,120}padding:\s*0 !important/s,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.numberStepper[\s\S]{0,300}flex:\s*0 0 28px !important[\s\S]{0,220}margin:\s*0 !important[\s\S]{0,120}padding:\s*0 !important/s,
     "六枚箭头必须固定 28px 且不吃外距，否则会撑破半宽格子");
   const stepper28 = nativeCss.indexOf("flex: 0 0 28px !important");
   const desktopGate = nativeCss.lastIndexOf("@media (min-width: 900px)", stepper28);
@@ -383,11 +386,15 @@ test("1.1.14/1.1.17：CE 状态页两列选项不得横向压叠", () => {
   assert.ok(nativeCss.indexOf("@media (max-width: 899px)") > stepper28,
     "28px 规则不得落进手机媒体块");
   assert.match(nativeCss,
-    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.settingsGrid > \*[\s\S]{0,200}overflow:\s*hidden !important/s,
-    "格子内每个选项卡必须被裁在自己的格子里");
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.settingsGrid > \*[\s\S]{0,220}overflow:\s*visible !important/s,
+    "选项卡不能再被 overflow:hidden 裁掉 tooltip/焦点框");
   assert.match(nativeCss,
-    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv,#customOverlayContent\) \.titlePercentage[\s\S]{0,200}flex:\s*1 1 60px !important/s,
+    /:is\(#customOverlay #cheat_extended_options ~ \*,#customOverlay #CE_settingsDiv\) \.titlePercentage[\s\S]{0,200}flex:\s*1 1 60px !important/s,
     "中央数值区必须允许收缩并省略长数值，不得把两侧箭头挤出去");
+  const settingsSelectorStart = nativeCss.indexOf(":is(#customOverlay #cheat_extended_options ~ *,#customOverlay #CE_settingsDiv) .settingsGrid");
+  assert.ok(settingsSelectorStart > -1, "必须能定位 CE settingsGrid 规则");
+  assert.doesNotMatch(nativeCss.slice(settingsSelectorStart, settingsSelectorStart + 900), /#customOverlayContent/,
+    "CE settingsGrid 规则不得再挂 #customOverlayContent，否则原生 Options 也被压成单列");
 });
 
 test("1.1.18：CE 关闭后必须还原 #customOverlay 内联样式", () => {
