@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.15）
+# 灯台 · Lantern（MapleLantern 1.4.16）
+
+- **1.4.16 · 成就页图标修复**：成就行图标列固定 30px，但已解锁金币原图 74px 没有被缩放，溢出后压住标题。现在 `.featImage` 按 `border-box` 计算，内部 `img` 统一 22px（实际外框 24px）并 `object-fit:contain`，金币与未解锁圆点都归位。新增 S11 回归；七文件全量 **208/208** PASS；390 与 1080 宽度实测图标列 30px、图片 24px、文字起点在图片右侧。
 
 - **1.4.15 · 随身衣物左侧点击修复**：MEE「随身衣物」页打开后，灯台全屏 `#customOverlayContainer` 的 `pointer-events:all` 会挡住左侧 `#ui-bar` 衣物图标。现在只在该页（桌面 ≥701px）给容器加 `data-ml-overlay-host="carriedclothes"` 并放行指针事件，弹层自身恢复点击；切页撤销标记，其他弹层与手机遮罩不受影响。七文件全量 **207/207** PASS；Edge 真实命中测试通过（修复前点容器、修复后点左侧按钮）。
 
@@ -82,7 +84,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.15.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.16.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。

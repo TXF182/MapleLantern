@@ -2942,13 +2942,13 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   width: 30px;
   height: 30px;
   min-height: 0;
+  box-sizing: border-box;
   background: transparent !important;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #featsList .featImage img.dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) #featsList .featImage img {
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 

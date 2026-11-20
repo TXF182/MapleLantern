@@ -212,6 +212,29 @@ test("S10 MEE 随身衣物页：全屏容器不得挡住左侧衣物图标的点
     "离开随身衣物页后容器标记必须清掉，不能继续放行点击");
 });
 
+test("S11 成就页：74px 金币图必须缩进 30px 图标列，不能溢出压住标题", async () => {
+  assert.match(CSS,
+    /#featsList \.featImage\s*\{[^}]*box-sizing:\s*border-box/s,
+    "图标列必须按 border-box 计算 30px，含内边距不能超列宽");
+  assert.match(CSS,
+    /#featsList \.featImage img\s*\{[^}]*width:\s*22px[^}]*height:\s*22px[^}]*object-fit:\s*contain/s,
+    "已解锁金币图（原图 74px）与未解锁圆点都必须缩到图标列内并保持比例");
+
+  const feats = "<div id='featsList'>" +
+    "<div class='feat'><div class='featImage'><img class='featCoin' src='coin-gold.png'></div>" +
+    "<div class='featText'><span class='title'>一桶金</span><span class='text'>Earned on: 05/05/2026</span></div></div>" +
+    "<div class='feat'><div class='featImage'><img class='dot'></div>" +
+    "<div class='featText'><span class='title'>?????</span><span class='text'>未解锁</span></div></div></div>";
+  let html = page("成就", statmeters([card({ id: "pain", title: "Pain: 0.00", pct: 0 })])) +
+    "<div id='customOverlayContainer'><div id='customOverlay' class='customOverlay' data-ml-overlay='gameFeats'>" +
+    "<div id='customOverlayContent'>" + feats + "</div></div></div>";
+  const w = make(html);
+  await tick(w);
+  w.MapleLanternNative.apply();
+  assert.equal(w.document.querySelectorAll("#featsList .feat").length, 2, "成就行结构不能被改动");
+  assert.ok(w.document.querySelector("#featsList .featImage img.featCoin"), "金币图必须留在图标列内");
+});
+
 test("O1 网格页：不搬节点、不删单元格", async () => {
   const grid = "<div class='pc-grid' style='display:grid;grid-template-columns:1fr 1fr'>" +
     "<div class='cell' id='cellA'><img class='icon' src='a.png'><a class='link-internal macro-link' data-passage='X'>选项 A</a></div>" +

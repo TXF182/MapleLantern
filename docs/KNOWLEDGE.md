@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-19 / 1.4.15 修复 MEE 随身衣物页左侧衣物图标被全屏容器挡住；七文件 **207/207** PASS，Edge 真实命中测试通过（修复前点容器、修复后点左侧按钮），check_ui 13 PASS / 1 WARN；game-smoke 本轮未跑
+> 最后核对：2026-11-20 / 1.4.16 修复成就页金币图溢出图标列；七文件 **208/208** PASS，390 / 1080 合成宿主实测图标 24px、图标列 30px、文字无重叠；check_ui 13 PASS / 1 WARN，打包 SHA 复现一致；game-smoke 核心 A/B/C PASS
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -465,3 +465,9 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - **全屏容器截走点击**：灯台把 `#customOverlayContainer` 从右侧内容区撑成整屏（`inset:0 / width:100%`），原版 `.customOverlayContainer` 自带的 `pointer-events:all` 随之覆盖左侧 `#ui-bar`。MEE 叠层一打开，左侧衣物图标仍在渲染，但命中落在容器而不是按钮。
 - **字段与规则**：`markOverlay()` 给容器写 `data-ml-overlay-host`（值为当前 `overlayKey`）；只在 `min-width:701px` 且值为 `carriedclothes` 时，容器 `pointer-events:none`、`background:transparent`，`#customOverlay[data-ml-overlay="carriedclothes"]` 恢复 `pointer-events:auto`。不依赖 `:has()`，切页即更新标记。
 - **实测判据**：Edge 1080×900 合成宿主，修复前 `elementFromPoint(左侧衣物按钮)` 返回 `customOverlayContainer`，修复后返回按钮本身；弹层内槽位仍命中 `clothing-takeback-button-container`。全量 `207/207`，CSS `204,760 B`。
+
+## 12. 1.4.16 成就页金币图
+
+- **图标列与图片尺寸不一致**：灯台把 `#featsList .feat` 排成 `grid-template-columns:30px minmax(0,1fr)`，`featImage` 30×30 且只给 `.dot` 写了 12px。已解锁的 `img.featCoin` 原图 74×74、原版只有 `padding:1px`，溢出列宽后覆盖到标题上，手机与电脑同样出现。
+- **处置**：`featImage` 加 `box-sizing:border-box`，把 2px 内边距收进 30px；同一规则对 `img.dot` / `img.featCoin` 生效，设 `22px × 22px`、`object-fit:contain`。未解锁圆点仍保留原版 `border-radius:50%` 与底色。
+- **实测判据**：390 与 1080 宽度合成宿主，图标列 30px、图片外框 24px、图片右缘 62（390）/126（1080），文字起点 73 / 137，`overflowX=false`。全量 `208/208`，CSS 仍为 `204,760 B`，不超预算。

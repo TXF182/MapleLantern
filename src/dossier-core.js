@@ -14,7 +14,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   "use strict";
 
-  var VERSION = "1.4.15";
+  var VERSION = "1.4.16";
   var SETTINGS_KEY = "MapleLanternDossier.settings.v1";
 
   var FITS = ["cover", "contain", "fill"];
