@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.20");
+  assert.equal(boot.version, "1.4.21");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -993,3 +993,19 @@ test("关闭顶部四格时：手机窄屏仍把金额/时间/日期排进 3×2 
     /:not\(\[data-ml-opt-stats="1"\]\) #stats#stats \.centered-elements > div\[data-ml-chip="money"\]/s,
     "金额格必须显式落在 money 区域");
 });
+
+test("商店：分类格不被选项卡片打包，分页链接不继承整宽卡片", () => {
+  assert.match(native, /link\.closest\([^)]*#shopCategories[^)]*\)[\s\S]{0,40}continue/,
+    "商店分类链接必须跳过正文选项打包，否则 category-tab 会被搬空");
+  assert.match(native, /closest\([^)]*#shopCategories[^)]*\)[\s\S]{0,40}continue/,
+    "孤儿图标收养也必须跳过商店分类栏");
+  const catImg = nativeCss.match(/#shopCategories \.category-tab > img \{[\s\S]{0,260}?transform:\s*none\s*!important/);
+  assert.ok(catImg, "分类图标必须复位原版 skewX，否则图标仍是斜的");
+  const pag = nativeCss.match(/#shop-pagination a\.macro-link \{[\s\S]{0,320}?min-height:\s*0\s*!important[\s\S]{0,180}?border:\s*0\s*!important/);
+  assert.ok(pag, "分页链接必须清掉 44px 整宽卡片外观");
+  assert.match(nativeCss, /#shop-pagination \.page > a \{[\s\S]{0,120}width:\s*100%\s*!important/s,
+    "圆点内链接必须填满 .page，不能撑成 27×44");
+  assert.match(nativeCss, /@media screen and \(max-width: 577px\) \{[\s\S]{0,200}#shop-pagination \.btn-pagination > a \{[\s\S]{0,60}display:\s*none\s*!important/s,
+    "窄屏必须保留原版“隐藏 Previous/Next 文字、只显示箭头”的行为");
+});
+

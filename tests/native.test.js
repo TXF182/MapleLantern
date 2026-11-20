@@ -988,3 +988,26 @@ test("关闭原生卡片时，第三方页仍插入口", async () => {
   assert.equal(overlay.getAttribute("data-ml-thirdparty"), "decorations");
   assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
 });
+
+test("商店分类栏：分类图标留在 category-tab 内，不被正文选项卡片打包", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<div id="shopCategories" class="shop-category-tabs"><div class="category-group">' +
+    '<div class="div-link category-tab active"><img class="icon" src="all.png"><a class="link-internal macro-link" data-passage="All"></a></div>' +
+    '</div><div class="category-group"><div class="div-link category-tab"><img class="icon" src="upper.png"><a class="link-internal macro-link" data-passage="Upper"></a></div>' +
+    '</div></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+  assert.equal(p.querySelectorAll("#shopCategories .ml-option-group").length, 0,
+    "商店分类不是正文选项，不能生成整宽选项卡");
+  const tabs = p.querySelectorAll("#shopCategories .category-tab");
+  assert.equal(tabs.length, 2);
+  for (const tab of tabs) {
+    assert.equal(tab.querySelector("img.icon") !== null, true, "分类图标必须留在 44px 分类格内");
+    assert.equal(tab.querySelector("a.macro-link") !== null, true, "分类链接必须留在分类格内");
+    assert.equal(tab.getAttribute("data-ml-empty-holder"), null, "分类格不能被标记成空壳");
+  }
+});
+

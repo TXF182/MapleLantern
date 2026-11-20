@@ -746,6 +746,8 @@
       for (var i = 0; i < icons.length; i++) {
         var n = icons[i];
         if (n.closest && n.closest(".ml-option-group")) { continue; }
+        /* 商店分类栏是 44px 图标格子，不是正文选项；打包会把分类格搬空。 */
+        if (n.closest && n.closest("#shopCategories")) { continue; }
         if (n.parentNode && n.parentNode.closest && n.parentNode.closest(".icon-container")) { continue; }
         list.push(n);
       }
@@ -830,6 +832,9 @@
           if (p.getAttribute && p.getAttribute("data-ml-option-group")) { inGroup = true; break; }
         }
         if (inGroup) { continue; }
+        /* 商店分类栏有自己的 44px 格子与 CSS；把图标+链接收进整宽选项卡会让
+           .category-tab 变空壳，分类栏塌成“全宽空条 + 小方块”。 */
+        if (link.closest && link.closest("#shopCategories")) { continue; }
         if (layoutShell(link, passage)) { continue; }
 
         var holder = link.parentNode;

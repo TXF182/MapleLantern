@@ -1637,6 +1637,43 @@ html[data-ml-native="on"] #passages .passage #shopCategories .category-tab > img
   height: 22px !important;
   margin: 0 !important;
   object-fit: contain;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+/* 分页：原版在窄屏隐藏 Previous/Next 文字、只留箭头，圆点靠 .page 自身尺寸。
+   通用 a.macro-link 卡片规则会把链接撑成 27×44，文字竖排溢出圆点与按钮。
+   这里只清掉卡片外观，不接管原版显隐。 */
+html[data-ml-native="on"] #passages .passage #shop-pagination a.macro-link {
+  display: inline-flex !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  line-height: 1 !important;
+}
+
+html[data-ml-native="on"] #passages .passage #shop-pagination .page {
+  position: relative !important;
+}
+
+html[data-ml-native="on"] #passages .passage #shop-pagination .page > a {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media screen and (max-width: 577px) {
+  html[data-ml-native="on"] #passages .passage #shop-pagination .btn-pagination > a {
+    display: none !important;
+  }
 }
 
 html[data-ml-native="on"] #passages .passage #shopCategories .category-tab > a {

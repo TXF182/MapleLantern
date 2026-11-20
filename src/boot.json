@@ -1,6 +1,6 @@
 {
   "name": "MapleLantern",
-  "version": "1.4.20",
+  "version": "1.4.21",
   "nickName": "灯台 Lantern",
   "scriptFileList_inject_early": [
     "compat-preload.js"
