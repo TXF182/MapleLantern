@@ -1,6 +1,8 @@
-# 灯台 · Lantern（MapleLantern 1.4.18）
+# 灯台 · Lantern（MapleLantern 1.4.19）
 
-- **1.4.18 · 手机侧栏点击与浅色主题可读性**：侧栏开合同步收窄到真实 `#ui-bar-toggle`，点金额/时间/状态等侧栏内部区域不再补挂 `data-ml-sidebar-open`、不再把 `#story` 隐藏。纸灯浅色主题下，原版优化便利店 `.ConveniencestoreGood`、特质页 `.traitList .trait` 等第三方深底容器恢复浅字与原生亮色语义变量，商品名/描述不再深底深字。新增 S12 行为回归与纸灯深色卡片契约断言。
+- **1.4.19 · 纸灯深色卡片规则收窄与深色浮窗 `.black` 校正**：移除 1.4.18 对 `.traitList .trait` 的统一浅字，避免基础游戏无背景特质卡在纸灯下浅底浅字；只保留确有深底的便利店容器 `.ConveniencestoreGoodsClass > div`，并补卡内 `.black`。非纸灯主题的 `#customOverlayContent` 内，第三方 `.black` 说明文字改为当前主题正文色，避免黑底黑字。
+
+- **1.4.18 · 手机侧栏点击与浅色主题可读性**：侧栏开合同步收窄到真实 `#ui-bar-toggle`，点金额/时间/状态等侧栏内部区域不再补挂 `data-ml-sidebar-open`、不再把 `#story` 隐藏。纸灯浅色主题下，原版优化便利店 `.ConveniencestoreGood` 深底容器恢复浅字与原生亮色语义变量。新增 S12 行为回归与纸灯深色卡片契约断言；初版对 `.traitList .trait` 的覆盖已在 1.4.19 收窄。
 
 - **1.4.17 · MEE 同载启动崩溃修复**：MEE 1.0.4 的 `mee.excrete = function(){}` 末尾缺分号，紧接着的灯台 `core.js` 以 `(function…)()` 开头，ASI 把 `excrete` 当成被调用者，`V.daily` 缺失时抛 `reading 'excretes'` 并中断灯台脚本。现在 `core.js` 以**前置分号**开头断开连接；`inject-early` 兼容层仅作运行期兜底。新增 ASI 回归测试；全量 **212/212** PASS；真实 `file://` 装载 `ERRORS []`、`mounted=true`。
 

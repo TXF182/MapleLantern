@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.18");
+  assert.equal(boot.version, "1.4.19");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -508,9 +508,15 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   assert.equal((core.match(/theme\.paper/g) || []).length >= 2, true, "中英文都要有纸灯");
   assert.match(nativeCss, /data-ml-theme="paper"\] #mobileStats \.stat\.red\s*\{[^}]*#9E2F25/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.gold\s*\{[^}]*#6F5210/s);
-  assert.match(css, /data-ml-theme="paper"\] #passages \.passage :is\(\.ConveniencestoreGood, \.traitList \.trait, \.traitListReducedText \.trait\)\s*\{[^}]*color:\s*#E8DFD2/s,
-    "纸灯浅色主题下，第三方深色商品卡/特质卡必须恢复浅字，不能继承深墨正文色");
-  assert.match(css, /data-ml-theme="paper"\] #passages \.passage :is\([^)]*ConveniencestoreGood[^)]*\) \.gold\s*\{[^}]*var\(--gold/s,
+  assert.match(css, /data-ml-theme="paper"\] #passages \.passage \.ConveniencestoreGoodsClass > div\s*\{[^}]*color:\s*#E8DFD2/s,
+    "纸灯浅色主题下，原版优化便利店的深底商品卡必须恢复浅字，不能继承深墨正文色");
+  assert.doesNotMatch(css, /data-ml-theme="paper"\] #passages \.passage :is\([^)]*traitList \.trait/s,
+    "纸灯下不得把 .traitList .trait 统一写浅字：基础游戏特质卡只有边框没有背景，浅底浅字会看不清");
+  assert.match(css, /data-ml-theme="paper"\] #passages \.passage \.ConveniencestoreGoodsClass > div \.black\s*\{[^}]*#E8DFD2/s,
+    "便利店深色卡内的 .black 说明文字也必须回到浅字");
+  assert.match(css, /:not\(\[data-ml-theme="paper"\]\) #customOverlayContent \.black\s*\{[^}]*var\(--mln-text\)/s,
+    "非纸灯主题下，第三方浮窗里的 .black 说明文字必须改成当前主题正文色，避免黑底黑字");
+  assert.match(css, /data-ml-theme="paper"\] #passages \.passage \.ConveniencestoreGoodsClass > div \.gold\s*\{[^}]*var\(--gold/s,
     "深色卡片内的 .gold 语义色必须回到原生亮色，不能被纸灯深金覆盖");
   assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.teal\s*\{[^}]*#0E5F5F/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.gold\s*\{[^}]*#6F5210/s);
