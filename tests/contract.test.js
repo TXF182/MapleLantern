@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.17");
+  assert.equal(boot.version, "1.4.18");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -295,6 +295,10 @@ test("1.3.1：窄屏展开侧栏不再把 #story 挤成两字列", () => {
     "侧栏开合必须读真实几何，不能只按 .stowed class 判断");
   assert.match(native, /setAttribute\("data-ml-sidebar-open"/,
     "侧栏实际可见时才挂 data-ml-sidebar-open");
+  assert.doesNotMatch(native, /closest\("#ui-bar-toggle, #ui-bar-history, #ui-bar"\)/,
+    "侧栏内部普通点击不得触发抽屉状态重算，否则点金额/时间条会把正文隐藏");
+  assert.match(native, /if \(t\.closest && t\.closest\("#ui-bar-toggle"\)\)/,
+    "只有真实开合按钮可以触发抽屉状态同步");
 });
 
 test("1.3.1：手机抽屉安全边、横屏宽度与 320 紧凑尺寸", () => {
@@ -504,6 +508,10 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   assert.equal((core.match(/theme\.paper/g) || []).length >= 2, true, "中英文都要有纸灯");
   assert.match(nativeCss, /data-ml-theme="paper"\] #mobileStats \.stat\.red\s*\{[^}]*#9E2F25/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.gold\s*\{[^}]*#6F5210/s);
+  assert.match(css, /data-ml-theme="paper"\] #passages \.passage :is\(\.ConveniencestoreGood, \.traitList \.trait, \.traitListReducedText \.trait\)\s*\{[^}]*color:\s*#E8DFD2/s,
+    "纸灯浅色主题下，第三方深色商品卡/特质卡必须恢复浅字，不能继承深墨正文色");
+  assert.match(css, /data-ml-theme="paper"\] #passages \.passage :is\([^)]*ConveniencestoreGood[^)]*\) \.gold\s*\{[^}]*var\(--gold/s,
+    "深色卡片内的 .gold 语义色必须回到原生亮色，不能被纸灯深金覆盖");
   assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.teal\s*\{[^}]*#0E5F5F/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.gold\s*\{[^}]*#6F5210/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.link-external\s*\{[^}]*#2C4F85/s);

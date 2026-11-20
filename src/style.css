@@ -1764,4 +1764,38 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
   }
 }
 
+/* 1.4.18：纸灯浅色主题下，第三方深色卡片仍是深底。
+   原版优化便利店的 .ConveniencestoreGood、特质页的 .traitList .trait
+   如果继承纸灯深墨正文色，商品名/描述会整片看不清；这里只把这些已知
+   深底容器恢复浅字，容器内语义色回到原生亮色变量。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) {
+  color: #E8DFD2;
+}
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .gold { color: var(--gold, gold); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .teal { color: var(--teal, #08c1c1); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .red { color: var(--red, #ec3535); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .green { color: var(--green, #38b20a); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .blue { color: var(--blue, #4372ff); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .lblue { color: var(--blue-secondary, #559bc0); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .pink { color: var(--pink, #e40081); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .purple { color: var(--purple-secondary, #aa4bc8); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .traitList .trait, .traitListReducedText .trait) .orange { color: var(--orange, #f28500); }
+
+/* 1.4.18：纸灯浅色主题下，第三方深色卡片仍是深底。
+   原版优化便利店的 .ConveniencestoreGood、特质页的 .traitList .trait
+   如果继承纸灯深墨正文色，商品名/描述会整片看不清；这里只把这些已知
+   深底容器恢复浅字，容器内语义色回到原生亮色变量。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) {
+  color: #E8DFD2;
+}
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .gold { color: var(--gold, gold); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .teal { color: var(--teal, #08c1c1); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .red { color: var(--red, #ec3535); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .green { color: var(--green, #38b20a); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .blue { color: var(--blue, #4372ff); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .lblue { color: var(--blue-secondary, #559bc0); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .pink { color: var(--pink, #e40081); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .purple { color: var(--purple-secondary, #aa4bc8); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage :is(.ConveniencestoreGood, .usableitems > div, .traitList .trait, .traitListReducedText .trait) .orange { color: var(--orange, #f28500); }
+
 

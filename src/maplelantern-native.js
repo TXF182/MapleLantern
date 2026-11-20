@@ -1889,8 +1889,10 @@
   function onClick(e) {
     var t = e && e.target;
     if (!t) { return; }
-    /* 侧栏开合通常由按钮切换 class/style，UI 不会派发事件；点击后主动对两次。 */
-    if (t.closest && t.closest("#ui-bar-toggle, #ui-bar-history, #ui-bar")) {
+    /* 侧栏开合只由真实开合按钮改变。金额/时间/状态/菜单等侧栏内部普通点击
+       不得重算 data-ml-sidebar-open，否则会把已经展开的侧栏误判成抽屉态，
+       连带把 #story 隐藏（玩家表现为“点侧边栏任意地方正文消失”）。 */
+    if (t.closest && t.closest("#ui-bar-toggle")) {
       setTimeout(syncSidebar, 0);
       setTimeout(syncSidebar, 160);
     }

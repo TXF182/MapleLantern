@@ -266,3 +266,23 @@ test("O2 关闭原生卡片：结构可还原", async () => {
   assert.ok(restored.querySelector("a.link-internal"), "链接应回到宿主容器");
   assert.equal(restored.hasAttribute("data-ml-empty-holder"), false, "隐藏标记应被清掉");
 });
+
+test("S12 侧栏内部普通点击不得把正文切成抽屉隐藏态", async () => {
+  const w = make(page("<p>正文</p>", ""));
+  const doc = w.document;
+  const bar = doc.getElementById("ui-bar");
+  bar.insertAdjacentHTML("beforeend", "<a id='ml-money'>£1,000</a><button id='ui-bar-toggle'>☰</button>");
+  bar.getBoundingClientRect = () => ({ width: 281, height: 844, top: 0, left: 0, right: 281, bottom: 844, x: 0, y: 0 });
+  await tick(w);
+  doc.documentElement.removeAttribute("data-ml-sidebar-open");
+
+  doc.getElementById("ml-money").dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  await tick(w, 200);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), null,
+    "点击金额/时间等侧栏内部区域不应挂上抽屉隐藏标记");
+
+  doc.getElementById("ui-bar-toggle").dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  await tick(w, 200);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), "1",
+    "真实开合按钮仍必须能挂上抽屉标记");
+});
