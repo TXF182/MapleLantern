@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.4.16）
+# 灯台 · Lantern（MapleLantern 1.4.17）
+
+- **1.4.17 · MEE 同载启动崩溃修复**：MEE 1.0.4 的 `mee.excrete = function(){}` 末尾缺分号，紧接着的灯台 `core.js` 以 `(function…)()` 开头，ASI 把 `excrete` 当成被调用者，`V.daily` 缺失时抛 `reading 'excretes'` 并中断灯台脚本。现在 `core.js` 以**前置分号**开头断开连接；`inject-early` 兼容层仅作运行期兜底。新增 ASI 回归测试；全量 **212/212** PASS；真实 `file://` 装载 `ERRORS []`、`mounted=true`。
 
 - **1.4.16 · 成就页图标修复**：成就行图标列固定 30px，但已解锁金币原图 74px 没有被缩放，溢出后压住标题。现在 `.featImage` 按 `border-box` 计算，内部 `img` 统一 22px（实际外框 24px）并 `object-fit:contain`，金币与未解锁圆点都归位。新增 S11 回归；七文件全量 **208/208** PASS；390 与 1080 宽度实测图标列 30px、图片 24px、文字起点在图片右侧。
 

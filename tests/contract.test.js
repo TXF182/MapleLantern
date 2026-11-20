@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.16");
+  assert.equal(boot.version, "1.4.17");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -34,8 +34,10 @@ test("boot.json：身份、版本、四个必填列表与文件存在性", () =>
     ["core.js", "maplelantern-native.js", "render.js",
      "dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js", "custom.js"],
     "core 必须先于 native/render；自定义按 core→assets→theme→panel→custom（启动装配）顺序跟在后面");
+  assert.deepEqual(boot.scriptFileList_inject_early, ["compat-preload.js"],
+    "MEE 兼容层必须在所有普通脚本之前注入");
   assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾");
-  for (const list of [boot.scriptFileList, boot.styleFileList, boot.additionFile || []]) {
+  for (const list of [boot.scriptFileList, boot.scriptFileList_inject_early, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
     }

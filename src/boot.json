@@ -1,7 +1,10 @@
 {
   "name": "MapleLantern",
-  "version": "1.4.16",
+  "version": "1.4.17",
   "nickName": "灯台 Lantern",
+  "scriptFileList_inject_early": [
+    "compat-preload.js"
+  ],
   "scriptFileList": [
     "core.js",
     "maplelantern-native.js",

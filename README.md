@@ -2,7 +2,13 @@
 
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生 UI 替换层。只改呈现，不碰游戏数值与存档写入。
 
-当前版本：**1.4.16**（修复成就页已解锁金币图超出图标列、压住标题的错位。）
+当前版本：**1.4.17**（修复与 MEE「露出拓展 1.0.4」同载时的启动崩溃、灯台 UI 不加载。）
+
+## 1.4.17 重点
+
+- **启动崩溃修复**：MEE 的 `mee.excrete = function(){}` 末尾缺分号，紧随其后的灯台 `core.js` 以 `(function…)()` 开头，ASI 把 `excrete` 当成被调用者并立即执行；`V.daily` 尚未建立时直接抛 `Cannot read properties of undefined (reading 'excretes')`，灯台整个脚本中断。现在 `core.js` 以**前置分号**开头，切断这条连接，不伪装 `V.daily`。
+- **运行期兜底**：保留 `inject-early` 兼容层，仅在 `daily` 缺失时让 `getexcretes` 返回 false、`excrete` 安全 no-op；`daily` 正常时仍走 MEE 原实现。
+- **验证**：全量 **212 / 212 PASS**；MEE 1.0.4 + 1.4.17 真实 `file://` 装载，`ERRORS []`、`mounted=true`、`#ml-root=true`。
 
 ## 1.4.16 重点
 

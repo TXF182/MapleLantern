@@ -19,7 +19,7 @@ $out = Join-Path $dist ("MapleLantern-{0}.mod.zip" -f $version)
 $files = Get-ChildItem -LiteralPath $src -File -Recurse | Sort-Object { $_.FullName.Substring($src.Length + 1) }
 $names = @($files | ForEach-Object { $_.FullName.Substring($src.Length + 1).Replace("\", "/") })
 if ($names -notcontains "boot.json") { throw "boot.json 必须位于 zip 根目录" }
-foreach ($list in @("scriptFileList", "styleFileList", "tweeFileList", "imgFileList")) {
+foreach ($list in @("scriptFileList", "scriptFileList_inject_early", "styleFileList", "tweeFileList", "imgFileList")) {
   if (-not ($boot.PSObject.Properties.Name -contains $list)) { throw "boot.json 缺少必填列表: $list" }
   foreach ($rel in @($boot.$list)) {
     if ($names -notcontains ([string]$rel)) { throw "boot.json 的 $list 引用了不存在的文件: $rel" }

@@ -4,7 +4,8 @@
  * 与 node 测试（module.exports）同时加载。
  * 纪律：所有对外读取都是防御式的；任何异常都返回 null，不抛给游戏。
  * ========================================================================== */
-(function (root, factory) {
+/* 前置分号：防止与上一个模组脚本末尾缺少分号的函数表达式发生 ASI 连接。 */
+;(function (root, factory) {
   "use strict";
   var api = factory();
   if (typeof module === "object" && module.exports) { module.exports = api; }
@@ -12,7 +13,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.4.16";
+  var VERSION = "1.4.17";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
   var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
