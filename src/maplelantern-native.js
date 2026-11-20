@@ -1258,6 +1258,12 @@
     for (var b = 0; b < buttons.length && b < 320; b++) {
       var btn = buttons[b];
       if (btn.getAttribute("data-mln-tab") || btn.getAttribute("data-mln-close")) { continue; }
+      /* 原版 <<numberStepper>> 的箭头按钮里是两个 .fa-icon 叠合成的 |< … >|，
+         尺寸和内边距必须完全交给原版 CSS。通用按钮规则给 3px 7px 内边距后，
+         32px 宽只剩 4px 内容区，两根图标会被挤出按钮，表现就是「箭头错位」。
+         CSS 的 !important 也压不过这里的 inline !important，只能在入口跳过。 */
+      if (btn.classList.contains("numberStepper") ||
+          (btn.parentNode && btn.parentNode.classList && btn.parentNode.classList.contains("numberStepperGroup"))) { continue; }
       var label = (btn.textContent || "").trim();
       imp(btn, "min-height", "32px");
       imp(btn, "padding", "3px 7px");

@@ -392,6 +392,28 @@ html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="paper"] #mob
 html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="paper"] #mobileStats .stat.red { color: #9E2F25; border-color: rgb(158 47 37 / 46%); background: linear-gradient(180deg, rgb(158 47 37 / 6%), transparent), rgb(158 47 37 / 8%); }
 html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="paper"] #mobileStats .stat.orange { color: #8A4B1E; border-color: rgb(138 75 30 / 46%); background: linear-gradient(180deg, rgb(138 75 30 / 6%), transparent), rgb(138 75 30 / 8%); }
 
+/* 纸灯的左轨时间块原先是亮米色字（#F6E7C9）配金色 .vertical，数字在浅纸底
+   上几乎发白。时间数字与日期竖排统一压成墨色，并去掉暗阴影；只改颜色，
+   不动 60px 高度与 28px 宽度。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.time,
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.time .vertical {
+  color: #2A2118 !important;
+  opacity: 1;
+  text-shadow: none;
+  font-weight: 800;
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.time .vertical {
+  color: #1F1912 !important;
+}
+
+/* 顶部金钱/时间条在纸灯下同样用墨色时间，避免亮底浅字。 */
+html[data-ml-native="on"][data-ml-theme="paper"] #stats .clockContainer {
+  color: #1F1912 !important;
+  text-shadow: none;
+  font-weight: 700;
+}
+
 /* 亮纸底上的原版语义色（青/金/红等）对比不足，换成同色系深墨；逐项均 ≥4.5:1。 */
 html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .gold { color: #6F5210; }
 html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .teal { color: #0E5F5F; }
@@ -2561,6 +2583,36 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .settingsGrid .numb
   transform: none !important;
 }
 
+/* 原版作弊页的「核心属性 / Core Characteristics」不是 .settingsGrid，而是
+   .settingsToggleItem 里直接排 <<numberStepper>>。通用 44px 按钮规则会把每个
+   32px 箭头撑成 44px 并塞进 9px/14px 内边距，双图标 |< … >| 被挤出按钮，
+   看起来就是箭头跑到格子外。这里对非 CE overlay 的所有 numberStepper 恢复
+   原版几何：32×32、零内边距、无底色无边框，箭头与数值条重新贴合。 */
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper:disabled,
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .numberStepper:not(#customOverlayContainer *) {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font-size: 90% !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper:hover {
+  border: none !important;
+  background-color: transparent !important;
+}
+
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsToggleItem:hover,
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsToggleItemWide:hover {
   border-color: var(--mln-border);
@@ -3637,6 +3689,111 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #menu b
   html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active {
     transform: none !important;
     box-shadow: none !important;
+  }
+}
+
+/* 关闭「顶部四格」时，原版 #stats 仍是 280px 定宽 + 20px gap 的横排；在手机
+   280px 以内的侧栏里，clockContainer 的 scale(1.3) 会把时间胶囊撑到金额上面，
+   金额被压成 `£24,`，日期也被挤成竖排。这里只给“关闭四格”的窄屏补一个安全
+   布局：保留原版深色条与无卡片外观，但把开关/金额/时间/日期放回 3×2 网格，
+   时间取消放大、金额可压缩，两个状态都不再互相覆盖。开启四格的样式由上面的
+   规则负责，不在此重复。 */
+@media (max-width: 900px) {
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 62px !important;
+    padding: 2px 4px 3px !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements {
+    display: grid !important;
+    grid-template-columns: 28px minmax(0, 1fr) 58px !important;
+    grid-template-rows: 28px 28px !important;
+    grid-template-areas: "toggle money time" "toggle day day" !important;
+    justify-content: stretch !important;
+    align-items: stretch !important;
+    gap: 3px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div {
+    min-width: 0 !important;
+    height: auto !important;
+    padding: 1px 2px !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+    font-size: 10px !important;
+    line-height: 1.15 !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="toggle"],
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-open"], img[src*="sidebar-closed"]) {
+    grid-area: toggle;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="money"],
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.true) {
+    grid-area: money;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="time"],
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.clockContainer) {
+    grid-area: time;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="day"],
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-day"]) {
+    grid-area: day;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="toggle"] img,
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="day"] img {
+    display: block !important;
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="money"] .true {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+    max-width: 100% !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .clockContainer {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    transform: none !important;
+    scale: 1 !important;
+    font-size: 9.5px !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .clockContainer img {
+    display: block !important;
+    width: 11px !important;
+    height: 11px !important;
   }
 }
 

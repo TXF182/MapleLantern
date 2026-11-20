@@ -23,7 +23,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.19");
+  assert.equal(boot.version, "1.4.20");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -572,7 +572,9 @@ test("原型：先 CSS 后脚本，core 先于 render", () => {
 test("体积预算：UI 包源码应远小于 1MB", () => {
   for (const f of ["core.js", "maplelantern-native.js", "render.js", "style.css", "maplelantern-native.css", "effects.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
-    assert.ok(size < 200 * 1024, f + " 过大: " + size);
+    /* 1.4.20：原生层新增手机窄屏安全网格与 numberStepper 还原，CSS 从约 204KB
+       增至约 207KB；上限随实现上调到 220KB，仍远低于 1MB。 */
+    assert.ok(size < 220 * 1024, f + " 过大: " + size);
   }
   assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
 });
@@ -945,4 +947,49 @@ test("流体动效：球心原点 / 回弹令牌 / 凝光层 / 后台暂停 / �
     "球必须 touch-action:none，否则触摸拖拽被页面滚动掐断");
   assert.match(css, /#ml-root\[data-dragging="1"\] \.ml-orb \{[\s\S]{0,120}will-change:\s*transform/s,
     "拖拽期必须提升为合成层");
+});
+
+test("作弊页 numberStepper：原版 32×32 几何不得被通用按钮规则撑开", () => {
+  /* 原版核心属性行是两个 .fa-icon 叠出来的 |< … >|；通用 44px/9px 内边距会把
+     32px 按钮挤到只剩 4px 内容区，箭头就跑到格子外。JS 入口必须先跳过。 */
+  assert.match(native, /classList\.contains\("numberStepper"\)/,
+    "CE overlay 增强必须在按钮入口跳过 numberStepper");
+  assert.match(native, /numberStepperGroup/,
+    "子按钮兜底也必须认 numberStepperGroup");
+  /* CSS 兜底：非 CE overlay 的所有 numberStepper，而不只是 .settingsGrid。 */
+  assert.match(nativeCss, /#customOverlayContent[^}]{0,260}\.numberStepper,\s*[\r\n]+html\[data-ml-native="on"\][^}]{0,260}\.numberStepper:disabled/s,
+    "numberStepper 几何规则必须覆盖非 settingsGrid 路径");
+  const stepper = nativeCss.match(/\.numberStepper,\r?\n[\s\S]{0,900}?height:\s*32px\s*!important/);
+  assert.ok(stepper, "numberStepper 规则块必须存在，且含 32px 高度");
+  assert.match(nativeCss, /\.numberStepper,\r?\n[\s\S]{0,900}?padding:\s*0\s*!important/);
+  assert.match(nativeCss, /\.numberStepper,\r?\n[\s\S]{0,900}?background-color:\s*transparent\s*!important/);
+  assert.match(nativeCss, /\.numberStepper,\r?\n[\s\S]{0,900}?border:\s*none\s*!important/);
+  assert.match(nativeCss, /\.numberStepper:hover \{[\s\S]{0,120}background-color:\s*transparent/s,
+    "hover 不得把箭头按钮涂回卡片底色");
+});
+
+test("纸灯：左轨时间数字与顶部时钟统一为墨色", () => {
+  assert.ok(!/\[data-ml-opt-rail-skin="1"\]\[data-ml-theme="paper"\] #mobileStats \.stat\.time/.test(nativeCss),
+    "纸灯时间墨色不得依赖左轨皮肤开关（默认为关，会导致仍用原版浅字）");
+  assert.match(nativeCss,
+    /\[data-ml-theme="paper"\] #mobileStats \.stat\.time,[\s\S]{0,180}\.stat\.time \.vertical \{[\s\S]{0,180}color:\s*#2A2118\s*!important/s,
+    "纸灯左轨时间块必须用深墨色");
+  assert.match(nativeCss,
+    /\[data-ml-theme="paper"\] #mobileStats \.stat\.time \.vertical \{[\s\S]{0,80}color:\s*#1F1912/s,
+    "纸灯竖排日期必须比正文更深");
+  assert.match(nativeCss,
+    /\[data-ml-theme="paper"\] #stats \.clockContainer \{[\s\S]{0,120}color:\s*#1F1912\s*!important/s,
+    "纸灯顶部时钟必须用墨色");
+});
+
+test("关闭顶部四格时：手机窄屏仍把金额/时间/日期排进 3×2 网格", () => {
+  assert.match(nativeCss,
+    /:not\(\[data-ml-opt-stats="1"\]\) #stats#stats \.centered-elements \{[\s\S]{0,360}grid-template-areas:\s*"toggle money time" "toggle day day"/s,
+    "关闭四格时也必须给窄屏安全网格");
+  assert.match(nativeCss,
+    /:not\(\[data-ml-opt-stats="1"\]\) #stats#stats \.clockContainer \{[\s\S]{0,200}transform:\s*none\s*!important/s,
+    "时间胶囊必须取消 scale(1.3)，否则会盖到金额上");
+  assert.match(nativeCss,
+    /:not\(\[data-ml-opt-stats="1"\]\) #stats#stats \.centered-elements > div\[data-ml-chip="money"\]/s,
+    "金额格必须显式落在 money 区域");
 });
