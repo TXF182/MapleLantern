@@ -600,6 +600,12 @@ html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="toggle"]
   align-self: stretch !important;
 }
 
+/* 纸灯开四格时开关格是浅色卡片，原版白色箭头会糊在底上；只反色这一枚图标。 */
+html[data-ml-native="on"][data-ml-opt-stats="1"][data-ml-theme="paper"] #stats .centered-elements > div[data-ml-chip="toggle"] img {
+  filter: invert(1);
+  opacity: 0.78;
+}
+
 /* 原版 #stats 是单行 flex，靠 20px gap 分隔；改成四列定宽时，日期字一长
    （中文「星期日 9月4日」约 62px）就会被 44px 的日期格裁掉，金额格也会被
    挤到只剩「£9,4」。这里沿用原版的阅读顺序，但排成两行：
