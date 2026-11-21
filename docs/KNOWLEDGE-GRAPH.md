@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 知识图谱（机器可检索版）
 
-> 生成：2026-11-21 / 版本 1.5.0。
+> 生成：2026-11-21 / 版本 1.5.1。
 > 定位约定：`FN-*` 功能条目见 `docs/FUNCTION-MATRIX.md`（带 file:line）；本图只画「谁调谁、谁约束谁、哪条坑位解释哪段设计」。
 > 检索方法（给 AI 用）：
 > 1. 想找「某功能怎么实现」→ 先 FUNCTION-MATRIX 拿 `FN-*` 与行号，回源码精读。
@@ -34,6 +34,8 @@
 |---|---|---|
 | KG-FUNC-SETTINGS | 主设置链路（读写/净化/应用） | FN-core-defaults, FN-core-sanitize, FN-render-settings |
 | KG-FUNC-THEMES | 九主题调色板 | FN-core-palettes |
+| KG-FUNC-ORNAMENT | 主题边饰 | FN-render-settings, CSSO-frame |
+| KG-FUNC-TEXTCOLOR | 正文文字色 | FN-core-textcolor, FN-render-textcolor, FN-native-textcolor, CSSN-textcolor, CSSP-color |
 | KG-FUNC-CONTRAST | 对比度与颜色推导 | FN-core-contrast, FN-dc-colors |
 | KG-FUNC-VIEWPORT | 缩放/视口/面板原点 | FN-core-viewport |
 | KG-FUNC-PANEL | 面板开关与页签 | FN-render-panel, FN-render-tabs |
@@ -62,6 +64,7 @@
 | KG-CST-GATE | 原生层门控 | 全部 CSS 以 `html[data-ml-native="on"]` 前导；DoLGameUI 启用时让位；native.js:86 |
 | KG-CST-HAS | 旧 WebView `:has` 降级 | 平铺选择器与 `:not(:has(...))` 成员**不得混排**（旧引擎整条丢弃）；契约 D3；FUNCTION-MATRIX CSSN-press |
 | KG-CST-PRESSSEM | 按压语义 = 只缩放不下沉 | 契约 contract.test.js「按压反馈」+「.md-apply:active 只缩放」 |
+| KG-CST-TEXTCOLOR | 文字色只改正文与标题 | 自定义色走 `--mln-text-custom`，只挂 `#passages`/`.passage` 与 `.passage h1–h4`；不改写 `--mln-text`，选项/读数/侧栏不受影响；低于 4.5:1 不生效 |
 | KG-CST-MOTION | 动效三层关断 | `data-ml-motion="off"` + prefers-reduced-motion + 原生层同构 |
 | KG-CST-STORE | 存储键与迁移 | MapleLantern.settings.v1 / MapleLanternDossier.settings.v1；sanitize 白名单 |
 | KG-CST-BOOT | 加载顺序 | boot.json scriptFileList：core→native→render→dossier 四件→custom；inject_early=compat-preload |
@@ -86,11 +89,11 @@
 
 | ID | 名称 | 详情 |
 |---|---|---|
-| KG-VLD-TESTS | 全量测试 | `node --test tests\*.test.js`；1.5.0 = 237/237（含新契约 D3） |
+| KG-VLD-TESTS | 全量测试 | `node --test tests\*.test.js`；1.5.1 = 246/246（含绿茵/边饰/石墨移除/文字色断言） |
 | KG-VLD-HOSTPROBE | 宿主探针 | `pwsh tools\host-probe.ps1`（服务根=工程根，否则全 false） |
 | KG-VLD-PACK | 确定性打包 | `pwsh .\pack.ps1` → dist + SHA256.txt |
 | KG-VLD-CHECK | 包结构校验 | dol-ui-design `check_ui_mod.py`（14 PASS/1 WARN 基线） |
-| KG-VLD-REAL | 实机安装探针 | `%TEMP%\ml_150_real2.js`：真实导入页→IDB→游戏（1.5.0） |
+| KG-VLD-REAL | 实机安装探针 | `%TEMP%\ml_151_real.js`：真实导入页→IDB→游戏（1.5.1），含绿茵色板/边饰伪元素/窄屏收敛/边饰开关/文字色落值与回退 |
 | KG-VLD-SMOKE | game-smoke | mce-e2e\real_smoke.ps1 |
 
 ## 2. 边（依赖/调用/约束关系，每行一条）
@@ -163,6 +166,8 @@ KG-VLD-SMOKE -> KG-PIT-SMOKE        口径约束
 #外观 #dossier         KG-FUNC-DOSSIER KG-MOD-DCORE KG-MOD-DPANEL KG-MOD-CSSC
 #图片 #image #图库      KG-FUNC-GALLERY KG-CST-CSP KG-PIT-IMG-RETRY KG-PIT-FILEINPUT
 #主题 #theme           KG-FUNC-THEMES CSSN-cyber CSSP-cyber CSSN-texture
+#边饰 #ornament        KG-FUNC-ORNAMENT CSSO-frame
+#文字色 #textcolor     KG-FUNC-TEXTCOLOR KG-CST-TEXTCOLOR CSSN-textcolor CSSP-color
 #动效 #motion          KG-CST-MOTION KG-MOD-CSSF CSSP-motion-off
 #几何 #缩放 #viewport   KG-FUNC-VIEWPORT KG-CST-ZOOM KG-CST-GEOM
 #销毁 #destroy         KG-FUNC-DESTROY
@@ -179,3 +184,4 @@ KG-VLD-SMOKE -> KG-PIT-SMOKE        口径约束
 |---|---|---|
 | KG-VER-1422 | 1.4.22 | 审计落修轮（本表基线前）：默认外观门控、pointercancel、MEE、destroy 级联、CSP data URL、图片有限重试、文件框复用、`:is(:has)` 拆分、入口 `<a>` |
 | KG-VER-150 | 1.5.0 | 压按语义改「只缩放」、`:not(:has)` 混排 32 条拆净（契约 D3）、237/237、重打包 SHA `b9c8eaffd626aaf1da2287320fbd9ff59d1226a2d7ccbb1fb2e157bbd2e28109` |
+| KG-VER-151 | 1.5.1 | 新增绿茵（阳光草场浅色档）与主题边饰（8 套 SVG 边框，可总开关；auto 解析为 cyberpunk，边饰随 cyberpunk）；新增正文文字色（跟随主题/预设/自定义，4.5:1 护栏，只挂正文层）；删除石墨并让旧档回落默认；246/246；包 `MapleLantern-1.5.1.mod.zip` 189,445 B / 16 条目 / SHA256 `5cefdd342e4d056aed176c3864643e42fa7b0c1c8bd04c96496477d5e8a05e0d`；实机探针 20/20 |

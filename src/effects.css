@@ -318,18 +318,18 @@
   --ml-veil-speed: 36s;
 }
 
-#ml-root[data-theme="graphite"] {
-  --ml-fx-ambient-a: rgba(201, 205, 212, .10);
-  --ml-fx-ambient-b: rgba(255, 255, 255, .06);
-  --ml-fx-ambient-c: rgba(120, 130, 140, .06);
-  --ml-fx-ambient-w: 30vmax;
+#ml-root[data-theme="grass"] {
+  --ml-fx-ambient-a: rgba(255, 233, 168, .22);
+  --ml-fx-ambient-b: rgba(47, 107, 43, .08);
+  --ml-fx-ambient-c: rgba(20, 138, 124, .07);
+  --ml-fx-ambient-w: 34vmax;
   --ml-fx-ambient-h: 26vmax;
-  --ml-fx-ambient-speed: 34s;
-  --ml-fx-ambient-opacity: .66;
-  --ml-veil-a: rgba(201, 205, 212, .07);
-  --ml-veil-b: rgba(255, 255, 255, .05);
+  --ml-fx-ambient-speed: 30s;
+  --ml-fx-ambient-opacity: .70;
+  --ml-veil-a: rgba(255, 233, 168, .12);
+  --ml-veil-b: rgba(20, 138, 124, .06);
   --ml-veil-opacity: .22;
-  --ml-veil-speed: 40s;
+  --ml-veil-speed: 34s;
 }
 
 #ml-root[data-theme="star"] {
@@ -427,13 +427,13 @@
   --ml-sky-speed: 38s;
 }
 
-#ml-root[data-theme="graphite"] {
-  --ml-sky-a: rgba(201, 205, 212, .20);
-  --ml-sky-b: rgba(255, 255, 255, .12);
-  --ml-sky-c: rgba(120, 130, 140, .14);
-  --ml-sky-c2: rgba(255, 255, 255, .10);
-  --ml-sky-opacity: .36;
-  --ml-sky-speed: 42s;
+#ml-root[data-theme="grass"] {
+  --ml-sky-a: rgba(255, 233, 168, .34);
+  --ml-sky-b: rgba(220, 240, 200, .30);
+  --ml-sky-c: rgba(20, 138, 124, .14);
+  --ml-sky-c2: rgba(47, 107, 43, .12);
+  --ml-sky-opacity: .42;
+  --ml-sky-speed: 40s;
 }
 
 #ml-root[data-theme="star"] {
@@ -616,12 +616,6 @@
   -webkit-mask-image: radial-gradient(ellipse at 50% 50%, transparent 0 40%, #000 78%);
   mask-image: radial-gradient(ellipse at 50% 50%, transparent 0 40%, #000 78%);
   animation: ml-ink-ripple 18s ease-in-out infinite alternate;
-}
-
-#ml-root[data-theme="graphite"] .ml-ambient::before {
-  opacity: .30;
-  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .02) 0 1px, transparent 1px 3px);
-  animation: ml-static-flicker 4.8s steps(2, end) infinite;
 }
 
 #ml-root[data-theme="star"] .ml-ambient::before {

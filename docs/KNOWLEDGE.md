@@ -1,6 +1,7 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-21 / **1.5.0** 发布轮：1.4.22 全仓审计落修（默认外观门控、pointercancel、MEE 兼容、destroy 级联、CSP data URL、图片有限重试、`:is(:has)` 拆分、入口 `<a>`）+ 按压语义改「只缩放」+ 原生 CSS `:not(:has(...))` 混排 32 条拆净（契约 D3）；九文件 **237/237** PASS；宿主探针 PASS（scripts=5 / 1.5.0 / cardKeys / bgKeys）；确定性打包 `MapleLantern-1.5.0.mod.zip`（183,503 B / 15 条目 / SHA256 `b9c8eaffd626aaf1da2287320fbd9ff59d1226a2d7ccbb1fb2e157bbd2e28109`）并替换启动器旧包；实机探针（真实导入 → file:// IDB → 游戏）**15/15 PASS**（按压只缩放：真实 mouse.down `scale(.972)` 无 translateY + CDP 样式表审计平铺按压 16 条 / CE 排除 280 条 / 0 条 translateY）；game-smoke A/B/C/D/E/G PASS、F 工具范围 WARN（CE 不在此 origin）；`git diff --check` 干净（仓库行尾约定 CRLF，已设 repo-local `core.whitespace cr-at-eol`）。检索入口：`docs/FUNCTION-MATRIX.md`（功能矩阵）+ `docs/KNOWLEDGE-GRAPH.md`（知识图谱）。
+> 最后核对：2026-11-21 / **1.5.1** 发布轮：新增绿茵主题（阳光草场浅色档：割草条纹、斑驳阳光、球场白线、组件青绿描边）与主题边饰（`#passages::before` 12px `border-image` 帧，八套 SVG 语言，可总开关（auto 解析为 cyberpunk，边饰随 cyberpunk），零 DOM/零动画，≤600 收细、≤420 只留标题枝）；新增正文文字色（跟随主题 / 主题预设 / 自定义，只挂 `#passages`/`.passage`，4.5:1 护栏）；删除石墨并让旧档回落默认主题；全量 **246/246** PASS；宿主探针 PASS（scripts=5 / 1.5.1）；确定性打包 `MapleLantern-1.5.1.mod.zip`（189,445 B / 16 条目 / SHA256 `5cefdd342e4d056aed176c3864643e42fa7b0c1c8bd04c96496477d5e8a05e0d`）；实机探针 20/20 PASS；`check_ui_mod.py` 14 PASS / 1 WARN 基线不变。检索入口：`docs/FUNCTION-MATRIX.md`（功能矩阵）+ `docs/KNOWLEDGE-GRAPH.md`（知识图谱）。
+> 1.5.0 发布轮记录：1.4.22 全仓审计落修（默认外观门控、pointercancel、MEE 兼容、destroy 级联、CSP data URL、图片有限重试、`:is(:has)` 拆分、入口 `<a>`）+ 按压语义改「只缩放」+ 原生 CSS `:not(:has(...))` 混排 32 条拆净（契约 D3）；九文件 **237/237** PASS；宿主探针 PASS（scripts=5 / 1.5.0 / cardKeys / bgKeys）；确定性打包 `MapleLantern-1.5.0.mod.zip`（183,503 B / 15 条目 / SHA256 `b9c8eaffd626aaf1da2287320fbd9ff59d1226a2d7ccbb1fb2e157bbd2e28109`）并替换启动器旧包；实机探针（真实导入 → file:// IDB → 游戏）**15/15 PASS**（按压只缩放：真实 mouse.down `scale(.972)` 无 translateY + CDP 样式表审计平铺按压 16 条 / CE 排除 280 条 / 0 条 translateY）；game-smoke A/B/C/D/E/G PASS、F 工具范围 WARN（CE 不在此 origin）；`git diff --check` 干净（仓库行尾约定 CRLF，已设 repo-local `core.whitespace cr-at-eol`）。
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 
@@ -471,3 +472,17 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 - **图标列与图片尺寸不一致**：灯台把 `#featsList .feat` 排成 `grid-template-columns:30px minmax(0,1fr)`，`featImage` 30×30 且只给 `.dot` 写了 12px。已解锁的 `img.featCoin` 原图 74×74、原版只有 `padding:1px`，溢出列宽后覆盖到标题上，手机与电脑同样出现。
 - **处置**：`featImage` 加 `box-sizing:border-box`，把 2px 内边距收进 30px；同一规则对 `img.dot` / `img.featCoin` 生效，设 `22px × 22px`、`object-fit:contain`。未解锁圆点仍保留原版 `border-radius:50%` 与底色。
 - **实测判据**：390 与 1080 宽度合成宿主，图标列 30px、图片外框 24px、图片右缘 62（390）/126（1080），文字起点 73 / 137，`overflowX=false`。全量 `208/208`，CSS 仍为 `204,760 B`，不超预算。
+
+## 13. 正文文字色（1.5.1）
+
+**目标**：让玩家改故事正文的颜色，但不破坏主次层级，也不允许调出看不见的字。
+
+**为什么只挂正文**：正文（`#passages` / `.passage` / `.passage h1–h4`）与选项按钮、状态读数、侧栏共用 `--mln-text`。直接改 `--mln-text` 会一锅端：选项按钮在 `--mln-surface` 上，按正文底色算的对比度在这里不成立；状态条标签和数值本来靠 `muted`/语义色分层。因此新建 `--mln-text-custom`，只在 `html[data-ml-text="custom"]` 下给正文容器与标题设 `color`（`!important` 压过基础规则），其余元素一律不匹配。
+
+**预设怎么来**：不写死色表。`textColorChoices(theme)` 从当前主题调色板取 accent / jade / rose / danger，逐色以主题 `bg` 算 WCAG 对比度，低于 4.5:1 直接剔除（例如绿茵的 jade `#3F8F5B` 只有 3.36:1，不会出现在绿茵的色点里）。所以换主题时预设会跟着换，且永远是当前底色上能读的色。
+
+**自定义护栏**：取色器给任意色，落值前用 `textColorFor` 按当前主题 `bg` 校验；不合格弹提示且不写入。换主题时若旧自定义色在新底色上不合格，`setSetting("theme")` 会把它回落 `auto` 并提示——不留“设置里亮着、正文没生效”的悬挂值。
+
+**落值链路**：设置存 `textColor`（`auto` 或小写 `#rrggbb`，非法值净化回 `auto` 并 `repaired=true`）→ render 写 localStorage 并 `syncNative()` → native 的 `applyStoryColor` 在每次 `apply()` 里重算，写 `data-ml-text` 与 `--mln-text-custom`，原生层关闭时撤除。零 DOM 节点、纯变量覆盖。
+
+**测试**：core 断言八主题预设逐色 ≥4.5:1、白字在绿茵判不合格、非法值修复；dom 断言色点选择落盘、落 `data-ml-text`、换绿茵自动回 `auto`、自定义 `#2f6b2b` 生效；契约断言 CSS 只挂正文层（含 h1–h4）且色点 44px；实机探针 3 项（正文与标题跟随预设、不波及选项、回跟随主题）。

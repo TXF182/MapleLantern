@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.5.0");
+  assert.equal(C.VERSION, "1.5.1");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "switches", "settings"]);
   assert.equal(C.THEMES.length, 9);
@@ -241,12 +241,39 @@ test("readThirdParty：两个第三方都缺失时返回 null，不增加空面�
 });
 
 test("对比度：正文/次要文字/强调色达到 WCAG AA（4.5:1）", () => {
-  for (const name of ["cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+  for (const name of ["cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
     const p = C.paletteFor(name);
     assert.ok(C.contrast(p.text, p.bg) >= 4.5, name + " text " + C.contrast(p.text, p.bg));
     assert.ok(C.contrast(p.muted, p.bg) >= 4.5, name + " muted " + C.contrast(p.muted, p.bg));
     assert.ok(C.contrast(p.accent, p.bg) >= 4.5, name + " accent " + C.contrast(p.accent, p.bg));
   }
+});
+
+test("绿茵：调色板落值、主题清单、浅底强调色仍过 AA", () => {
+  assert.deepEqual(C.THEMES, ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]);
+  const p = C.paletteFor("grass");
+  assert.equal(p.bg, "#E6F0D4");
+  assert.equal(p.text, "#20301A");
+  assert.equal(p.accent, "#2F6B2B");
+  assert.equal(p.line, "rgba(32,48,26,.18)");
+  /* 浅底上玫瑰/危险色也必须可读，不能直接沿用深色主题取值 */
+  assert.ok(C.contrast(p.rose, p.bg) >= 4.5, "grass rose " + C.contrast(p.rose, p.bg));
+  assert.ok(C.contrast(p.danger, p.bg) >= 4.5, "grass danger " + C.contrast(p.danger, p.bg));
+  assert.equal(C.strings("zh")["theme.grass"], "绿茵");
+  assert.equal(C.strings("en")["theme.grass"], "Meadow");
+});
+
+test("旧档迁移：石墨被删后主题回落默认，且边饰字段有默认值", () => {
+  const old = C.sanitizeSettings({ v: 1, theme: "graphite" });
+  assert.equal(old.value.theme, "cyberpunk", "graphite 不在 THEMES 里，必须回落 DEFAULTS.theme");
+  assert.equal(old.repaired, true, "回落必须留 repaired 供一次性提示");
+  assert.equal(C.DEFAULTS.ornament, true, "边饰默认开");
+  const cleaned = C.sanitizeSettings({ v: 1, theme: "grass", ornament: false });
+  assert.equal(cleaned.value.theme, "grass");
+  assert.equal(cleaned.value.ornament, false);
+  const broken = C.sanitizeSettings({ v: 1, ornament: "yes" });
+  assert.equal(broken.value.ornament, true, "非布尔按默认开处理");
+  assert.equal(broken.repaired, true);
 });
 
 test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不到尺寸回退百分比", () => {
@@ -265,11 +292,36 @@ test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不�
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.5.0");
+  assert.equal(d.version, "1.5.1");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);
   const d2 = C.buildDiagnostics({ host: { apiVersion: 1, layout: "desktop" }, storage: true });
   assert.equal(d2.host.present, true);
   assert.equal(d2.host.layout, "desktop");
+});
+
+test("正文文字色：预设逐色过 4.5:1，自定义按主题底校验，非法值修复", () => {
+  assert.equal(C.DEFAULTS.textColor, "auto");
+  for (const theme of C.THEMES) {
+    const choices = C.textColorChoices(theme);
+    assert.ok(choices.length >= 2, theme + " 至少要给自动 + 1 个可用预设");
+    assert.equal(choices[0].value, "auto");
+    for (const choice of choices) {
+      if (choice.value === "auto") { continue; }
+      const ratio = C.contrast(choice.value, C.paletteFor(theme).bg);
+      assert.ok(ratio >= 4.5, theme + " 的预设 " + choice.value + " 只有 " + ratio.toFixed(2) + ":1");
+    }
+  }
+  assert.equal(C.textColorFor("auto", "grass"), null, "自动不落自定义值");
+  assert.equal(C.textColorFor("#20301A", "grass"), "#20301a", "合法色统一小写");
+  assert.equal(C.textColorFor("#FFFFFF", "grass"), null, "浅底白字必须判不合格");
+  assert.equal(C.textColorFor("not-a-color", "grass"), null);
+  const ok = C.sanitizeSettings({ textColor: "#2F6B2B" });
+  assert.equal(ok.value.textColor, "#2f6b2b");
+  assert.equal(ok.repaired, false);
+  const bad = C.sanitizeSettings({ textColor: "很深的蓝" });
+  assert.equal(bad.value.textColor, "auto");
+  assert.equal(bad.repaired, true);
+  assert.equal(C.sanitizeSettings({ v: 1 }).value.textColor, "auto", "旧档默认跟随主题");
 });

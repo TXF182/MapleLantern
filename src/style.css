@@ -149,33 +149,68 @@
   --ml-press-ripple: rgba(200, 255, 242, .22);
 }
 
-#ml-root[data-theme="graphite"] {
-  --ml-bg: #0C0D0F;
-  --ml-bg-soft: #15171B;
-  --ml-bg-raise: #1D2026;
-  --ml-text: #E7E8EA;
-  --ml-muted: #A9ACB2;
-  --ml-faint: #7C8087;
-  --ml-accent: #C9CDD4;
-  --ml-accent-soft: rgba(201, 205, 212, .14);
-  --ml-accent-ink: #101216;
-  --ml-panel-bg: rgba(12, 13, 15, var(--ml-surface-alpha));
+#ml-root[data-theme="grass"] {
+  --ml-bg: #E6F0D4;
+  --ml-bg-soft: #DDE8C6;
+  --ml-bg-raise: #F4F9E9;
+  --ml-line: rgba(27, 122, 110, .34);
+  --ml-line-strong: rgba(20, 138, 124, .62);
+  --ml-text: #20301A;
+  --ml-muted: #5A6A47;
+  --ml-faint: #7D8C6B;
+  --ml-accent: #2F6B2B;
+  --ml-accent-soft: rgba(47, 107, 43, .14);
+  --ml-accent-ink: #F6FBEE;
+  --ml-jade: #3F8F5B;
+  --ml-rose: #9C4A2A;
+  --ml-danger: #AE3A28;
+  --ml-track: rgba(32, 48, 26, .10);
+  --ml-radius: 12px;
+  --ml-card-radius: 14px;
+  --ml-panel-radius: 16px;
+  --ml-panel-bg: rgba(244, 249, 233, var(--ml-surface-alpha));
   --ml-tex-panel:
-    linear-gradient(108deg, transparent 16%, rgba(255, 255, 255, .055) 23%, rgba(255, 255, 255, .012) 31%, transparent 39%, transparent 72%, rgba(255, 255, 255, .028) 78%, transparent 86%),
-    radial-gradient(100% 70% at 50% 0%, rgba(201, 205, 212, .11), transparent 64%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .16) 0 2px, transparent 2px 4px),
-    linear-gradient(112deg, transparent 30%, rgba(255, 255, 255, .04) 31%, transparent 32%, transparent 68%, rgba(255, 255, 255, .02) 69%, transparent 70%);
+    radial-gradient(120% 80% at 12% 0%, rgba(47, 107, 43, .10), transparent 58%),
+    radial-gradient(90% 60% at 100% 0%, rgba(255, 233, 168, .22), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(32, 48, 26, .022) 0 1px, transparent 1px 56px);
   --ml-tex-body:
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, .013) 0 1px, transparent 1px 5px),
-    repeating-linear-gradient(-45deg, rgba(0, 0, 0, .08) 0 2px, transparent 2px 5px);
+    radial-gradient(100% 70% at 50% 0%, rgba(47, 107, 43, .06), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(32, 48, 26, .016) 0 2px, transparent 2px 56px);
   --ml-tex-card:
-    linear-gradient(135deg, rgba(201, 205, 212, .08), transparent 58%),
-    radial-gradient(130% 80% at 0% 0%, rgba(255, 255, 255, .045), transparent 55%),
-    repeating-linear-gradient(45deg, rgba(255, 255, 255, .016) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, .012) 0 1px, transparent 1px 3px);
-  --ml-press-glow: rgba(201, 205, 212, .42);
-  --ml-press-ripple: rgba(255, 255, 255, .2);
+    linear-gradient(135deg, rgba(47, 107, 43, .08), transparent 58%),
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 233, 168, .18), transparent 55%),
+    repeating-linear-gradient(0deg, rgba(32, 48, 26, .012) 0 1px, transparent 1px 6px);
+  --ml-press-glow: rgba(20, 138, 124, .40);
+  --ml-press-ripple: rgba(20, 138, 124, .14);
+  --ml-ambient-a: rgba(240, 247, 225, .50);
+  --ml-ambient-b: rgba(47, 107, 43, .06);
+  --ml-ambient-speed: 26s;
+  --ml-shadow: 0 24px 64px rgba(30, 60, 30, .22), 0 2px 8px rgba(30, 60, 30, .12);
+}
+
+/* 绿茵是亮色主题：白高光在草底上发灰，换成暖白高光；边缘统一青绿。 */
+#ml-root[data-theme="grass"] .ml-seg-btn[aria-checked="true"] {
+  border-color: rgba(20, 138, 124, .55);
+}
+
+#ml-root[data-theme="grass"] .ml-stat,
+#ml-root[data-theme="grass"] .ml-slot,
+#ml-root[data-theme="grass"] .ml-quick {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .60),
+              inset 0 -1px 0 rgba(32, 48, 26, .10),
+              0 1px 2px rgba(32, 48, 26, .10);
+}
+
+#ml-root[data-theme="grass"] .ml-panel {
+  border-color: rgba(27, 122, 110, .34);
+  box-shadow: var(--ml-shadow),
+              inset 0 1px 0 rgba(255, 255, 255, .55),
+              inset 0 0 0 1px rgba(27, 122, 110, .05);
+}
+
+#ml-root[data-theme="grass"] .ml-mark {
+  background: radial-gradient(70% 60% at 50% 40%, #FFFFFF 0%, #3F8F5B 46%, rgba(47, 107, 43, 0) 72%);
+  box-shadow: 0 0 10px rgba(20, 138, 124, .30), inset 0 0 0 1px rgba(255, 255, 255, .35);
 }
 
 #ml-root[data-theme="star"] {
@@ -1146,6 +1181,67 @@
   background: var(--ml-accent-soft);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 0 1px var(--ml-accent-soft);
 }
+/* 正文文字色：色点是 44px 触控目标，视觉圆 26px；自动点用「A」字样，
+   自定义点用彩虹环 + 内嵌原生取色器，不额外占一行。 */
+#ml-root .ml-color { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; min-height: 44px; }
+#ml-root .ml-color-dot {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+#ml-root .ml-color-dot::before {
+  content: "";
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--ml-dot, var(--ml-text));
+  border: 1px solid var(--ml-line-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
+  transition: transform .12s ease, box-shadow .16s ease;
+}
+#ml-root .ml-color-dot:hover::before { transform: scale(1.08); }
+#ml-root .ml-color-dot:active::before { transform: scale(.94); }
+#ml-root .ml-color-dot[aria-checked="true"]::before {
+  box-shadow: 0 0 0 2px var(--ml-bg), 0 0 0 3px var(--ml-accent);
+}
+#ml-root .ml-color-dot.is-auto::after {
+  content: "A";
+  position: absolute;
+  font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--ml-bg);
+  pointer-events: none;
+}
+#ml-root .ml-color-dot.is-custom::before {
+  background: conic-gradient(from 0deg, #FF5E5E, #FFD25E, #6BE07A, #5ED7FF, #8A7BFF, #FF5EC4, #FF5E5E);
+}
+#ml-root .ml-color-dot.is-custom::after {
+  content: "+";
+  position: absolute;
+  font-size: calc(14px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .55);
+  pointer-events: none;
+}
+#ml-root .ml-color-dot:focus-visible::before { outline: 2px solid var(--ml-accent); outline-offset: 2px; }
+#ml-root .ml-color-dot input[type="color"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
 #ml-root .ml-scale { display: flex; align-items: center; gap: 14px; min-height: 44px; }
 #ml-root .ml-slider {
   flex: 1 1 auto;
@@ -1654,14 +1750,6 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
               inset 0 0 32px rgba(95, 191, 172, .07),
               inset 0 0 0 1px rgba(95, 191, 172, .06);
 }
-#ml-root[data-theme="graphite"] .ml-panel {
-  border-color: rgba(201, 205, 212, .28);
-  box-shadow: var(--ml-shadow),
-              inset 0 1px 0 rgba(255, 255, 255, .16),
-              inset 0 -1px 0 rgba(0, 0, 0, .35),
-              inset 0 0 30px rgba(255, 255, 255, .035),
-              inset 0 0 0 1px rgba(201, 205, 212, .04);
-}
 #ml-root[data-theme="star"] .ml-panel {
   border-color: rgba(143, 166, 255, .36);
   box-shadow: var(--ml-shadow),
@@ -1675,10 +1763,6 @@ html[data-dgu-buttons-scaled] #ml-root#ml-root .ml-slider {
 #ml-root[data-theme="jade"] .ml-mark {
   background: radial-gradient(70% 60% at 50% 40%, #E9FFF9 0%, #5FBFAC 46%, rgba(95, 191, 172, 0) 72%);
   box-shadow: 0 0 12px rgba(95, 191, 172, .32), inset 0 0 0 1px rgba(255, 255, 255, .16);
-}
-#ml-root[data-theme="graphite"] .ml-mark {
-  background: conic-gradient(from 210deg at 50% 42%, #F4F6F8, #8B929C 28%, #2A2D33 58%, #D7DBE1 82%, #F4F6F8);
-  box-shadow: 0 0 10px rgba(201, 205, 212, .28), inset 0 0 0 1px rgba(255, 255, 255, .2);
 }
 #ml-root[data-theme="star"] .ml-mark {
   background: radial-gradient(70% 60% at 50% 40%, #FFFFFF 0%, #8FA6FF 44%, rgba(111, 90, 255, 0) 72%);

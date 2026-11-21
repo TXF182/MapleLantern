@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 功能矩阵
 
-> 生成：2026-11-21 / 版本 1.5.0（行号锚点以 1.5.0 源码为准）。
+> 生成：2026-11-21 / 版本 1.5.1（行号锚点以 1.5.1 源码为准）。
 > 用途：按「功能 → 文件:行号 → 实现要点 → 测试 → 坑位」快速定位。行号随改码漂移，大改后按文末「行号复核命令」重抓锚点。
 > 维护纪律：新增/改名函数时同步本表与 `docs/KNOWLEDGE-GRAPH.md`。
 
@@ -30,13 +30,14 @@
 |---|---|---|---|---|
 | FN-core-version | VERSION 常量 | core.js:16 | 版本三源之一（另：boot.json:3、dossier-core.js:17） | contract:version |
 | FN-core-constants | TAB_KEYS / THEMES / DENSITIES / LANGS | core.js:18-21 | 枚举白名单，供 sanitize 用 | core |
-| FN-core-palettes | PALETTES / STRINGS / SLOT_LABELS | core.js:31/82/225 | 九主题调色板、zh/en 文案、着装槽标签 | core |
+| FN-core-palettes | PALETTES / STRINGS / SLOT_LABELS | core.js:31/82/225 | 八主题调色板（含绿茵浅色档）、zh/en 文案、着装槽标签；石墨已移除 | core |
 | FN-core-defaults | DEFAULTS 冻结表 | core.js:242 | 全部设置默认值（含 opt* 门控默认 true、`panel:false`） | core |
 | FN-core-sanitize | sanitizeSettings(raw) | core.js:275 | 设置净化：oneOf 白名单 + clamp + 未知键丢弃 | core |
 | FN-core-readmodel | readModel(env) | core.js:471 | 从 `V.*` 读金钱/时间/日期/穿衣/天气/第 x 部分等 | core |
 | FN-core-thirdparty | readThirdParty(vars) | core.js:430 | 第三方状态读取（O0O/BasicNeeds 等） | core |
 | FN-core-format | fmt/formatClock/formatDate/formatWeekday/formatMoney | core.js:368-410 | 双语格式化 | core |
 | FN-core-contrast | hexToRgb/luminance/contrast | core.js:542-560 | WCAG 对比度计算 | core |
+| FN-core-textcolor | normalizeHex/textColorFor/textColorChoices | core.js:579-605 | 正文文字色：预设从主题调色板逐色过 4.5:1，自定义按主题底色校验；非法值回落 auto + repaired | core |
 | FN-core-viewport | zoomFactor/viewportSize/panelOrigin | core.js:573-624 | 缩放换算与面板原点（详见 KNOWLEDGE.md §2） | core/dom |
 | FN-core-diag | buildDiagnostics(info) | core.js:625 | 诊断信息组装 | core |
 
@@ -54,7 +55,8 @@
 | FN-render-worn | renderWorn | render.js:872 | 「着装」页 | dom |
 | FN-render-system | renderSystem | render.js:912 | 「系统」页：诊断/复制 | dom |
 | FN-render-switches | renderSwitches | render.js:974 | 「开关」页 | dom |
-| FN-render-settings | renderSettings | render.js:1020 | 「设置」页：滑杆/主题/密度/语言/门控；slider 生成含 pointercancel 清理 | dom/contract |
+| FN-render-settings | renderSettings | render.js:1049 | 「设置」页：滑杆/主题/密度/语言/门控；滑杆生成含 pointercancel 清理；主题下的「文字色」行只重画色点不重建整页 |
+| FN-render-textcolor | colorControl（renderSettings 内） | render.js:1079-1140 | 自动/预设色点/自定义取色器；换主题时 `textColorFor` 不达标即回 auto + 提示 | dom/contract |
 | FN-render-findbutton | findButton(root, rx, allowAnchor) | render.js:773 | 按钮查找；`allowAnchor` 支持 `<a>` 入口（1.4.22 修复） | native-round2 |
 | FN-render-thirdparty | findOptionsButton/findOverlayButton/openThirdParty | render.js:786/791/809 | 第三方美化页入口策略 | native-round2 |
 | FN-render-panel | openPanel/closePanel/togglePanel/syncPanelOrigin | render.js:1241/1296/1333/1272 | 面板开关；closePanel(reason) 触发级联 destroy | dom |
@@ -77,6 +79,7 @@
 | FN-native-passages | packSignature/markPassages | native.js:1386/1398 | 正文打标（签名缓存防重复） | native |
 | FN-native-overlay | overlayKey/openPanel/thirdPartyOverlay/markThirdPartyOverlay | native.js:1449-1506 | 第三方弹层识别与标记 | native |
 | FN-native-entry | addEntry/removeEntry/markEntry | native.js:1507-1551 | OPTIONS 弹层「灯台」入口行 | native |
+| FN-native-textcolor | applyStoryColor | native.js:103-118 | 写 `data-ml-text="custom"` 与 `--mln-text-custom`；对比度不合格即撤除，回落主题色 | contract/dom |
 | FN-native-feats | markFeatsIntro/armFeatsIntro/restoreFeatsIntro | native.js:1552-1596 | Feats 说明卡折叠 | native |
 | FN-native-saverows | alignStatRows/markSaveRows | native.js:1597/1661 | 存档行对齐与打标 | native |
 | FN-native-dialog | markOverlay/markDialog/liftOverlay/restoreOverlay | native.js:1674-1722 | 弹层/对话框接管与 lift 层级 | native |
@@ -121,6 +124,7 @@
 | CSSN-btns | 侧栏按钮/菜单 | :918 | `#ui-bar` 按钮、菜单 |
 | CSSN-rail | 手机左轨 | :1003 | `#mobileStats` |
 | CSSN-story | 正文与选项 | :1157 | `#passages` 选项、`.ml-native-entry` |
+| CSSN-textcolor | 正文自定义文字色 | 见 `[data-ml-text="custom"]` 段 | 只给 `#passages` / `.passage` / `.passage h1–h4` 挂 `--mln-text-custom`，不碰按钮/读数 |
 | CSSN-inner | 衣柜/商店内层 | :1471 | `#shop`/`#wardrobe` 类内层 |
 | CSSN-overlay | 弹层 | :2041 | `#customOverlay`（含 `:not(:has(...))` 排除 CE） |
 | CSSN-basicneeds | BasicNeeds 0.5.0 适配 | :2131 | 第三方适配段 |
@@ -131,6 +135,8 @@
 | CSSN-scrollbar | 滚动条 | :3748 | `::-webkit-scrollbar` |
 | CSSN-motion | 动效 | :3786 | 入场/呼吸动效 |
 | CSSN-cyber | 赛博朋克主题装饰 | :4083 | `[data-ml-theme="cyberpunk"]` |
+| CSSN-grass | 绿茵主题（阳光草场浅色档） | 见 `[data-ml-theme="grass"]` 段 | 割草条纹、斑驳阳光、青绿边框与亮色语义覆盖 |
+| CSSO-frame | 主题边饰层（`src/ornaments.css`） | 文件首段 | `#passages::before` 12px `border-image` 帧 + `.passage` 内衬 + `h1::after` 标题枝；八套图案、auto 无图案、≤600 收 8px、≤420 仅标题枝 |
 | CSSN-texture | 主题纹理层 | :4477 | 纹理变量层 |
 | CSSN-press | 原生按压反馈 | :4584 | 按压组：平铺规则与 `:not(:has(...))` 排除规则**分列**（1.5.0 拆净，见契约 D3） |
 
@@ -144,7 +150,8 @@
 | CSSP-vitals | 身心 | :956 |
 | CSSP-worn | 着装 | :991 |
 | CSSP-system | 系统 | :1038 |
-| CSSP-settings | 设置 | :1087 |
+| CSSP-settings | 设置（含文字色点） | :1087 |
+| CSSP-color | 正文文字色色点 | :1190 | 44px 触控目标 + 26px 视觉圆；自动点「A」、自定义点彩虹环内嵌取色器 |
 | CSSP-drawer | 抽屉模式 | :1222 |
 | CSSP-toast | 提示 | :1317 |
 | CSSP-motion-off | 动效关断（零 JS 判据） | :1352 |
@@ -178,7 +185,8 @@
 
 | 键 | 默认 | 含义 |
 |---|---|---|
-| theme | cyberpunk | 九主题之一 |
+| theme | cyberpunk | 八主题之一（auto/cyberpunk/amber/jade/star/fog/school/paper/grass） |
+| ornament | true | 主题边饰总开关（auto 在原生层解析为 cyberpunk，边饰随 cyberpunk） |
 | scale / glass | 100 / 60 | 面板缩放 / 玻璃度 |
 | density | cozy | cozy/compact |
 | motion | true | 动效总开关 |
@@ -203,10 +211,10 @@
 
 | 测试文件 | 覆盖 |
 |---|---|
-| core.test.js | core 纯逻辑全量（含 1.5.0 版本断言） |
-| dom.test.js | render 面板层 DOM 装配 |
+| core.test.js | core 纯逻辑全量（含 1.5.1 版本断言、绿茵调色板与浅底对比度、石墨迁移、文字色预设逐色 ≥4.5:1） |
+| dom.test.js | render 面板层 DOM 装配（含文字色落值/换主题回退） |
 | native.test.js / native-round2.test.js | 原生层打标（round2 含 `<a>` 入口等 1.4.22 修复回归） |
-| contract.test.js | CSS/JS 契约不变量（D3 = 按压选择器不得混排 `:has` 成员，1.5.0 新增） |
+| contract.test.js | CSS/JS 契约不变量（D3 = 按压选择器不得混排 `:has` 成员；1.5.1 增绿茵落值、边饰八套/开关/小屏、石墨零残留、文字色只挂正文层）；全量 246 断言 |
 | custom.test.js / custom-card.test.js | custom.js 外观应用与浮窗卡片 |
 | dossier-lifecycle.test.js | dossier 四件套生命周期（1.5.0 修复回归） |
 | compat-preload.test.js | MEE 代理（假阳性修复回归） |

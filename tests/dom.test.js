@@ -385,7 +385,7 @@ test("只读红线：打开、切页、改设置、取诊断全程零写入 Stat
   w.document.querySelector('[data-tab="vitals"]').click();
   w.document.querySelector('[data-tab="worn"]').click();
   w.document.querySelector('[data-tab="settings"]').click();
-  w.document.querySelector('.ml-seg-btn[data-value="graphite"]').click();
+  w.document.querySelector('.ml-seg-btn[data-value="grass"]').click();
   const slider = w.document.querySelector(".ml-slider");
   slider.dispatchEvent(new w.KeyboardEvent("keydown", { key: "End", bubbles: true }));
   w.MapleLantern.diagnostics();
@@ -682,4 +682,52 @@ test("A1 前景背景桥接：优先命中侧栏入口，不误点灯台自己�
 
   assert.equal(sidebarButton.__hit, 1, "桥接打开必须点击侧栏的前景背景入口");
   assert.equal(decoy.__hit || 0, 0, "不得误点 #ml-root 内的同名按钮");
+});
+
+test("设置页：主题边饰默认开、可关闭、同步 data-ml-orn 并持久化", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  w.MapleLantern.open();
+  assert.equal(w.document.documentElement.getAttribute("data-ml-orn"), "1", "默认应挂边饰");
+  w.document.querySelector('[data-tab="settings"]').click();
+  const sw = w.document.querySelector('button.ml-switch[aria-label="主题边饰"]');
+  assert.ok(sw, "设置页必须有主题边饰总开关");
+  assert.equal(sw.getAttribute("aria-checked"), "true");
+  sw.click();
+  assert.equal(sw.getAttribute("aria-checked"), "false");
+  assert.equal(w.document.documentElement.getAttribute("data-ml-orn"), "0", "关闭后 CSS 必须能立刻停用边饰");
+  await new Promise((r) => setTimeout(r, 50));
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(saved.ornament, false);
+});
+
+test("正文文字色：色点可选、落值到正文层、换浅色主题自动回避不达标色", async () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const group = w.document.querySelector(".ml-color");
+  assert.ok(group, "设置页缺正文文字色一行");
+  const dots = group.querySelectorAll(".ml-color-dot");
+  assert.ok(dots.length >= 3, "至少要有自动、1 个预设和自定义");
+
+  dots[1].click();
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.match(saved.textColor, /^#[0-9a-f]{6}$/, "预设必须落成具体色值");
+  await new Promise((r) => w.setTimeout(r, 120));
+  assert.equal(w.document.documentElement.getAttribute("data-ml-text"), "custom");
+  assert.match(w.document.documentElement.style.getPropertyValue("--mln-text-custom"), /^#[0-9a-f]{6}$/);
+
+  /* 赛博的青蓝放到绿茵浅底上必然低于 4.5:1：换主题时应自动回跟随主题，不留悬挂值 */
+  w.document.querySelector('.ml-seg-btn[data-value="grass"]').click();
+  await new Promise((r) => w.setTimeout(r, 120));
+  const healed = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(healed.textColor, "auto");
+  assert.equal(w.document.documentElement.getAttribute("data-ml-text"), null);
+
+  const input = w.document.querySelector('.ml-color-dot.is-custom input[type="color"]');
+  input.value = "#2f6b2b";
+  input.dispatchEvent(new w.Event("change"));
+  await new Promise((r) => w.setTimeout(r, 120));
+  const custom = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(custom.textColor, "#2f6b2b", "自定义色必须落盘");
+  assert.equal(w.document.documentElement.getAttribute("data-ml-text"), "custom");
 });

@@ -140,42 +140,43 @@ html[data-ml-native="on"][data-ml-theme="jade"] {
     radial-gradient(80% 58% at 50% 108%, rgb(0 0 0 / 34%), transparent 72%);
 }
 
-html[data-ml-native="on"][data-ml-theme="graphite"] {
-  --mln-bg: #0C0D0F;
-  --mln-surface: #15171B;
-  --mln-surface-2: #1A1D22;
-  --mln-surface-3: #21252C;
-  --mln-border: #2C3038;
-  --mln-border-strong: #424751;
-  --mln-text: #E7E8EA;
-  --mln-muted: #9A9DA4;
-  --mln-faint: #6B6E75;
-  --mln-accent: #C9CDD4;
-  --mln-halo: rgba(201, 205, 212, .18);
-  --mln-halo2: rgba(255, 255, 255, .10);
-  --mln-deep: rgba(2, 3, 5, .56);
-  --mln-jade: #8FD3C4;
-  --mln-rose: #CE7C84;
-  --mln-danger: #C65449;
+html[data-ml-native="on"][data-ml-theme="grass"] {
+  --mln-bg: #E6F0D4;
+  --mln-surface: #DDE8C6;
+  --mln-surface-2: #E7F1D6;
+  --mln-surface-3: #F4F9E9;
+  --mln-border: rgb(27 122 110 / 34%);
+  --mln-border-strong: rgb(20 138 124 / 62%);
+  --mln-text: #20301A;
+  --mln-muted: #5A6A47;
+  --mln-faint: #7D8C6B;
+  --mln-accent: #2F6B2B;
+  --mln-jade: #3F8F5B;
+  --mln-rose: #9C4A2A;
+  --mln-danger: #AE3A28;
+  --mln-radius: 12px;
+  --mln-radius-sm: 9px;
+  --mln-mono: "Cascadia Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  --mln-glow: rgb(20 138 124 / 20%);
+  --mln-halo: rgb(255 233 168 / 30%);
+  --mln-halo2: rgb(47 107 43 / 14%);
+  --mln-deep: rgb(20 40 20 / 22%);
   --mln-overlay-texture:
-    linear-gradient(108deg, transparent 16%, rgb(255 255 255 / 5%) 23%, rgb(255 255 255 / 1%) 31%, transparent 39%, transparent 72%, rgb(255 255 255 / 3%) 78%, transparent 86%),
-    radial-gradient(100% 70% at 50% 0, rgb(201 205 212 / 9%), transparent 64%),
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 2.2%) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-45deg, rgb(0 0 0 / 14%) 0 2px, transparent 2px 4px);
+    linear-gradient(135deg, rgb(255 255 255 / 20%), transparent 46%),
+    radial-gradient(120% 70% at 100% 0, rgb(255 233 168 / 26%), transparent 54%),
+    radial-gradient(90% 60% at 0 100%, rgb(27 122 110 / 10%), transparent 60%),
+    repeating-linear-gradient(0deg, rgb(32 48 26 / 2.2%) 0 2px, transparent 2px 56px);
   --mln-bar-texture:
-    radial-gradient(100% 60% at 50% 0, rgb(201 205 212 / 8%), transparent 64%),
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 2%) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-45deg, rgb(0 0 0 / 10%) 0 2px, transparent 2px 4px);
+    radial-gradient(120% 62% at 50% 0, rgb(255 255 255 / 30%), transparent 64%),
+    repeating-linear-gradient(0deg, rgb(32 48 26 / 2%) 0 2px, transparent 2px 56px);
   --mln-surface-texture:
-    linear-gradient(135deg, rgb(201 205 212 / 6%), transparent 58%),
-    repeating-linear-gradient(45deg, rgb(255 255 255 / 1.5%) 0 1px, transparent 1px 4px);
+    linear-gradient(135deg, rgb(47 107 43 / 8%), transparent 58%),
+    repeating-linear-gradient(0deg, rgb(32 48 26 / 1.6%) 0 1px, transparent 1px 6px);
   --mln-page-texture:
-    radial-gradient(110% 82% at 50% -8%, rgb(201 205 212 / 14%), transparent 62%),
-    linear-gradient(180deg, rgb(255 255 255 / 7%), transparent 26%, transparent 76%, rgb(0 0 0 / 30%)),
-    repeating-linear-gradient(108deg, rgb(255 255 255 / 4.5%) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(108deg, rgb(0 0 0 / 12%) 0 2px, transparent 2px 5px),
-    repeating-linear-gradient(0deg, transparent 0 23px, rgb(255 255 255 / 3%) 23px 24px),
-    radial-gradient(78% 58% at 50% 108%, rgb(0 0 0 / 42%), transparent 72%);
+    radial-gradient(120% 84% at 12% -4%, rgb(255 233 168 / 30%), transparent 60%),
+    radial-gradient(100% 76% at 92% 8%, rgb(47 107 43 / 14%), transparent 64%),
+    linear-gradient(180deg, rgb(255 255 255 / 18%), transparent 30%, transparent 78%, rgb(32 48 26 / 10%)),
+    repeating-linear-gradient(0deg, rgb(240 247 225 / 55%) 0 28px, rgb(223 234 202 / 45%) 28px 56px);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] {
@@ -484,6 +485,98 @@ html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog:not(:has(#cheat_exte
 html[data-ml-native="on"][data-ml-theme="paper"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
 html[data-ml-native="on"][data-ml-theme="paper"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
   background-color: rgb(251 244 230 / 62%);
+}
+
+/* 绿茵同样走亮色策略：原版深底写死的浅字/语义色在草底上要压成深墨，
+   边缘统一青绿；只改颜色与描边，不动任何尺寸。 */
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat {
+  text-shadow: none;
+}
+
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.green { color: #2F6B45; border-color: rgb(47 107 69 / 46%); background: linear-gradient(180deg, rgb(47 107 69 / 6%), transparent), rgb(47 107 69 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.teal { color: #14665F; border-color: rgb(20 102 95 / 46%); background: linear-gradient(180deg, rgb(20 102 95 / 6%), transparent), rgb(20 102 95 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.blue { color: #2C4F85; border-color: rgb(44 79 133 / 46%); background: linear-gradient(180deg, rgb(44 79 133 / 6%), transparent), rgb(44 79 133 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.lblue { color: #2E6378; border-color: rgb(46 99 120 / 46%); background: linear-gradient(180deg, rgb(46 99 120 / 6%), transparent), rgb(46 99 120 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.pink { color: #8A3D6A; border-color: rgb(138 61 106 / 46%); background: linear-gradient(180deg, rgb(138 61 106 / 6%), transparent), rgb(138 61 106 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.purple { color: #5D3F86; border-color: rgb(93 63 134 / 46%); background: linear-gradient(180deg, rgb(93 63 134 / 6%), transparent), rgb(93 63 134 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.red { color: #9E2F25; border-color: rgb(158 47 37 / 46%); background: linear-gradient(180deg, rgb(158 47 37 / 6%), transparent), rgb(158 47 37 / 8%); }
+html[data-ml-native="on"][data-ml-opt-rail-skin="1"][data-ml-theme="grass"] #mobileStats .stat.orange { color: #8A4B1E; border-color: rgb(138 75 30 / 46%); background: linear-gradient(180deg, rgb(138 75 30 / 6%), transparent), rgb(138 75 30 / 8%); }
+
+html[data-ml-native="on"][data-ml-theme="grass"] #mobileStats .stat.time,
+html[data-ml-native="on"][data-ml-theme="grass"] #mobileStats .stat.time .vertical {
+  color: #20301A !important;
+  opacity: 1;
+  text-shadow: none;
+  font-weight: 800;
+}
+
+html[data-ml-native="on"][data-ml-opt-stats="1"][data-ml-theme="grass"] #stats .clockContainer {
+  color: #1B2916 !important;
+  text-shadow: none;
+  font-weight: 700;
+}
+
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="grass"] #stats .centered-elements > div,
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="grass"] #stats .centered-elements .true,
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="grass"] #stats .clockContainer {
+  color: #F2F7E7 !important;
+  text-shadow: none;
+}
+
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .teal { color: #0E5F5F; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .red { color: #A02A1F; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .green { color: #2F6B45; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .blue { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .lblue { color: #2E6378; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .pink { color: #8A3D6A; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .purple { color: #5D3F86; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .orange { color: #8A4B1E; }
+
+html[data-ml-native="on"][data-ml-theme="grass"] #startCaption .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="grass"] #startCaption .link-external { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-bar a.link-external { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-theme="grass"] #menu a { color: var(--mln-text); }
+html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-theme="grass"] #menu a:hover { color: var(--mln-accent); }
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-bar .macro-button {
+  background: var(--mln-surface-2);
+  color: var(--mln-text);
+  border: 1px solid var(--mln-border);
+}
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-bar .macro-button:hover {
+  background: var(--mln-surface-3);
+  border-color: var(--mln-border-strong);
+}
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .small-description { color: var(--mln-muted); }
+html[data-ml-native="on"][data-ml-theme="grass"] #gameVersionDisplay,
+html[data-ml-native="on"][data-ml-theme="grass"] #gameVersionDisplay2 { color: var(--mln-muted); }
+
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlay:not([data-overlay="modloader"]):not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold,
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .gold { color: #6F5210; }
+
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlay:not([data-overlay="modloader"]):not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue,
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .linkBlue { color: #2C4F85; }
+
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .saves-clear {
+  color: var(--mln-danger) !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-bar#ui-bar {
+  box-shadow: 8px 0 24px rgb(30 60 30 / 16%);
+}
+
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: rgb(230 240 212 / 62%);
+}
+
+html[data-ml-native="on"][data-ml-theme="grass"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
+html[data-ml-native="on"][data-ml-theme="grass"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  background-color: rgb(244 249 233 / 68%);
 }
 
 html[data-ml-native="on"][data-ml-theme="star"] #ui-bar#ui-bar {
@@ -1160,6 +1253,17 @@ html[data-ml-native="on"] #passages {
   color: var(--mln-text);
   font-family: var(--mln-font);
   transition: color .3s ease;
+}
+
+/* 正文自定义文字色：只接管故事正文与标题的继承色。
+   选项卡片、按钮、状态读数都有各自的 color 规则，不受这里影响。 */
+html[data-ml-native="on"][data-ml-text="custom"] #passages,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h1,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h2,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h3,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h4 {
+  color: var(--mln-text-custom) !important;
 }
 
 html[data-ml-native="on"] #passages .passage,

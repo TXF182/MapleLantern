@@ -6,6 +6,7 @@ const fs = require("fs");
 const path = require("path");
 
 const SRC = path.join(__dirname, "..", "src");
+const coreModule = require(path.join(SRC, "core.js"));
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
 const fx = fs.readFileSync(path.join(SRC, "effects.css"), "utf8");
 const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
@@ -18,6 +19,7 @@ const dossierCore = fs.readFileSync(path.join(SRC, "dossier-core.js"), "utf8");
 const dossierPanel = fs.readFileSync(path.join(SRC, "dossier-panel.js"), "utf8");
 const dossierAssets = fs.readFileSync(path.join(SRC, "dossier-assets.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
+const ornamentsCss = fs.readFileSync(path.join(SRC, "ornaments.css"), "utf8");
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 /* 第三方 cheat overlay 的排除前导：CheatExtended 落在 #customOverlayContent 内，
@@ -26,7 +28,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.0");
+  assert.equal(boot.version, "1.5.1");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -39,7 +41,7 @@ test("boot.json：身份、版本、四个必填列表与文件存在性", () =>
     "core 必须先于 native/render；自定义按 core→assets→theme→panel→custom（启动装配）顺序跟在后面");
   assert.deepEqual(boot.scriptFileList_inject_early, ["compat-preload.js"],
     "MEE 兼容层必须在所有普通脚本之前注入");
-  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾");
+  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css", "ornaments.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾；ornaments.css 负责主题边饰，放最后");
   for (const list of [boot.scriptFileList, boot.scriptFileList_inject_early, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
@@ -108,7 +110,7 @@ test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
 });
 
 test("主题纹理：9 套主题都有独立背景变量，面板/正文/卡片三层落点", () => {
-  for (const theme of ["amber", "cyberpunk", "jade", "graphite", "star", "fog", "school", "paper"]) {
+  for (const theme of ["amber", "cyberpunk", "jade", "star", "fog", "school", "paper", "grass"]) {
     assert.match(css, new RegExp('data-theme="' + theme + '"'), "缺少面板主题块: " + theme);
     /* 琥珀是原生层默认根变量，不另写 [data-ml-theme="amber"] 块。 */
     assert.match(nativeCss, theme === "amber"
@@ -493,7 +495,7 @@ test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，
   assert.match(nativeCss, /赛博朋克主题装饰/);
   assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlay:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#05070F 58%,\s*transparent\)/s);
   assert.match(nativeCss, /data-ml-theme="cyberpunk"\] #customOverlayContent:not\(:has\(#cheat_extended_options[\s\S]{0,400}background-color:\s*color-mix\(in srgb,\s*#080D19 62%,\s*transparent\)/s);
-  for (const old of ["amber", "jade", "graphite", "star"]) {
+  for (const old of ["amber", "jade", "grass", "star"]) {
     assert.ok(core.includes("theme." + old), "旧主题 " + old + " 不应被删除");
   }
 });
@@ -577,7 +579,7 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
     const size = fs.statSync(path.join(SRC, f)).size;
     /* 1.4.20：原生层新增手机窄屏安全网格与 numberStepper 还原，CSS 从约 204KB
        增至约 207KB；上限随实现上调到 220KB，仍远低于 1MB。 */
-    assert.ok(size < 220 * 1024, f + " 过大: " + size);
+    assert.ok(size < 232 * 1024, f + " 过大: " + size);
   }
   assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
 });
@@ -769,7 +771,7 @@ test("effects.css：动效令牌/keyframes/工具类独立分区，组件文件�
 });
 
 test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、中央留空与三层关断", () => {
-  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
     assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,180}--ml-fx-ambient-a'),
       "缺少环境粒子变量: " + theme);
   }
@@ -788,7 +790,7 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、�
     "天空层必须有第二条极光/光带，不能只靠静态渐变");
   assert.match(fx, /@keyframes ml-sky-glow\s*\{/, "天光底必须有 keyframes");
   assert.match(fx, /@keyframes ml-sky-ribbon\s*\{/, "极光带必须有 keyframes");
-  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
     assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,620}--ml-sky-a'),
       "缺少主题天空变量: " + theme);
   }
@@ -799,7 +801,7 @@ test("主题环境层：9 主题独立粒子参数、8 颗粒子、天空层、�
     assert.match(fx, new RegExp('#ml-root\\[data-theme="auto"\\]\\[data-phase="' + phase + '"\\][\\s\\S]{0,260}--ml-sky-a'),
       "auto 的天空色必须跟随游戏时段: " + phase);
   }
-  for (const theme of ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"]) {
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
     assert.match(fx, new RegExp('#ml-root\\[data-theme="' + theme + '"\\][\\s\\S]{0,520}--ml-veil-a'),
       "缺少主题慢流变量: " + theme);
   }
@@ -1132,3 +1134,72 @@ test("商店：分类格不被选项卡片打包，分页链接不继承整宽�
     "窄屏必须保留原版“隐藏 Previous/Next 文字、只显示箭头”的行为");
 });
 
+/* ============================ 1.5.1：绿茵 / 边饰 / 石墨移除 ============================ */
+
+test("绿茵主题：调色板、双语、设置项、双 CSS 入口与青绿描边", () => {
+  assert.match(core, /grass: \{[\s\S]{0,340}?bg: "#E6F0D4"[\s\S]{0,300}?accent: "#2F6B2B"[\s\S]{0,160}?danger: "#AE3A28"/,
+    "绿茵调色板必须齐全（bg/accent/danger 三端都在）");
+  assert.match(core, /"theme\.grass": "绿茵"/);
+  assert.match(core, /"theme\.grass": "Meadow"/);
+  assert.match(index, /value: "grass"/, "设置页必须有绿茵按钮");
+  assert.match(css, /#ml-root\[data-theme="grass"\][\s\S]{0,560}?--ml-line: rgba\(27, 122, 110, \.34\)/,
+    "组件边缘必须是青绿描边（--ml-line）");
+  assert.match(css, /#ml-root\[data-theme="grass"\][\s\S]{0,760}?--ml-line-strong: rgba\(20, 138, 124, \.62\)/);
+  assert.match(nativeCss, /data-ml-theme="grass"\] \{[\s\S]{0,460}?--mln-border: rgb\(27 122 110 \/ 34%\)/,
+    "原生层同样要青绿边框，不能只改面板");
+  assert.match(nativeCss, /data-ml-theme="grass"\] #passages \.passage \.gold \{ color: #6F5210; \}/,
+    "浅底上原版金色数值必须换深墨，否则对比度不足");
+  assert.match(nativeCss, /data-ml-theme="grass"\][\s\S]{0,2600}?rgb\(223 234 202 \/ 45%\) 28px 56px/, "割草条纹必须落在正文背景纹理里");
+});
+
+test("石墨主题已移除：源码零残留，旧设置值回落默认主题", () => {
+  const sources = { core, index, css, fx, nativeCss, ornamentsCss };
+  for (const [name, text] of Object.entries(sources)) {
+    assert.ok(!/graphite/.test(strip(text)), name + " 仍残留 graphite");
+  }
+  assert.doesNotMatch(core, /theme\.graphite/, "文案键不许留");
+  assert.match(core, /var THEMES = \["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"\];/,
+    "主题清单必须是 auto + 7 套深色/浅色 + 绿茵");
+  const parsed = coreModule.sanitizeSettings({ theme: "graphite" });
+  assert.equal(parsed.value.theme, "cyberpunk", "旧档里的石墨必须回落默认主题");
+  assert.equal(parsed.repaired, true, "回落必须打 repaired 标记，供一次性提示");
+});
+
+test("主题边饰：8 套图案、仅原生层+开关生效、不可点击、auto 无图案、无动画、小屏收敛", () => {
+  assert.equal(boot.styleFileList[boot.styleFileList.length - 1], "ornaments.css");
+  for (const theme of ["cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
+    assert.match(ornamentsCss, new RegExp('data-ml-theme="' + theme + '"\\][\\s\\S]{0,120}?--mln-orn-frame: url\\("data:image/svg\\+xml'),
+      theme + " 缺边饰图案");
+  }
+  assert.match(ornamentsCss, /html \{\s*--mln-orn-frame: none;/, "未知/未选主题必须回落 none，不能挂残图");
+  assert.match(ornamentsCss, /#passages::before \{[\s\S]{0,360}?pointer-events: none[\s\S]{0,200}?border-image-source: var\(--mln-orn-frame\)/,
+    "装饰层必须不可点击，且走 border-image（#passages 背景被原生层 !important 清空）");
+  assert.match(ornamentsCss, /border-image-slice: 24 24 24 24/, "边框层必须九宫格切片，避免整图拉伸变形");
+  assert.match(ornamentsCss, /#passages \.passage \{[\s\S]{0,160}?padding-inline: var\(--mln-orn-pad\)/, "边饰必须补偿正文内缩");
+  assert.match(ornamentsCss, /#passages \.passage h1::after[\s\S]{0,260}?background: var\(--mln-orn-title\)/, "标题枝必须由 var 驱动");
+  assert.doesNotMatch(ornamentsCss, /@keyframes/, "静态边饰不许引入动画");
+  assert.doesNotMatch(ornamentsCss, /:has\(/, "边饰不得引入 :has，旧 WebView 会整条丢弃");
+  assert.match(ornamentsCss, /@media \(max-width: 600px\)[\s\S]{0,260}?--mln-orn-thick: 8px/);
+  assert.match(ornamentsCss, /@media \(max-width: 420px\)[\s\S]{0,320}?border-image-source: none/, "≤420 只留标题枝，省性能");
+  assert.match(ornamentsCss, /html\[data-ml-orn="1"\]\[data-ml-native="on"\] #passages::before/,
+    "边饰必须同时受原生层开关与边饰开关约束");
+  assert.match(index, /setAttribute\("data-ml-orn", state\.settings\.ornament \? "1" : "0"\)/, "render 必须同步边饰属性");
+  assert.match(index, /switchControl\("ornament"/, "设置页必须有边饰总开关");
+});
+
+
+test("正文文字色：只作用于正文层，设置入口与落值链路齐全", () => {
+  assert.match(nativeCss, /\[data-ml-text="custom"\] #passages,[\s\S]{0,600}?color: var\(--mln-text-custom\) !important/,
+    "自定义文字色必须走专用变量，不能改写 --mln-text 本身");
+  const block = nativeCss.match(/\/\* 正文自定义文字色[\s\S]{0,600}?\n\}/);
+  assert.ok(block, "缺自定义文字色规则块");
+  assert.match(block[0], /#passages \.passage h1[\s\S]{0,400}?h4/, "标题必须跟随自定义文字色");
+  assert.ok(!/button|input|\.ml-stat/.test(block[0]), "自定义色不得波及选项按钮、输入框或状态读数");
+  assert.match(native, /setAttribute\("data-ml-text", "custom"\)/);
+  assert.match(native, /--mln-text-custom/);
+  assert.match(index, /settings\.textColor/);
+  assert.match(index, /C\.textColorChoices/);
+  assert.match(index, /C\.textColorFor/);
+  assert.match(css, /#ml-root \.ml-color-dot \{/, "缺色点样式");
+  assert.match(css, /width: 44px;[\s\S]{0,120}?height: 44px;/, "色点触控目标必须 44px");
+});

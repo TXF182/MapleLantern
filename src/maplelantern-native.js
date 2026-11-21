@@ -98,6 +98,26 @@
     doc.documentElement.setAttribute("data-ml-lang", state.lang);
     var theme = state.settings.theme;
     doc.documentElement.setAttribute("data-ml-theme", theme === "auto" ? "cyberpunk" : theme);
+    applyStoryColor(on);
+  }
+
+  /* 正文文字色：只把 --mln-text-custom 交给 #passages/.passage 的专用规则，
+     不覆盖 --mln-text 本身——侧栏、选项卡片、状态读数仍走主题色。
+     自定义色按当前主题底色校验对比度，不合格就回落主题色（设置值保留，
+     换到合适的主题会自动恢复），避免“设置成功但看不见”。 */
+  function applyStoryColor(on) {
+    var root = doc.documentElement;
+    if (!root) { return; }
+    var theme = state.settings && state.settings.theme === "auto"
+      ? "cyberpunk" : (state.settings && state.settings.theme);
+    var color = on && state.settings ? C.textColorFor(state.settings.textColor, theme) : null;
+    if (color) {
+      root.setAttribute("data-ml-text", "custom");
+      root.style.setProperty("--mln-text-custom", color);
+    } else {
+      root.removeAttribute("data-ml-text");
+      root.style.removeProperty("--mln-text-custom");
+    }
   }
 
   /* --------------------------------------------------------- #stats 四格 */

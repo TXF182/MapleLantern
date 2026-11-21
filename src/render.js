@@ -197,6 +197,13 @@
     state.settings[key] = value;
     if (key === "tab") { state.tab = value; }
     if (key === "lang") { state.lang = C.pickLang(value, navigator.language || "zh"); }
+    /* 换主题时自定义正文色可能在新底色上不达标：直接回落跟随主题，
+       避免留下一个“设置里还亮着、正文却没生效”的悬挂值。 */
+    if (key === "theme" && state.settings.textColor !== "auto" &&
+        !C.textColorFor(state.settings.textColor, value)) {
+      state.settings.textColor = "auto";
+      toast(text("toast.colorContrast"));
+    }
     applySettings();
     saveSettings();
     syncNative();
@@ -224,6 +231,7 @@
     try {
       doc.documentElement.setAttribute("data-ml-motion", state.settings.motion ? "on" : "off");
       doc.documentElement.setAttribute("data-ml-lang", state.lang);
+      doc.documentElement.setAttribute("data-ml-orn", state.settings.ornament ? "1" : "0");
       var optAttrs = {
         optStats: "data-ml-opt-stats", optMoney: "data-ml-opt-money",
         optRailSkin: "data-ml-opt-rail-skin", optRailPct: "data-ml-opt-rail-pct",
@@ -1057,12 +1065,77 @@
       { value: "cyberpunk", label: s["theme.cyberpunk"] },
       { value: "amber", label: s["theme.amber"] },
       { value: "jade", label: s["theme.jade"] },
-      { value: "graphite", label: s["theme.graphite"] },
       { value: "star", label: s["theme.star"] },
       { value: "fog", label: s["theme.fog"] },
       { value: "school", label: s["theme.school"] },
-      { value: "paper", label: s["theme.paper"] }
-    ], state.settings.theme, function (v) { setSetting("theme", v, false); }, "ml-seg--themes")));
+      { value: "paper", label: s["theme.paper"] },
+      { value: "grass", label: s["theme.grass"] }
+    ], state.settings.theme, function (v) {
+      setSetting("theme", v, false);
+      if (colorCtl) { colorCtl.refresh(); }
+    }, "ml-seg--themes")));
+
+    switchControl("ornament", s["settings.ornament"], s["settings.ornamentHint"]);
+
+    /* 正文文字色：预设直接取自当前主题调色板（都过 4.5:1），
+       自定义走原生取色器并当场校验，不合格就不落值。
+       换主题只重画这一行色点，不重建整页（焦点与滚动位置都保留）。 */
+    function colorControl() {
+      var wrap = el("div", "ml-color", { role: "radiogroup", "aria-label": s["settings.textColor"] });
+
+      function paint() {
+        while (wrap.firstChild) { wrap.removeChild(wrap.firstChild); }
+        var theme = state.settings.theme;
+        var current = state.settings.textColor;
+        var choices = C.textColorChoices(theme);
+        var known = choices.some(function (c) { return c.value === current; });
+
+        choices.forEach(function (choice) {
+          var isAuto = choice.value === "auto";
+          var label = isAuto ? s["textColor.auto"] : choice.value;
+          var dot = el("button", isAuto ? "ml-color-dot is-auto" : "ml-color-dot", {
+            type: "button", role: "radio",
+            "aria-checked": current === choice.value ? "true" : "false",
+            "aria-label": label, title: label
+          });
+          dot.style.setProperty("--ml-dot", choice.swatch);
+          dot.addEventListener("click", function () {
+            setSetting("textColor", choice.value, true);
+          });
+          wrap.appendChild(dot);
+        });
+
+        var custom = el("button", "ml-color-dot is-custom", {
+          type: "button", role: "radio",
+          "aria-checked": (current !== "auto" && !known) ? "true" : "false",
+          "aria-label": s["textColor.custom"], title: s["textColor.custom"]
+        });
+        var input = doc.createElement("input");
+        input.type = "color";
+        input.setAttribute("aria-label", s["textColor.custom"]);
+        input.value = C.normalizeHex(current) || C.paletteFor(theme).text;
+        input.addEventListener("change", function () {
+          var hex = C.normalizeHex(input.value);
+          if (!hex || !C.textColorFor(hex, theme)) {
+            toast(text("toast.colorContrast"));
+            input.value = C.normalizeHex(state.settings.textColor) || C.paletteFor(theme).text;
+            return;
+          }
+          setSetting("textColor", hex, true);
+        });
+        custom.appendChild(input);
+        wrap.appendChild(custom);
+      }
+
+      paint();
+      return { node: wrap, refresh: paint };
+    }
+
+    var colorCtl = colorControl();
+    pane.appendChild(field(s["settings.textColor"], colorCtl.node));
+    var colorHint = el("p", "ml-note is-faint");
+    colorHint.textContent = s["settings.textColorHint"];
+    pane.appendChild(colorHint);
 
     function rangeControl(key, min, max, step, label, format) {
       var wrap = el("div", "ml-scale");
@@ -1208,6 +1281,7 @@
     resets.appendChild(resetBtn(s["reset.glass"], function () { glassCtl.set(60); }));
     resets.appendChild(resetBtn(s["reset.density"], function () { setSetting("density", "cozy"); }));
     resets.appendChild(resetBtn(s["reset.theme"], function () { setSetting("theme", "auto"); }));
+    resets.appendChild(resetBtn(s["reset.textColor"], function () { setSetting("textColor", "auto", true); }));
     resets.appendChild(resetBtn(s["reset.pos"], function () {
       state.settings.side = D.side; state.settings.y = D.y;
       saveSettings(); placeOrb(); renderSettingsPaneRefresh();

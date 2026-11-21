@@ -1,6 +1,6 @@
 {
   "name": "MapleLantern",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "nickName": "灯台 Lantern",
   "scriptFileList_inject_early": [
     "compat-preload.js"
@@ -19,7 +19,8 @@
     "style.css",
     "maplelantern-native.css",
     "effects.css",
-    "custom.css"
+    "custom.css",
+    "ornaments.css"
   ],
   "tweeFileList": [],
   "imgFileList": [],

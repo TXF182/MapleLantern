@@ -13,10 +13,10 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.5.0";
+  var VERSION = "1.5.1";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
-  var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
+  var THEMES = ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"];
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
 
@@ -47,12 +47,6 @@
       accent: "#5FBFAC", accentInk: "#06130F", line: "rgba(255,255,255,.09)",
       jade: "#7FD6C5", rose: "#D2737B", danger: "#C65449"
     },
-    graphite: {
-      bg: "#0C0D0F", bgSoft: "#15171B", bgRaise: "#1D2026",
-      text: "#E7E8EA", muted: "#9A9DA4", faint: "#6B6E75",
-      accent: "#C9CDD4", accentInk: "#101216", line: "rgba(255,255,255,.10)",
-      jade: "#8FD3C4", rose: "#CE7C84", danger: "#C65449"
-    },
     star: {
       bg: "#070A14", bgSoft: "#0D1222", bgRaise: "#151B31",
       text: "#E5EAF8", muted: "#909BBA", faint: "#626E8E",
@@ -76,6 +70,12 @@
       text: "#2A2118", muted: "#6D5F50", faint: "#756451",
       accent: "#A9362A", accentInk: "#FFF8EC", line: "rgba(42,33,24,.16)",
       jade: "#486F61", rose: "#9B5149", danger: "#8E2A21"
+    },
+    grass: {
+      bg: "#E6F0D4", bgSoft: "#DDE8C6", bgRaise: "#F4F9E9",
+      text: "#20301A", muted: "#5A6A47", faint: "#7D8C6B",
+      accent: "#2F6B2B", accentInk: "#F6FBEE", line: "rgba(32,48,26,.18)",
+      jade: "#3F8F5B", rose: "#9C4A2A", danger: "#AE3A28"
     }
   };
 
@@ -117,6 +117,12 @@
       "settings.title": "设置", "settings.theme": "主题", "settings.scale": "字号",
       "settings.glass": "通透度", "settings.density": "密度", "settings.motion": "动效", "settings.lang": "语言",
       "settings.position": "悬浮球位置",
+      "settings.ornament": "主题边饰",
+      "settings.ornamentHint": "正文四周的装饰花边，随主题换样式；关闭后正文恢复原宽度",
+      "settings.textColor": "文字色",
+      "settings.textColorHint": "只改故事正文与标题；选项、按钮和状态读数保持主题色",
+      "textColor.auto": "跟随主题", "textColor.custom": "自定义",
+      "toast.colorContrast": "这个颜色和背景太接近（低于 4.5:1），换一个更清楚的",
       "settings.native": "原生卡片",
       "settings.panel": "悬浮灯台",
       "settings.thirdPartyNative": "美化页启用灯台 UI",
@@ -138,13 +144,14 @@
       "native.entry": "灯台",
       "native.entryHint": "打开灯台面板",
       "shop.filters": "筛选", "shop.options": "选项", "shop.legend": "图例",
-      "theme.auto": "自动", "theme.cyberpunk": "赛博朋克", "theme.amber": "琥珀", "theme.jade": "青瓷", "theme.graphite": "石墨",
+      "theme.auto": "自动", "theme.cyberpunk": "赛博朋克", "theme.amber": "琥珀", "theme.jade": "青瓷",
       "theme.star": "星空", "theme.fog": "雾港", "theme.school": "旧校舍", "theme.paper": "纸灯",
+      "theme.grass": "绿茵",
       "density.cozy": "舒适", "density.compact": "紧凑",
       "lang.auto": "自动", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "左下", "pos.right": "右下",
       "reset.scale": "字号回 100%", "reset.glass": "通透度回 60", "reset.density": "密度回舒适",
-      "reset.theme": "主题回自动", "reset.pos": "复位位置",
+      "reset.theme": "主题回自动", "reset.textColor": "文字色回跟随主题", "reset.pos": "复位位置",
       "misc.close": "关闭", "misc.untitled": "未知场景", "misc.degraded": "读取降级",
       "toast.storage": "设置只在本次生效（存储不可用）",
       "toast.repaired": "检测到旧设置，已逐项修复",
@@ -187,6 +194,12 @@
       "settings.title": "Settings", "settings.theme": "Theme", "settings.scale": "Text size",
       "settings.glass": "Clarity", "settings.density": "Density", "settings.motion": "Motion", "settings.lang": "Language",
       "settings.position": "Orb position",
+      "settings.ornament": "Theme ornament",
+      "settings.ornamentHint": "Decorative frame around the story text; changes with the theme. Off restores full text width",
+      "settings.textColor": "Text color",
+      "settings.textColorHint": "Story text and headings only; options, buttons and stat readouts keep the theme colors",
+      "textColor.auto": "Theme", "textColor.custom": "Custom",
+      "toast.colorContrast": "Too close to the background (below 4.5:1); pick a clearer color",
       "settings.native": "Native cards",
       "settings.panel": "Floating Lantern",
       "settings.thirdPartyNative": "Lantern UI on beauty pages",
@@ -208,13 +221,14 @@
       "native.entry": "Lantern",
       "native.entryHint": "Open the Lantern panel",
       "shop.filters": "Filters", "shop.options": "Options", "shop.legend": "Legend",
-      "theme.auto": "Auto", "theme.cyberpunk": "Cyberpunk", "theme.amber": "Amber", "theme.jade": "Jade", "theme.graphite": "Graphite",
+      "theme.auto": "Auto", "theme.cyberpunk": "Cyberpunk", "theme.amber": "Amber", "theme.jade": "Jade",
       "theme.star": "Starfield", "theme.fog": "Fog Harbor", "theme.school": "Old School", "theme.paper": "Paper Lantern",
+      "theme.grass": "Meadow",
       "density.cozy": "Cozy", "density.compact": "Compact",
       "lang.auto": "Auto", "lang.zh": "中文", "lang.en": "English",
       "pos.left": "Bottom left", "pos.right": "Bottom right",
       "reset.scale": "Text back to 100%", "reset.glass": "Clarity back to 60", "reset.density": "Density back to cozy",
-      "reset.theme": "Theme back to auto", "reset.pos": "Reset position",
+      "reset.theme": "Theme back to auto", "reset.textColor": "Text color to theme", "reset.pos": "Reset position",
       "misc.close": "Close", "misc.untitled": "Unknown scene", "misc.degraded": "Degraded",
       "toast.storage": "Settings apply to this session only (storage unavailable)",
       "toast.repaired": "Older settings found and repaired field by field",
@@ -242,6 +256,7 @@
   var DEFAULTS = Object.freeze({
     v: 1,
     theme: "cyberpunk",
+    textColor: "auto",
     scale: 100,
     glass: 60,
     density: "cozy",
@@ -253,6 +268,7 @@
     seen: false,
     native: true,
     panel: false,
+    ornament: true,
     thirdPartyNative: false,
     optStats: true,
     optMoney: true,
@@ -274,11 +290,13 @@
   /* 设置修复：逐字段，不整包丢弃；返回 repaired 供诊断与一次性提示。 */
   function sanitizeSettings(raw) {
     var out = {
-      v: 1, theme: DEFAULTS.theme, scale: DEFAULTS.scale, glass: DEFAULTS.glass,
+      v: 1, theme: DEFAULTS.theme, textColor: DEFAULTS.textColor,
+      scale: DEFAULTS.scale, glass: DEFAULTS.glass,
       density: DEFAULTS.density,
       motion: DEFAULTS.motion, lang: DEFAULTS.lang, tab: DEFAULTS.tab,
       side: DEFAULTS.side, y: DEFAULTS.y, seen: DEFAULTS.seen,
       native: DEFAULTS.native, panel: DEFAULTS.panel,
+      ornament: DEFAULTS.ornament,
       thirdPartyNative: DEFAULTS.thirdPartyNative,
       optStats: DEFAULTS.optStats, optMoney: DEFAULTS.optMoney,
       optRailSkin: DEFAULTS.optRailSkin, optRailPct: DEFAULTS.optRailPct,
@@ -291,6 +309,12 @@
 
     if (raw.theme !== undefined) {
       if (THEMES.indexOf(raw.theme) >= 0) { out.theme = raw.theme; } else { repaired = true; }
+    }
+    if (raw.textColor !== undefined) {
+      var tc = normalizeHex(raw.textColor);
+      if (raw.textColor === "auto") { out.textColor = "auto"; }
+      else if (tc) { out.textColor = tc; }
+      else { repaired = true; }
     }
     if (raw.scale !== undefined) {
       var s = num(raw.scale);
@@ -339,6 +363,10 @@
     if (raw.panel !== undefined) {
       out.panel = raw.panel === true;
       if (typeof raw.panel !== "boolean") { repaired = true; }
+    }
+    if (raw.ornament !== undefined) {
+      out.ornament = raw.ornament !== false;
+      if (typeof raw.ornament !== "boolean") { repaired = true; }
     }
     if (raw.thirdPartyNative !== undefined) {
       out.thirdPartyNative = raw.thirdPartyNative === true;
@@ -547,6 +575,13 @@
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
   }
 
+  function normalizeHex(value) {
+    if (typeof value !== "string") { return null; }
+    var h = value.trim().replace(/^#/, "");
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) { return null; }
+    return "#" + h.toLowerCase();
+  }
+
   function luminance(hex) {
     var rgb = hexToRgb(hex);
     if (!rgb) { return null; }
@@ -565,6 +600,35 @@
   }
 
   function paletteFor(theme) { return PALETTES[theme] || PALETTES.cyberpunk; }
+
+  /* 正文文字色：只作用于故事正文（#passages / .passage）。
+     "auto" 表示跟随主题；自定义色按当前主题底色算对比度，低于 4.5:1 不生效。
+     预设从主题调色板里取强调色/玉色/玫瑰色，同样逐色过 4.5:1，避免给玩家一个
+     看着好看、读起来发虚的选项。 */
+  var TEXT_CONTRAST_MIN = 4.5;
+
+  function textColorFor(value, theme) {
+    var hex = normalizeHex(value);
+    if (!hex) { return null; }
+    var ratio = contrast(hex, paletteFor(theme).bg);
+    return (ratio !== null && ratio >= TEXT_CONTRAST_MIN) ? hex : null;
+  }
+
+  function textColorChoices(theme) {
+    var palette = paletteFor(theme);
+    var out = [{ value: "auto", swatch: palette.text }];
+    var pool = [palette.accent, palette.jade, palette.rose, palette.danger];
+    var seen = {};
+    for (var i = 0; i < pool.length && out.length < 4; i++) {
+      var hex = normalizeHex(pool[i]);
+      if (!hex || seen[hex] || hex === normalizeHex(palette.text)) { continue; }
+      var ratio = contrast(hex, palette.bg);
+      if (ratio === null || ratio < TEXT_CONTRAST_MIN) { continue; }
+      seen[hex] = true;
+      out.push({ value: hex, swatch: hex });
+    }
+    return out;
+  }
 
   /* DoL 的「游戏缩放」是 body.style.zoom。固定层 CSS 的 left/top/width/height
      会被再乘一次 zoom，而 window.innerWidth / clientX 仍是视觉视口坐标；
@@ -670,6 +734,9 @@
     readThirdParty: readThirdParty,
     contrast: contrast,
     luminance: luminance,
+    normalizeHex: normalizeHex,
+    textColorFor: textColorFor,
+    textColorChoices: textColorChoices,
     paletteFor: paletteFor,
     zoomFactor: zoomFactor,
     viewportSize: viewportSize,

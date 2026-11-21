@@ -1,0 +1,136 @@
+/* ============================================================================
+ * 灯台 · MapleLantern — ornaments.css
+ * 主题边饰：正文区四边装饰层（纯 CSS 伪元素，零 DOM 节点、零动画）。
+ *
+ * 约定：
+ *   - 只有原生层开启（data-ml-native="on"）且边饰开关打开（data-ml-orn="1"）时生效；
+ *   - 不挂在 #passages / .passage 的 background（native.css 有 !important 清空规则），
+ *     一律走 #passages::before 的 border-image；
+ *   - 装饰层 pointer-events:none，不承载文字，不拦截点击；
+ *   - auto 主题不提供图案（--mln-orn-frame 保持 none），时段换色时不会闪。
+ * ========================================================================== */
+
+html {
+  --mln-orn-frame: none;
+  --mln-orn-title: none;
+  --mln-orn-a: 0;
+  --mln-orn-thick: 12px;
+  --mln-orn-pad: 10px;
+}
+
+/* 原生层从未写入 data-ml-theme="auto"（auto 解析为 cyberpunk 色板），故不另设 auto 分支。 */
+
+html[data-ml-orn="1"][data-ml-native="on"] #passages {
+  position: relative;
+}
+
+html[data-ml-orn="1"][data-ml-native="on"] #passages::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border: var(--mln-orn-thick) solid transparent;
+  border-image-source: var(--mln-orn-frame);
+  border-image-slice: 24 24 24 24;
+  border-image-repeat: repeat;
+  opacity: var(--mln-orn-a);
+}
+
+html[data-ml-orn="1"][data-ml-native="on"] #passages .passage {
+  position: relative;
+  z-index: 1;
+  padding-inline: var(--mln-orn-pad);
+}
+
+html[data-ml-orn="1"][data-ml-native="on"] #passages .passage h1 {
+  position: relative;
+}
+
+html[data-ml-orn="1"][data-ml-native="on"] #passages .passage h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 14px;
+  pointer-events: none;
+  background: var(--mln-orn-title) center bottom / 100% 100% no-repeat;
+  opacity: var(--mln-orn-a);
+}
+
+/* ---------------------------------------------------------------- 八套语言
+ * 每套同一骨架：左上角纹样 + 上边中段标记，再以 90° 旋转复用到四角四边。
+ * -------------------------------------------------------------------------- */
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] {
+  --mln-orn-a: .30;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2300E5FF' stroke-width='1.5'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M32 0v9M29 7l3 3 3-3'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M32 0v9M29 7l3 3 3-3'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M32 0v9M29 7l3 3 3-3'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M32 0v9M29 7l3 3 3-3'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23FF3D9A'%3E%3Ccircle cx='6' cy='6' r='1.6'/%3E%3Cg transform='rotate(180 32 32)'%3E%3Ccircle cx='6' cy='6' r='1.6'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%2300E5FF' stroke-width='1.2'%3E%3Cpath d='M2 7h14l4-4 4 4h-4'/%3E%3Cpath d='M28 7h88' stroke-dasharray='6 4 2 4'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="amber"] {
+  --mln-orn-a: .34;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23E3B25F' stroke-width='1.4'%3E%3Cpath d='M3 21c0-10 8-18 18-18'/%3E%3Cpath d='M3 14c0-6 5-11 11-11'/%3E%3Cpath d='M28 0v6M36 0v6'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 21c0-10 8-18 18-18'/%3E%3Cpath d='M3 14c0-6 5-11 11-11'/%3E%3Cpath d='M28 0v6M36 0v6'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 21c0-10 8-18 18-18'/%3E%3Cpath d='M3 14c0-6 5-11 11-11'/%3E%3Cpath d='M28 0v6M36 0v6'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 21c0-10 8-18 18-18'/%3E%3Cpath d='M3 14c0-6 5-11 11-11'/%3E%3Cpath d='M28 0v6M36 0v6'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%23E3B25F' stroke-width='1.2'%3E%3Cpath d='M2 7c0-4 3-7 7-7s7 3 7 7'/%3E%3Cpath d='M26 7h90' stroke-dasharray='8 4'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="jade"] {
+  --mln-orn-a: .30;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%237FD6C5' stroke-width='1.2'%3E%3Cpath d='M3 21c0-11 9-18 18-18c-7 2-12 7-13 14'/%3E%3Cpath d='M26 0c2 4 6 6 12 6'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 21c0-11 9-18 18-18c-7 2-12 7-13 14'/%3E%3Cpath d='M26 0c2 4 6 6 12 6'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 21c0-11 9-18 18-18c-7 2-12 7-13 14'/%3E%3Cpath d='M26 0c2 4 6 6 12 6'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 21c0-11 9-18 18-18c-7 2-12 7-13 14'/%3E%3Cpath d='M26 0c2 4 6 6 12 6'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%237FD6C5' stroke-width='1.2'%3E%3Cpath d='M2 9c3-5 7-5 10 0M2 9c3 3 7 3 10 0'/%3E%3Cpath d='M24 9h92'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="star"] {
+  --mln-orn-a: .34;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23909BBA' stroke-width='1'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v5M36 0v5'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v5M36 0v5'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v5M36 0v5'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v5M36 0v5'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%238FA6FF'%3E%3Cpath d='M32 0l2 4 4 2-4 2-2 4-2-4-4-2 4-2z'/%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%23909BBA' stroke-width='1.1'%3E%3Cpath d='M4 7h14M26 7h90' stroke-dasharray='5 5 1 3'/%3E%3C/g%3E%3Cg fill='%238FA6FF'%3E%3Cpath d='M22 3l1.5 3 3 1.5-3 1.5-1.5 3-1.5-3-3-1.5 3-1.5z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="fog"] {
+  --mln-orn-a: .32;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%2379C9BE' stroke-width='1.3'%3E%3Cpath d='M2 20c4 0 4-7 8-7s4 7 8 7'/%3E%3Cpath d='M26 0c3-4 6 4 9 0s3-4 5 0'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M2 20c4 0 4-7 8-7s4 7 8 7'/%3E%3Cpath d='M26 0c3-4 6 4 9 0s3-4 5 0'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M2 20c4 0 4-7 8-7s4 7 8 7'/%3E%3Cpath d='M26 0c3-4 6 4 9 0s3-4 5 0'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M2 20c4 0 4-7 8-7s4 7 8 7'/%3E%3Cpath d='M26 0c3-4 6 4 9 0s3-4 5 0'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23E7B66B'%3E%3Ccircle cx='6' cy='17' r='1.4'/%3E%3Cg transform='rotate(180 32 32)'%3E%3Ccircle cx='6' cy='17' r='1.4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%2379C9BE' stroke-width='1.2'%3E%3Cpath d='M2 8c4 0 4-5 8-5s4 5 8 5'/%3E%3Cpath d='M24 8h92' stroke-dasharray='10 3 3 3'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="school"] {
+  --mln-orn-a: .30;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%237F9C84' stroke-width='1.2'%3E%3Cpath d='M3 7h18M3 13h18M3 19h14'/%3E%3Cpath d='M32 0v6M28 0v6M36 0v6'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 7h18M3 13h18M3 19h14'/%3E%3Cpath d='M32 0v6M28 0v6M36 0v6'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 7h18M3 13h18M3 19h14'/%3E%3Cpath d='M32 0v6M28 0v6M36 0v6'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 7h18M3 13h18M3 19h14'/%3E%3Cpath d='M32 0v6M28 0v6M36 0v6'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23C9AE72'%3E%3Cpath d='M4 24l14-14 4 4-14 14z' opacity='.55'/%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M4 24l14-14 4 4-14 14z' opacity='.55'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%237F9C84' stroke-width='1.1'%3E%3Cpath d='M2 8h20M2 12h20'/%3E%3Cpath d='M26 8h90'/%3E%3C/g%3E%3Cg fill='%23C9AE72'%3E%3Cpath d='M24 4l6-4 2 2-6 4z' opacity='.7'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="paper"] {
+  --mln-orn-a: .42;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23486F61' stroke-width='1.4'%3E%3Cpath d='M4 21c3-8 6-14 15-17' stroke-dasharray='7 3 3 2'/%3E%3Cpath d='M28 0v4M34 4v4M30 8v3'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M4 21c3-8 6-14 15-17' stroke-dasharray='7 3 3 2'/%3E%3Cpath d='M28 0v4M34 4v4M30 8v3'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M4 21c3-8 6-14 15-17' stroke-dasharray='7 3 3 2'/%3E%3Cpath d='M28 0v4M34 4v4M30 8v3'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M4 21c3-8 6-14 15-17' stroke-dasharray='7 3 3 2'/%3E%3Cpath d='M28 0v4M34 4v4M30 8v3'/%3E%3C/g%3E%3C/g%3E%3Cg fill='%23A9362A'%3E%3Ccircle cx='7' cy='19' r='2'/%3E%3Cg transform='rotate(180 32 32)'%3E%3Ccircle cx='7' cy='19' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%23486F61' stroke-width='1.3'%3E%3Cpath d='M2 8c4-4 8-4 12 0' stroke-dasharray='6 2 3 2'/%3E%3Cpath d='M26 8h90' stroke-dasharray='12 3 2 3'/%3E%3C/g%3E%3Cg fill='%23A9362A'%3E%3Cpath d='M16 4h6v6h-6z' opacity='.8'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+html[data-ml-native="on"][data-ml-theme="grass"] {
+  --mln-orn-a: .38;
+  --mln-orn-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1.6'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v7M36 0v7'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v7M36 0v7'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v7M36 0v7'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M3 21V3h18'/%3E%3Cpath d='M28 0v7M36 0v7'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='%2320301A' stroke-opacity='.38' stroke-width='1'%3E%3Cpath d='M5 20V5h15'/%3E%3Cpath d='M32 0v4'/%3E%3Cg transform='rotate(90 32 32)'%3E%3Cpath d='M5 20V5h15'/%3E%3Cpath d='M32 0v4'/%3E%3C/g%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M5 20V5h15'/%3E%3Cpath d='M32 0v4'/%3E%3C/g%3E%3Cg transform='rotate(270 32 32)'%3E%3Cpath d='M5 20V5h15'/%3E%3Cpath d='M32 0v4'/%3E%3C/g%3E%3C/g%3E%3Cg fill='none' stroke='%233F8F5B' stroke-width='1'%3E%3Cpath d='M32 2l-2-2M32 2l2-2M32 2v-1'/%3E%3Cg transform='rotate(180 32 32)'%3E%3Cpath d='M32 2l-2-2M32 2l2-2M32 2v-1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  --mln-orn-title: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='1.5'%3E%3Cpath d='M2 9h18'/%3E%3Cpath d='M26 9h92' stroke-dasharray='14 3'/%3E%3C/g%3E%3Cg fill='none' stroke='%233F8F5B' stroke-width='1.2'%3E%3Cpath d='M14 8l-3-4M14 8l3-4M14 8v-5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------- 小屏收敛 */
+
+@media (max-width: 600px) {
+  html {
+    --mln-orn-thick: 8px;
+    --mln-orn-pad: 8px;
+  }
+  html[data-ml-orn="1"][data-ml-native="on"] #passages .passage h1::after {
+    height: 10px;
+    bottom: -5px;
+  }
+}
+
+@media (max-width: 420px) {
+  html[data-ml-orn="1"][data-ml-native="on"] #passages::before {
+    border-image-source: none;
+  }
+  html {
+    --mln-orn-pad: 0px;
+  }
+}
+
+/* 动效关闭不影响边饰（边饰本身是静态的）；减少动态与低端机同样保留。 */
