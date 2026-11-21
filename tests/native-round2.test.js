@@ -291,3 +291,28 @@ test("S12 侧栏内部普通点击不得把正文切成抽屉隐藏态", async (
   assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), "1",
     "真实开合按钮仍必须能挂上抽屉标记");
 });
+
+test("S12b #ui-bar 自身收起/展开必须立即同步，正文不再残留抽屉标记", async () => {
+  const w = make(page("<p>正文</p>", ""));
+  const doc = w.document;
+  const bar = doc.getElementById("ui-bar");
+  bar.getBoundingClientRect = () => ({ width: 281, height: 844, top: 0, left: 0, right: 281, bottom: 844, x: 0, y: 0 });
+  await tick(w);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), "1",
+    "侧栏可见时必须挂抽屉标记");
+
+  bar.classList.add("stowed");
+  await tick(w, 40);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), null,
+    "侧栏通过左滑/宿主收起时，标记必须立即清掉");
+
+  bar.classList.remove("stowed");
+  await tick(w, 40);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), "1",
+    "侧栏重新展开时必须重新挂标记");
+
+  bar.style.display = "none";
+  await tick(w, 40);
+  assert.equal(doc.documentElement.getAttribute("data-ml-sidebar-open"), null,
+    "宿主用 display:none 收起侧栏时也必须清标记");
+});

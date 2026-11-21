@@ -203,13 +203,15 @@
       try { bar.focus(); } catch (e) { /* ignore */ }
       set(fromX(ev.clientX), false);
       var move = function (e) { set(fromX(e.clientX), false); };
-      var up = function () {
+      var end = function () {
         doc.removeEventListener("pointermove", move);
-        doc.removeEventListener("pointerup", up);
+        doc.removeEventListener("pointerup", end);
+        doc.removeEventListener("pointercancel", end);
         commit(patch);
       };
       doc.addEventListener("pointermove", move);
-      doc.addEventListener("pointerup", up);
+      doc.addEventListener("pointerup", end);
+      doc.addEventListener("pointercancel", end);
     });
 
     bar.addEventListener("keydown", function (ev) {
@@ -500,17 +502,28 @@
    * 导入 / 移除
    * ---------------------------------------------------------------------- */
 
+  var filePicker = null;
+
+  function onFilePick() {
+    if (!filePicker) { return; }
+    var file = filePicker.files && filePicker.files[0];
+    var kind = filePicker.getAttribute("data-mlc-kind");
+    /* 立刻清空：同一张图再次选择时也会触发 change，不必用户先选别的文件。 */
+    try { filePicker.value = ""; } catch (e) { /* ignore */ }
+    if (file && kind) ingest(kind, file);
+  }
+
   function pickFile(kind) {
-    var input = el("input", "", { type: "file", accept: "image/*" });
-    input.style.position = "fixed";
-    input.style.left = "-9999px";
-    doc.body.appendChild(input);
-    input.addEventListener("change", function () {
-      var file = input.files && input.files[0];
-      if (input.parentNode) input.parentNode.removeChild(input);
-      if (file) ingest(kind, file);
-    });
-    try { input.click(); } catch (e) {
+    if (!filePicker) {
+      filePicker = el("input", "", { type: "file", accept: "image/*" });
+      filePicker.style.position = "fixed";
+      filePicker.style.left = "-9999px";
+      filePicker.addEventListener("change", onFilePick);
+    }
+    if (!filePicker.isConnected && doc.body) doc.body.appendChild(filePicker);
+    filePicker.setAttribute("data-mlc-kind", kind);
+    try { filePicker.value = ""; } catch (e2) { /* ignore */ }
+    try { filePicker.click(); } catch (e3) {
       loadingNote = "这个浏览器不让脚本点开文件框，请用下面的“选择图片”按钮";
       sync();
     }
@@ -611,7 +624,7 @@
    * 「应用背景」
    *
    * 导入只是把图存进图库并挂变量；玩家有时会看不到变化（面板还挡着、或图层没重绘）。
-   * 这个按钮做三件事：从图库把两张图重新取出来重建 objectURL、整份设置重放、
+   * 这个按钮做三件事：从图库把图重新取出来编码成 data: URL（CSP 只放 self/data）、整份设置重放、
    * 读一次 body 布局强制同步重排，然后把实际状态写进提示行。
    * ---------------------------------------------------------------------- */
 
@@ -653,14 +666,18 @@
   }
 
   var loaded = { bg: false, btn: false, card: false };
+  var loadAttempts = { bg: 0, btn: 0, card: 0 };
+  var LOAD_RETRY_LIMIT = 2;
 
   function loadImages() {
     KINDS.forEach(function (kind) {
-      if (loaded[kind]) return;
-      loaded[kind] = true;
+      if (loaded[kind] || loadAttempts[kind] >= LOAD_RETRY_LIMIT) { return; }
+      loadAttempts[kind]++;
       Assets.load(kind).then(function (rec) {
-        if (!rec || !rec.blob) return;
+        if (!rec || !rec.blob) { return; }
+        /* 读到了才置 true；IDB 瞬时失败时保留 false，下一次注入可再试。 */
         Assets.dataUrlFor(kind, rec.blob).then(function (url) {
+          loaded[kind] = true;
           setImage(kind, {
             url: url,
             w: (rec.meta && rec.meta.w) || 0,
@@ -668,7 +685,7 @@
             bytes: (rec.meta && rec.meta.bytes) || rec.blob.size,
             type: (rec.meta && rec.meta.type) || ""
           });
-        }, function () { /* 编码失败就保持原样，不清空已有图 */ });
+        }, function () { /* 编码失败保持 false，有限次重试 */ });
       });
     });
   }
@@ -1031,7 +1048,16 @@
    * 注入 / 卸载
    * ---------------------------------------------------------------------- */
 
+  function panelOpen() {
+    var panel = doc.getElementById("ml-panel");
+    /* 独立挂载（无灯台面板 DOM）时不拦截，保持 inject() 可单独复用的旧契约。 */
+    if (!panel) { return true; }
+    var shell = doc.getElementById("ml-root");
+    return panel.hidden !== true && (shell ? shell.getAttribute("data-open") === "1" : true);
+  }
+
   function inject() {
+    if (!panelOpen()) { return; }
     var pane = doc.getElementById("ml-pane");
     var tab = doc.getElementById("ml-tab-settings");
     if (!pane || !tab || tab.getAttribute("aria-selected") !== "true") return;
@@ -1057,10 +1083,13 @@
     timer = root.setTimeout(function () {
       timer = 0;
       /* 拖动中不重挂：重挂会按已落盘的旧值重画滑杆，手还没松就跳回去 */
-      if (drag) return;
+      if (drag || !panelOpen()) return;
       inject();
     }, 90);
   }
+
+  var onDocClick = function () { schedule(); };
+  var onResize = function () { paintStage(); };
 
   function bind() {
     if (observer) return;
@@ -1071,13 +1100,19 @@
     observer.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
     /* 灯台切页签只改 aria-selected / display，不重建 DOM；光靠 MutationObserver
      * 的 childList 会漏掉这条路径，所以点一下也补一次（90ms 节流，不会重入）。 */
-    doc.addEventListener("click", function () { schedule(); }, true);
-    root.addEventListener("resize", function () { paintStage(); }, { passive: true });
+    doc.addEventListener("click", onDocClick, true);
+    root.addEventListener("resize", onResize, { passive: true });
   }
 
   function destroy() {
     if (observer) { observer.disconnect(); observer = null; }
     if (timer) { root.clearTimeout(timer); timer = 0; }
+    doc.removeEventListener("click", onDocClick, true);
+    root.removeEventListener("resize", onResize);
+    if (filePicker) {
+      if (filePicker.parentNode) filePicker.parentNode.removeChild(filePicker);
+      filePicker = null;
+    }
     var groups = doc.querySelectorAll("[" + MARK + "]");
     for (var i = 0; i < groups.length; i++) {
       if (groups[i].parentNode) groups[i].parentNode.removeChild(groups[i]);
@@ -1086,6 +1121,9 @@
     draft = null;
     pending = null;
     loaded = { bg: false, btn: false, card: false };
+    loadAttempts = { bg: 0, btn: 0, card: 0 };
+    /* 允许 destroy 后重新加载脚本再 bind；留着 __ready 会让新 IIFE 直接 return。 */
+    root.MapleLanternDossierPanel = null;
   }
 
   root.MapleLanternDossierPanel = {

@@ -120,14 +120,19 @@
 
   function decodeViaImg(file) {
     return new Promise(function (resolve, reject) {
-      var url = root.URL.createObjectURL(file);
-      var img = new root.Image();
-      img.onload = function () { resolve({ source: img, width: img.naturalWidth, height: img.naturalHeight, release: function () { root.URL.revokeObjectURL(url); } }); };
-      img.onerror = function () {
-        root.URL.revokeObjectURL(url);
-        reject(new Error("decode-failed"));
+      /* DoL 的 CSP 只允许 img-src 'self' data:，blob: 会被拦掉；这里必须走 data URL。 */
+      var fr;
+      try { fr = new root.FileReader(); } catch (e) { reject(new Error("decode-failed")); return; }
+      fr.onload = function () {
+        var img = new root.Image();
+        img.onload = function () {
+          resolve({ source: img, width: img.naturalWidth, height: img.naturalHeight, release: function () {} });
+        };
+        img.onerror = function () { reject(new Error("decode-failed")); };
+        img.src = String(fr.result || "");
       };
-      img.src = url;
+      fr.onerror = function () { reject((fr && fr.error) || new Error("decode-failed")); };
+      fr.readAsDataURL(file);
     });
   }
 
@@ -203,11 +208,21 @@
       decode(file).then(function (dec) {
         var lim = limits();
         var target = Core.fitWithin(dec.width, dec.height, lim.maxEdge, lim.maxArea);
-        var c = canvasOf(target.w, target.h);
-        var ctx = c.getContext("2d");
-        ctx.imageSmoothingQuality = "high";
-        ctx.drawImage(dec.source, 0, 0, target.w, target.h);
-        if (dec.release) dec.release();
+        try {
+          var c = canvasOf(target.w, target.h);
+          var ctx = c.getContext("2d");
+          if (!ctx) {
+            reject({ code: "canvas-unavailable", message: "浏览器没有提供 2D 画布，换一个浏览器或关闭省电模式再试" });
+            return;
+          }
+          ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(dec.source, 0, 0, target.w, target.h);
+        } catch (drawErr) {
+          reject({ code: "decode-failed", message: "这张图打不开，换一张试试（" + shortErr(drawErr) + "）" });
+          return;
+        } finally {
+          if (dec.release) dec.release();
+        }
         toBlob(c).then(function (blob) {
           if (!blob) { reject({ code: "encode-failed", message: "这张图压不出来，换一张试试" }); return; }
           resolve({

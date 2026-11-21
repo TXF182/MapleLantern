@@ -2,6 +2,8 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("fs");
+const path = require("path");
 const { createEnv } = require("./env.js");
 
 function pane(w) { return w.document.querySelector("#ml-panel .ml-pane"); }
@@ -513,6 +515,23 @@ test("诊断：字段齐全，能反映游戏版本与未连宿主", () => {
   assert.equal(d.stateReadable, true);
 });
 
+test("设置：通透度滑块 pointercancel 后立即结束拖动，不被后续 move 改值", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const slider = w.document.querySelector('.ml-slider[data-key="glass"]');
+  const pointer = (type, x) => {
+    const ev = new w.MouseEvent(type, { bubbles: true, clientX: x });
+    ev.pointerId = 1;
+    slider.dispatchEvent(ev);
+  };
+  pointer("pointerdown", 10);
+  const afterDown = slider.getAttribute("aria-valuenow");
+  pointer("pointercancel", 10);
+  pointer("pointermove", 100);
+  assert.equal(slider.getAttribute("aria-valuenow"), afterDown, "pointercancel 后不得继续跟随 move");
+});
+
 test("销毁：移除 DOM、解绑键盘，再调用不抛错", () => {
   const { w } = createEnv();
   w.MapleLantern.open();
@@ -520,6 +539,22 @@ test("销毁：移除 DOM、解绑键盘，再调用不抛错", () => {
   assert.equal(w.document.getElementById("ml-root"), null);
   assert.doesNotThrow(() => w.MapleLantern.open());
   assert.doesNotThrow(() => w.MapleLantern.destroy());
+});
+
+test("销毁：级联调用原生 / 外观 / 面板 destroy，且与渲染层一致幂等", () => {
+  const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  const SRC = path.join(__dirname, "..", "src");
+  for (const file of ["dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js"]) {
+    w.eval(fs.readFileSync(path.join(SRC, file), "utf8"));
+  }
+  const calls = [];
+  for (const [name, api] of [["native", w.MapleLanternNative], ["theme", w.MapleLanternDossierTheme], ["panel", w.MapleLanternDossierPanel]]) {
+    assert.ok(api && typeof api.destroy === "function", name + " 必须提供 destroy");
+    const original = api.destroy;
+    api.destroy = function () { calls.push(name); return original.apply(this, arguments); };
+  }
+  w.MapleLantern.destroy();
+  assert.deepEqual(calls, ["native", "theme", "panel"], "渲染层销毁必须级联子层");
 });
 
 test("快捷键：Alt+L 开合，输入框内不抢键", () => {
@@ -607,4 +642,44 @@ test("「开关」页：9 个原生模块独立开关，点一项只撤对应根
   assert.equal(money.textContent, "£1,234");
   const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
   assert.equal(saved.optMoney, false);
+});
+
+test("A1 前景背景桥接：优先命中侧栏入口，不误点灯台自己的按钮", async () => {
+  const vars = {
+    willpower: 40, willpowermax: 1000,
+    stress: 0, stressmax: 10000,
+    trauma: 200, traumamax: 5000,
+    arousal: 800, arousalmax: 10000,
+    tiredness: 600, pain: 0,
+    control: 500, controlmax: 1000,
+    allure: 800,
+    foreground_image1: "1"
+  };
+  const { w } = createEnv({ vars, seed: { v: 1, lang: "zh", motion: false } });
+  const doc = w.document;
+  const bar = doc.getElementById("ui-bar");
+  const buttons = doc.createElement("div");
+  buttons.id = "overlayButtons";
+  const sidebarButton = doc.createElement("button");
+  sidebarButton.type = "button";
+  sidebarButton.textContent = "前景背景";
+  sidebarButton.addEventListener("click", () => { sidebarButton.__hit = (sidebarButton.__hit || 0) + 1; });
+  buttons.appendChild(sidebarButton);
+  bar.appendChild(buttons);
+
+  const root = doc.getElementById("ml-root");
+  const decoy = doc.createElement("button");
+  decoy.type = "button";
+  decoy.textContent = "前景背景";
+  decoy.addEventListener("click", () => { decoy.__hit = (decoy.__hit || 0) + 1; });
+  root.appendChild(decoy);
+
+  w.MapleLantern.open();
+  const bridge = doc.querySelector('[data-ml-bridge="decorations"]');
+  assert.ok(bridge, "装了 decorations 时必须出现前景背景桥接行");
+  bridge.click();
+  await new Promise((r) => w.setTimeout(r, 360));
+
+  assert.equal(sidebarButton.__hit, 1, "桥接打开必须点击侧栏的前景背景入口");
+  assert.equal(decoy.__hit || 0, 0, "不得误点 #ml-root 内的同名按钮");
 });

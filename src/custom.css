@@ -68,7 +68,7 @@ html[data-mlc="on"] #ml-root {
 
 /* --- 8b 按钮底纹 --------------------------------------------------------- */
 
-html[data-mlc="on"] #passages .passage a.link-internal:not(.macro-link) {
+html[data-mlc="on"][data-mlc-btn="on"] #passages .passage a.link-internal:not(.macro-link) {
   background-color: var(--mlc-surface-a, var(--mlc-surface));
   font-size: calc(1em * var(--mlc-font-scale, 1));
 }
@@ -232,7 +232,7 @@ html[data-mlc="on"] .md-apply:hover {
 }
 
 html[data-mlc="on"] .md-apply:active {
-  transform: translateY(1px);
+  transform: scale(.98);
 }
 
 html[data-mlc="on"] .md-apply:focus-visible {

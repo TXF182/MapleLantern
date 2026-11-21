@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const C = require("../src/core.js");
 
 test("VERSION / STORAGE_KEY / 页签集合稳定", () => {
-  assert.equal(C.VERSION, "1.4.22");
+  assert.equal(C.VERSION, "1.5.0");
   assert.equal(C.STORAGE_KEY, "MapleLantern.settings.v1");
   assert.deepEqual(C.TAB_KEYS, ["now", "vitals", "worn", "system", "switches", "settings"]);
   assert.equal(C.THEMES.length, 9);
@@ -177,6 +177,14 @@ test("readModel：完整存档读通，tiredness 上限走 Constants", () => {
   assert.equal(m.degraded, false);
 });
 
+test("readModel：tiredness max=0 时保留 0，不回退 2000", () => {
+  const m = C.readModel({ vars: { tiredness: 12 }, constants: { tiredness: { max: 0 } } });
+  const v = m.vitals.find((x) => x.key === "tiredness");
+  assert.ok(v, "tiredness 必须在 vitals 中");
+  assert.equal(v.max, 0);
+  assert.equal(v.pct, 0);
+});
+
 test("readModel：worn 优先取游戏汉化字段 cn_name_cap / cn_name，缺失回落原名", () => {
   const vars = {
     worn: {
@@ -257,7 +265,7 @@ test("panelOrigin：球心换算成面板内坐标，越界夹到 8px，量不�
 test("诊断结构：未连宿主时 present=false，不伪造能力", () => {
   const d = C.buildDiagnostics({ game: "0.5.12.13", host: null, storage: false });
   assert.equal(d.mod, "MapleLantern");
-  assert.equal(d.version, "1.4.22");
+  assert.equal(d.version, "1.5.0");
   assert.deepEqual(d.host, { present: false });
   assert.equal(d.storage, false);
   assert.equal(d.stateReadable, false);

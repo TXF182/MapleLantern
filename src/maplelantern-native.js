@@ -26,6 +26,9 @@
     overlayHome: null,
     packObserver: null,
     overlayObserver: null,
+    sidebarObserver: null,
+    sidebarBar: null,
+    sidebarTimer: null,
     zoomObserver: null,
     zoom: 1,
     sweep: null,
@@ -1827,6 +1830,7 @@
     state.nativeOn = effective;
     setRoot(effective);
     setModuleAttrs(effective ? state.settings : null);
+    watchSidebar();
     syncSidebar();
     if (!effective) {
       clearMarks();
@@ -1925,12 +1929,40 @@
     state.packObserver.observe(host, { childList: true, subtree: true });
   }
 
+  /* 侧栏开合不只走 #ui-bar-toggle：游戏左滑收起调用 UIBar.stow()，部分宿主
+     也会直接改 #ui-bar 的 class/style。这里盯住侧栏自身的状态变化，收起/展开
+     当帧就重算 data-ml-sidebar-open，避免正文继续被抽屉态隐藏。
+     迟 320ms 再补一次，覆盖带过渡的宿主；展开后不会被误清。 */
+  function watchSidebar() {
+    var bar = doc.getElementById("ui-bar");
+    if (!bar) { return; }
+    if (state.sidebarObserver && state.sidebarBar === bar) { return; }
+    if (state.sidebarObserver) {
+      state.sidebarObserver.disconnect();
+      state.sidebarObserver = null;
+    }
+    state.sidebarBar = bar;
+    if (typeof window.MutationObserver !== "function") { return; }
+    state.sidebarObserver = new window.MutationObserver(function () {
+      if (state.disposed) { return; }
+      syncSidebar();
+      if (state.sidebarTimer) { clearTimeout(state.sidebarTimer); }
+      state.sidebarTimer = setTimeout(function () {
+        state.sidebarTimer = null;
+        if (!state.disposed) { syncSidebar(); }
+      }, 320);
+    });
+    state.sidebarObserver.observe(bar, {
+      attributes: true,
+      attributeFilter: ["class", "style", "hidden", "aria-hidden"]
+    });
+  }
+
   function onClick(e) {
     var t = e && e.target;
     if (!t) { return; }
-    /* 侧栏开合只由真实开合按钮改变。金额/时间/状态/菜单等侧栏内部普通点击
-       不得重算 data-ml-sidebar-open，否则会把已经展开的侧栏误判成抽屉态，
-       连带把 #story 隐藏（玩家表现为“点侧边栏任意地方正文消失”）。 */
+    /* 侧栏开合不只由真实开合按钮改变：左滑/宿主收起由 watchSidebar 的
+       MutationObserver 接管；这里保留按钮点击的快照，覆盖过渡结束。 */
     if (t.closest && t.closest("#ui-bar-toggle")) {
       setTimeout(syncSidebar, 0);
       setTimeout(syncSidebar, 160);
@@ -2107,6 +2139,7 @@
       if (window.jQuery) { window.jQuery(doc).on(":passageend", onPassage); }
     } catch (e) { /* 原生事件兜底 */ }
     watchPassages();
+    watchSidebar();
     watchOverlay();
     watchZoom();
   }
@@ -2124,6 +2157,9 @@
     if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
     if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
     if (state.overlayFinder) { state.overlayFinder.disconnect(); state.overlayFinder = null; }
+    if (state.sidebarObserver) { state.sidebarObserver.disconnect(); state.sidebarObserver = null; }
+    if (state.sidebarTimer) { clearTimeout(state.sidebarTimer); state.sidebarTimer = null; }
+    state.sidebarBar = null;
     if (state.zoomObserver) { state.zoomObserver.disconnect(); state.zoomObserver = null; }
     if (state.sweep) { clearTimeout(state.sweep); state.sweep = null; }
     doc.documentElement.removeAttribute("data-ml-sidebar-open");

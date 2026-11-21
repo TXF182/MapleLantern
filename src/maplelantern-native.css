@@ -984,7 +984,7 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:hover {
 
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active {
-  transform: translateY(0) scale(.97);
+  transform: scale(.97);
   box-shadow: none;
   transition-duration: 40ms;
 }
@@ -1291,7 +1291,9 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-li
 
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link:active,
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link:active {
-  transform: translateY(1px) scale(.96);
+  position: relative;
+  z-index: 2;
+  transform: scale(.96);
   border-color: var(--mln-accent);
   filter: brightness(1.16) saturate(1.06);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-accent), 0 0 20px -5px var(--mln-glow);
@@ -1308,10 +1310,13 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-li
    1.1.6 在 Android 上曾出现 native 脚本被宿主脚本挤掉、正文只剩原版空行，
    表现就是“图标与卡片隔很远、选项之间很开”。:has 在 Android WebView 可用；
    不支持时规则不生效，不会破坏原版换行。 */
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link + br {
+  display: none !important;
+}
+
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage br:has(+ a.macro-link),
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage br:has(+ br + a.macro-link),
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage br:has(+ br + br + a.macro-link),
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link + br {
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage br:has(+ br + br + a.macro-link) {
   display: none !important;
 }
 
@@ -1344,7 +1349,8 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option
 }
 
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:active {
-  transform: translateY(1px) scale(.985);
+  z-index: 2;
+  transform: scale(.985);
   border-color: var(--mln-accent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%), 0 0 0 1px var(--mln-accent);
   transition-duration: 40ms;
@@ -2237,14 +2243,22 @@ html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats {
 
 /* 只收敛 BasicNeeds 追加的步进器，不碰原版 Options 的 446px 固定宽度。 */
 html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat .numberStepperContainer,
-html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .numberStepperContainer,
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .numberStepperContainer {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 html[data-ml-native="on"] #customOverlay .settingsGrid .settingsToggleItem:has(.bn-water-all) .numberStepperContainer {
   width: 100% !important;
   max-width: 100% !important;
 }
 
 html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat .titlePercentage,
-html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .titlePercentage,
+html[data-ml-native="on"] #customOverlay .settingsGrid #bn-cheat-stats .titlePercentage {
+  min-width: 0;
+  overflow: hidden;
+}
+
 html[data-ml-native="on"] #customOverlay .settingsGrid .settingsToggleItem:has(.bn-water-all) .titlePercentage {
   min-width: 0;
   overflow: hidden;
@@ -2441,8 +2455,6 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
    不在 `.passage` 内，因此天然被排除；不用 `:not()` 的复杂选择器，避免旧
    Android WebView 的选择器支持差异。弹层内部只走上面两条已排除 CE 的选择器。 */
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
 html[data-ml-native="on"] #passages .passage button {
   min-height: 44px;
   padding: 9px 14px;
@@ -2463,16 +2475,44 @@ html[data-ml-native="on"] #passages .passage button {
   transition: border-color 120ms ease, background-color 120ms ease, transform 80ms ease;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button {
+  min-height: 44px;
+  padding: 9px 14px;
+  box-sizing: border-box;
+  border: 1px solid var(--mln-border);
+  border-radius: var(--mln-radius-sm);
+  /* 只设底色，不能写 background 简写：原版图标按钮靠 background-image
+     画图标，简写会把 image/size/position/repeat 一并清成 none，
+     图标按钮就只剩一个空框（1.1.15 空「换姿势」按钮即此因）。 */
+  background-color: var(--mln-surface-2);
+  color: var(--mln-text);
+  font-family: var(--mln-font);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 80ms ease;
+}
+
 html[data-ml-native="on"] #passages .passage button:hover {
   border-color: var(--mln-accent);
   background-color: var(--mln-surface-3);
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover {
+  border-color: var(--mln-accent);
+  background-color: var(--mln-surface-3);
+}
+
 html[data-ml-native="on"] #passages .passage button:active {
+  transform: scale(.985);
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active {
   transform: scale(.985);
 }
 
@@ -2483,10 +2523,14 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContainer butto
   transform: none !important;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:focus-visible,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:focus-visible,
 html[data-ml-native="on"] #passages .passage button:focus-visible,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:focus-visible {
+  outline: 2px solid var(--mln-accent);
+  outline-offset: 2px;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:focus-visible,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:focus-visible {
   outline: 2px solid var(--mln-accent);
   outline-offset: 2px;
 }
@@ -2621,7 +2665,6 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
    通用 44px 触控规则会把箭头撑宽撑高，两列相邻控件互相覆盖，点「固定触发」
    这类小按钮时实际落到邻格，表现为“开本包 UI 就点不动”。这里仅对非 CE 的
    settingsGrid 恢复原版紧凑几何，颜色仍由上面的主题规则负责。 */
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid button,
 html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .settingsGrid button:not(#customOverlayContainer *) {
   min-height: 32px !important;
   padding: 2px 8px !important;
@@ -2631,9 +2674,30 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .settingsGrid butto
   transform: none !important;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid .numberStepper,
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid .numberStepper:disabled,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid button {
+  min-height: 32px !important;
+  padding: 2px 8px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  transform: none !important;
+}
+
 html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .settingsGrid .numberStepper:not(#customOverlayContainer *) {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  min-height: 32px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-size: 90% !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid .numberStepper,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .settingsGrid .numberStepper:disabled {
   width: 32px !important;
   min-width: 32px !important;
   max-width: 32px !important;
@@ -2651,9 +2715,26 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .settingsGrid .numb
    32px 箭头撑成 44px 并塞进 9px/14px 内边距，双图标 |< … >| 被挤出按钮，
    看起来就是箭头跑到格子外。这里对非 CE overlay 的所有 numberStepper 恢复
    原版几何：32×32、零内边距、无底色无边框，箭头与数值条重新贴合。 */
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper,
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper:disabled,
 html[data-ml-native="on"][data-ml-opt-overlay="1"] #passages .numberStepper:not(#customOverlayContainer *) {
+  width: 32px !important;
+  min-width: 32px !important;
+  max-width: 32px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  color: inherit !important;
+  font-size: 90% !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .numberStepper:disabled {
   width: 32px !important;
   min-width: 32px !important;
   max-width: 32px !important;
@@ -3406,15 +3487,18 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
   accent-color: var(--mln-accent);
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) table,
 html[data-ml-native="on"] #passages .passage table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12.5px;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) th,
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) td,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
 html[data-ml-native="on"] #passages .passage th,
 html[data-ml-native="on"] #passages .passage td {
   padding: 7px 8px;
@@ -3426,19 +3510,40 @@ html[data-ml-native="on"] #passages .passage td {
 }
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) th,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--mln-border);
+  text-align: left;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
 html[data-ml-native="on"] #passages .passage th {
   color: var(--mln-muted);
   font-size: 11.5px;
   font-weight: 650;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) tr:last-child td,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) th {
+  color: var(--mln-muted);
+  font-size: 11.5px;
+  font-weight: 650;
+}
+
 html[data-ml-native="on"] #passages .passage tr:last-child td {
   border-bottom: 0;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) table,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) tr:last-child td {
+  border-bottom: 0;
+}
+
 html[data-ml-native="on"] #passages .passage table {
+  display: table;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) table {
   display: table;
 }
 
@@ -3642,26 +3747,38 @@ html[data-ml-native="off"] .ml-native-entry:hover {
 
 /* ---------------------------------------------------------------- 滚动条 */
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
 html[data-ml-native="on"] #storyCaptionContent,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
 html[data-ml-native="on"] #passages {
   scrollbar-width: thin;
   scrollbar-color: var(--mln-border-strong) transparent;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mln-border-strong) transparent;
+}
+
 html[data-ml-native="on"] #storyCaptionContent::-webkit-scrollbar,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar,
 html[data-ml-native="on"] #passages::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar-thumb,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
 html[data-ml-native="on"] #storyCaptionContent::-webkit-scrollbar-thumb,
-html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar-thumb,
 html[data-ml-native="on"] #passages::-webkit-scrollbar-thumb {
+  background: var(--mln-border-strong);
+  border-radius: 999px;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar-thumb,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))::-webkit-scrollbar-thumb {
   background: var(--mln-border-strong);
   border-radius: 999px;
 }
@@ -3673,7 +3790,10 @@ html[data-ml-native="on"][data-ml-opt-meter-skin="1"] #statmeters :is(.meter, .r
   transition: width 180ms ease;
 }
 
-html[data-ml-native="on"][data-ml-motion="off"] #passages .passage,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage {
+  animation: none !important;
+}
+
 html[data-ml-native="on"][data-ml-motion="off"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
 html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
 html[data-ml-native="on"][data-ml-motion="off"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))[data-ml-overlay="statistics"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .foldoutBody .ml-stat-row {
@@ -3683,9 +3803,13 @@ html[data-ml-native="on"][data-ml-motion="off"] #customOverlay:not(:has(#cheat_e
 html[data-ml-native="on"][data-ml-opt-options="1"][data-ml-motion="off"] #passages .passage a.link-internal.macro-link,
 html[data-ml-native="on"][data-ml-opt-meter-skin="1"][data-ml-motion="off"] #statmeters > div[id$="caption"],
 html[data-ml-native="on"][data-ml-opt-meter-skin="1"][data-ml-motion="off"] #statmeters :is(.meter, .rightMeter) > div,
-html[data-ml-native="on"][data-ml-motion="off"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
-html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #overlayButtons button {
+  transition: none !important;
+  animation: none !important;
+}
+
+html[data-ml-native="on"][data-ml-motion="off"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
+html[data-ml-native="on"][data-ml-motion="off"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button {
   transition: none !important;
   animation: none !important;
 }
@@ -3716,18 +3840,25 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #menu b
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-ml-native="on"] #passages .passage,
-  html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
-  html[data-ml-native="on"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
-  html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))[data-ml-overlay="statistics"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .foldoutBody .ml-stat-row {
+  html[data-ml-native="on"] #passages .passage {
+    animation: none !important;
+  }
+
+html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)):not([data-overlay="modloader"]),
+html[data-ml-native="on"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)),
+html[data-ml-native="on"] #customOverlay:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root))[data-ml-overlay="statistics"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .foldoutBody .ml-stat-row {
     animation: none !important;
   }
   html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link,
-  html[data-ml-native="on"][data-ml-opt-meter-skin="1"] #statmeters > div[id$="caption"],
-  html[data-ml-native="on"][data-ml-opt-meter-skin="1"] #statmeters :is(.meter, .rightMeter) > div,
-  html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
-  html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
-  html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button {
+html[data-ml-native="on"][data-ml-opt-meter-skin="1"] #statmeters > div[id$="caption"],
+html[data-ml-native="on"][data-ml-opt-meter-skin="1"] #statmeters :is(.meter, .rightMeter) > div,
+html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button {
+    transition: none !important;
+    animation: none !important;
+  }
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button {
     transition: none !important;
     animation: none !important;
   }
@@ -3794,8 +3925,7 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #menu b
     line-height: 1.15 !important;
   }
 
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="toggle"],
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-open"], img[src*="sidebar-closed"]) {
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="toggle"] {
     grid-area: toggle;
     display: flex !important;
     align-items: center !important;
@@ -3803,24 +3933,51 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #menu b
     scale: 1 !important;
   }
 
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="money"],
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.true) {
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-open"], img[src*="sidebar-closed"]) {
+    grid-area: toggle;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    scale: 1 !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="money"] {
     grid-area: money;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="time"],
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.clockContainer) {
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.true) {
+    grid-area: money;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="time"] {
     grid-area: time;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
   }
 
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="day"],
-  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-day"]) {
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(.clockContainer) {
+    grid-area: time;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="day"] {
+    grid-area: day;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+  }
+
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div:has(img[src*="sidebar-day"]) {
     grid-area: day;
     display: flex !important;
     align-items: center !important;
@@ -4185,16 +4342,24 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayTabs button[aria-se
   box-shadow: 0 0 14px rgb(0 229 255 / 16%);
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage button {
   border-color: rgb(0 229 255 / 24%);
   background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 72%), #0A1120;
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button {
+  border-color: rgb(0 229 255 / 24%);
+  background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 72%), #0A1120;
+}
+
 html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage button:hover {
+  border-color: #FF3D9A !important;
+  background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent 72%), #111A2D !important;
+}
+
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:hover {
   border-color: #FF3D9A !important;
   background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent 72%), #111A2D !important;
 }
@@ -4345,7 +4510,12 @@ html[data-ml-native="on"] #ui-dialog:not(:has(#cheat_extended_options,#CE_settin
   background-repeat: no-repeat;
 }
 
-html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayTitle,
+html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayTitle {
+  background-color: rgba(18, 22, 27, .72);
+  background-color: color-mix(in srgb, var(--mln-surface) 72%, transparent);
+  background-image: linear-gradient(180deg, var(--mln-glow), transparent 58%), var(--mln-surface-texture);
+}
+
 html[data-ml-native="on"] #ui-dialog-titlebar:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) {
   background-color: rgba(18, 22, 27, .72);
   background-color: color-mix(in srgb, var(--mln-surface) 72%, transparent);
@@ -4415,7 +4585,7 @@ html[data-ml-native="on"] #passages .passage {
  * 只给点击结果一个短反馈，不改变任何业务动作的执行顺序。
  * -------------------------------------------------------------------------- */
 
-html[data-ml-native="on"] :is(#customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #passages) button,
+html[data-ml-native="on"] #passages button,
 html[data-ml-native="on"] #overlayTabs button,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button,
@@ -4425,13 +4595,25 @@ html[data-ml-native="on"] .ml-native-entry {
   transition: transform .1s ease, filter .12s ease, box-shadow .12s ease;
 }
 
-html[data-ml-native="on"] :is(#customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #passages) button:active,
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button {
+  transition: transform .1s ease, filter .12s ease, box-shadow .12s ease;
+}
+
+html[data-ml-native="on"] #passages button:active,
 html[data-ml-native="on"] #overlayTabs button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active,
 html[data-ml-native="on"] #ui-bar-toggle:active,
 html[data-ml-native="on"] #ui-bar-history button:active {
-  transform: translateY(1px) scale(.972);
+  transform: scale(.972);
+  filter: brightness(1.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 0 1px var(--mln-glow), 0 0 18px -6px var(--mln-glow);
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active {
+  transform: scale(.972);
   filter: brightness(1.12);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 0 0 1px var(--mln-glow), 0 0 18px -6px var(--mln-glow);
 }
@@ -4442,13 +4624,13 @@ html[data-ml-native="on"] .ml-native-entry:active {
   box-shadow: 0 0 0 2px var(--mln-glow), 0 0 18px -5px var(--mln-glow);
 }
 
-/* 正文选项同样有按压反馈：卡片下沉 + 从指针位置扩散的主题色空心环。
+/* 正文选项同样有按压反馈：卡片缩放 + 从指针位置扩散的主题色空心环。
    标记与动画只用于视觉，不改变 a.macro-link 的跳转。 */
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:active,
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group.mln-is-pressed,
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link.mln-is-pressed,
 html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
-  transform: translateY(1px) scale(.972);
+  transform: scale(.972);
   filter: brightness(1.14) saturate(1.04);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%), 0 0 0 1px var(--mln-accent), 0 0 22px -4px var(--mln-accent);
 }
@@ -4458,6 +4640,7 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-li
 html[data-ml-native="on"] .ml-native-entry.mln-press-host {
   position: relative;
   isolation: isolate;
+  z-index: 2;
 }
 
 html[data-ml-native="on"] .mln-press-ring {
@@ -4481,17 +4664,24 @@ html[data-ml-native="on"] .mln-press-ring {
 /* mln-press-ripple 见 effects.css */
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-ml-native="on"] :is(#customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)), #passages) button:active,
-  html[data-ml-native="on"] #overlayTabs button:active,
-  html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
-  html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active,
-  html[data-ml-native="on"] #ui-bar-toggle:active,
-  html[data-ml-native="on"] #ui-bar-history button:active,
-  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:active,
-  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group.mln-is-pressed,
-  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link.mln-is-pressed,
-  html[data-ml-native="on"] .ml-native-entry:active,
-  html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
+  html[data-ml-native="on"] #passages button:active,
+html[data-ml-native="on"] #overlayTabs button:active,
+html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
+html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active,
+html[data-ml-native="on"] #ui-bar-toggle:active,
+html[data-ml-native="on"] #ui-bar-history button:active,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:active,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group.mln-is-pressed,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link.mln-is-pressed,
+html[data-ml-native="on"] .ml-native-entry:active,
+html[data-ml-native="on"] .ml-native-entry.mln-is-pressed {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active,
+html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) button:active {
     transform: none;
     filter: none;
     box-shadow: none;

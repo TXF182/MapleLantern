@@ -36,6 +36,11 @@ function installMee(w) {
   `);
 }
 
+test("MEE 未安装时 window.mee 保持 undefined，不给其他模组假阳性", () => {
+  const w = makeWindow();
+  assert.equal(w.mee, undefined, "未安装 MEE 时不得出现空壳 object");
+});
+
 test("MEE 裸读 V.daily 时不再抛异常，且不伪造 daily", () => {
   const w = makeWindow();
   installMee(w);

@@ -35,6 +35,7 @@ $srv = Start-Process -FilePath "python" -ArgumentList "-m","http.server","$Port"
 Start-Sleep -Seconds $WaitSec
 
 $fail = @()
+$raw = $null
 try {
   $resp = Invoke-WebRequest -Uri $pageUrl -UseBasicParsing -TimeoutSec 10
   if ($resp.StatusCode -ne 200) { $fail += "宿主页 HTTP $($resp.StatusCode)" }
@@ -43,6 +44,7 @@ try {
 
   $raw = & $Moli fetch --profile-dir "$env:TEMP\moli_host_probe_$Port" `
     --eval-file $probe --wait load --timeout 60000 $pageUrl 2>&1 | Out-String
+  if ($raw) { Set-Content -LiteralPath $log -Value $raw -Encoding utf8 }
   $json = ($raw | Select-String -Pattern '\{"ready".*\}' -AllMatches).Matches
   if (-not $json -or $json.Count -eq 0) {
     $fail += "moli 未返回探针 JSON（原始输出见 $log）"
@@ -59,9 +61,14 @@ try {
   }
 } catch {
   $fail += $_.Exception.Message
+  if ($raw) { Set-Content -LiteralPath $log -Value $raw -Encoding utf8 }
 } finally {
   if ($srv -and -not $srv.HasExited) { Stop-Process -Id $srv.Id -Force -ErrorAction SilentlyContinue }
-  Set-Content -LiteralPath $log -Value "" -Encoding utf8
+  if ($fail.Count -eq 0) {
+    Set-Content -LiteralPath $log -Value "" -Encoding utf8
+  } elseif (-not $raw) {
+    Set-Content -LiteralPath $log -Value "moli 未产生输出；请检查 moli 路径与端口" -Encoding utf8
+  }
 }
 
 if ($fail.Count -gt 0) {

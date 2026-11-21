@@ -1,6 +1,6 @@
 # 灯台 MapleLantern — 维护知识与错误台账
 
-> 最后核对：2026-11-20 / 1.4.16 修复成就页金币图溢出图标列；七文件 **208/208** PASS，390 / 1080 合成宿主实测图标 24px、图标列 30px、文字无重叠；check_ui 13 PASS / 1 WARN，打包 SHA 复现一致；game-smoke 核心 A/B/C PASS
+> 最后核对：2026-11-21 / **1.5.0** 发布轮：1.4.22 全仓审计落修（默认外观门控、pointercancel、MEE 兼容、destroy 级联、CSP data URL、图片有限重试、`:is(:has)` 拆分、入口 `<a>`）+ 按压语义改「只缩放」+ 原生 CSS `:not(:has(...))` 混排 32 条拆净（契约 D3）；九文件 **237/237** PASS；宿主探针 PASS（scripts=5 / 1.5.0 / cardKeys / bgKeys）；确定性打包 `MapleLantern-1.5.0.mod.zip`（183,503 B / 15 条目 / SHA256 `b9c8eaffd626aaf1da2287320fbd9ff59d1226a2d7ccbb1fb2e157bbd2e28109`）并替换启动器旧包；实机探针（真实导入 → file:// IDB → 游戏）**15/15 PASS**（按压只缩放：真实 mouse.down `scale(.972)` 无 translateY + CDP 样式表审计平铺按压 16 条 / CE 排除 280 条 / 0 条 translateY）；game-smoke A/B/C/D/E/G PASS、F 工具范围 WARN（CE 不在此 origin）；`git diff --check` 干净（仓库行尾约定 CRLF，已设 repo-local `core.whitespace cr-at-eol`）。检索入口：`docs/FUNCTION-MATRIX.md`（功能矩阵）+ `docs/KNOWLEDGE-GRAPH.md`（知识图谱）。
 > 本文件只记「为什么这样定」和「已经踩过的坑」。可执行判据仍在 `README.md`、`tests/`、`tools/`。
 > 历史设计稿在 `docs/archive/`，只作追溯，不代表当前行为。
 

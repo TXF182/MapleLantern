@@ -7,7 +7,7 @@
  *   1. 只往 documentElement 写内联变量，不碰它的任何文件、不覆盖它的对象；
  *   2. 写 --mln-* 之前先记快照，撤的时候逐项 removeProperty —— 不做
  *      “整段 style 覆盖”，否则关掉本包会留下改不回去的颜色；
- *   3. 图片用 objectURL，替换/删除/卸载时 revoke。
+ *   3. 图片以 data: URL 承载（DoL CSP 只允许 img-src 'self' data:），替换/删除/卸载时由 Assets 释放缓存。
  * ========================================================================== */
 (function (root) {
   "use strict";

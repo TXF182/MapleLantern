@@ -13,7 +13,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.4.22";
+  var VERSION = "1.5.0";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
   var THEMES = ["auto", "cyberpunk", "amber", "jade", "graphite", "star", "fog", "school", "paper"];
@@ -493,7 +493,9 @@
       { key: "arousal", value: "arousal", max: "arousalmax" },
       { key: "tiredness", value: "tiredness", max: null }
     ];
-    var tiredMax = (constants && constants.tiredness && num(constants.tiredness.max)) || 2000;
+    var tiredRaw = constants && constants.tiredness ? num(constants.tiredness.max) : null;
+    /* max=0 是合法边界（游戏数据异常/自定义规则），不能当成缺失退回 2000。 */
+    var tiredMax = tiredRaw === null ? 2000 : tiredRaw;
     var vitals = [];
     var missing = 0;
     for (var i = 0; i < vitalDefs.length; i++) {

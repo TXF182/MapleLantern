@@ -753,25 +753,55 @@
     return value ? C.strings(state.lang)["bridge.on"] : C.strings(state.lang)["bridge.off"];
   }
 
-  function findOptionsButton() {
-    var nodes = doc.querySelectorAll("button,input[type=button]");
+  function controlVisible(n) {
+    if (!n || n.disabled) { return false; }
+    if (doc.documentElement.contains && !doc.documentElement.contains(n)) { return false; }
+    /* 灯台自己的浮卡也在这个文档里；不能把卡里的同名按钮当成第三方入口。 */
+    if (n.closest && n.closest("#ml-root")) { return false; }
+    try {
+      var cs = window.getComputedStyle(n);
+      if (cs.display === "none" || cs.visibility === "hidden" || parseFloat(cs.opacity) === 0) { return false; }
+    } catch (e) { /* ignore */ }
+    if (n.offsetParent !== null) { return true; }
+    /* position:fixed 的控件 offsetParent 可能为 null，退回真实几何。 */
+    try {
+      var r = n.getBoundingClientRect();
+      return r.width > 0 && r.height > 0;
+    } catch (e2) { return false; }
+  }
+
+  function findButton(root, rx, allowAnchor) {
+    if (!root) { return null; }
+    var nodes = root.querySelectorAll("button,input[type=button],a");
     for (var i = 0; i < nodes.length; i++) {
       var n = nodes[i];
+      /* 原生 Options 只认按钮；第三方入口可能是 <a>，由 allowAnchor 放行。 */
+      if (!allowAnchor && n.tagName === "A") { continue; }
       var label = n.tagName === "INPUT" ? n.value : (n.textContent || "");
-      if (/^(选项|Options)$/i.test(label.trim()) && n.offsetParent !== null) { return n; }
+      if (rx.test(label.trim()) && controlVisible(n)) { return n; }
     }
     return null;
   }
 
+  function findOptionsButton() {
+    /* 原生 Options 是按钮；不要扩大到全文档 <a>，否则正文里恰好叫“选项”的链接会被误认。 */
+    return findButton(doc, /^(选项|Options)$/i, false);
+  }
+
   function findOverlayButton(kind) {
-    var overlay = doc.getElementById("customOverlay");
-    if (!overlay) { return null; }
     var rx = kind === "dynamicest" ? /极致动态|Dynamicest/i : /前景背景|DecoMod/i;
-    var nodes = overlay.querySelectorAll("button,input[type=button]");
-    for (var i = 0; i < nodes.length; i++) {
-      var n = nodes[i];
-      var label = n.tagName === "INPUT" ? n.value : (n.textContent || "");
-      if (rx.test(label) && n.offsetParent !== null) { return n; }
+    /* decorations 的入口由 MapleBirch 的 MenuSmall 注入在侧栏
+       #overlayButtons（FEATS 旁），并不在 #customOverlay 里；先查弹层，
+       再查侧栏和菜单。 */
+    var roots = [
+      doc.getElementById("customOverlay"),
+      doc.getElementById("overlayButtons"),
+      doc.getElementById("ui-bar"),
+      doc.getElementById("menu")
+    ];
+    for (var i = 0; i < roots.length; i++) {
+      var hit = findButton(roots[i], rx, true);
+      if (hit) { return hit; }
     }
     return null;
   }
@@ -1082,13 +1112,15 @@
         slider.focus();
         setValue(valueFromX(ev.clientX), false);
         var move = function (e) { setValue(valueFromX(e.clientX), false); };
-        var up = function () {
+        var end = function () {
           doc.removeEventListener("pointermove", move);
-          doc.removeEventListener("pointerup", up);
+          doc.removeEventListener("pointerup", end);
+          doc.removeEventListener("pointercancel", end);
           saveSettings();
         };
         doc.addEventListener("pointermove", move);
-        doc.addEventListener("pointerup", up);
+        doc.addEventListener("pointerup", end);
+        doc.addEventListener("pointercancel", end);
       });
 
       slider.addEventListener("keydown", function (ev) {
@@ -1468,20 +1500,31 @@
       els.panel.style.setProperty("--ml-sheet-drag", dy + "px");
       els.grip.style.transform = "translateY(" + dy + "px)";
     }
-    function onUp(ev) {
+    function finish(ev, cancelled) {
+      if (!active) { return; }
       active = false;
       els.grip.removeEventListener("pointermove", onMove);
       els.grip.removeEventListener("pointerup", onUp);
+      els.grip.removeEventListener("pointercancel", onCancel);
+      els.grip.removeEventListener("lostpointercapture", onCancel);
+      els.panel.style.removeProperty("--ml-sheet-drag");
+      els.grip.style.transform = "";
+      if (cancelled) {
+        /* 手势被系统取消（滚动接管/来电等）时只复位，不按取消时的坐标判关闭。 */
+        return;
+      }
       /* 动效按手势速度给时序：快甩 90ms 收住，慢拖 220ms 回弹。 */
       var ms = Math.abs(vel) > 1.2 ? 90 : Math.abs(vel) > .5 ? 150 : 220;
       els.panel.style.setProperty("--ml-sheet-dur", ms + "ms");
-      els.panel.style.removeProperty("--ml-sheet-drag");
-      els.grip.style.transform = "";
       if (ev.clientY - startY > 64) { closePanel("swipe"); }
       setTimeout(function () { if (els.panel) { els.panel.style.removeProperty("--ml-sheet-dur"); } }, ms + 60);
     }
+    function onUp(ev) { finish(ev, false); }
+    function onCancel(ev) { finish(ev, true); }
     els.grip.addEventListener("pointermove", onMove);
     els.grip.addEventListener("pointerup", onUp);
+    els.grip.addEventListener("pointercancel", onCancel);
+    els.grip.addEventListener("lostpointercapture", onCancel);
   }
 
   /* ---------------------------------------------------------------- 提示 */
@@ -1575,6 +1618,7 @@
   }
 
   function destroy() {
+    if (state.disposed) { return; }
     state.disposed = true;
     state.open = false;
     clearTimeout(state.closeTimer);
@@ -1595,6 +1639,15 @@
       window.removeEventListener("scroll", markPanelScrolling);
     } catch (e) { /* ignore */ }
     if (state.zoomObserver) { state.zoomObserver.disconnect(); state.zoomObserver = null; }
+    /* 子层各自持有 DOM / 观察器 / 全局监听；只拆渲染层会留下悬挂引用。 */
+    [
+      window.MapleLanternNative,
+      window.MapleLanternDossierTheme,
+      window.MapleLanternDossierPanel
+    ].forEach(function (api) {
+      if (!api || typeof api.destroy !== "function") { return; }
+      try { api.destroy(); } catch (e2) { /* 任一子层失败不得阻断其余层 */ }
+    });
     if (els.root && els.root.parentNode) { els.root.parentNode.removeChild(els.root); }
     els = {};
   }

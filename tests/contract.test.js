@@ -11,9 +11,12 @@ const fx = fs.readFileSync(path.join(SRC, "effects.css"), "utf8");
 const index = fs.readFileSync(path.join(SRC, "render.js"), "utf8");
 const native = fs.readFileSync(path.join(SRC, "maplelantern-native.js"), "utf8");
 const nativeCss = fs.readFileSync(path.join(SRC, "maplelantern-native.css"), "utf8");
+const customCss = fs.readFileSync(path.join(SRC, "custom.css"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const dossierCore = fs.readFileSync(path.join(SRC, "dossier-core.js"), "utf8");
+const dossierPanel = fs.readFileSync(path.join(SRC, "dossier-panel.js"), "utf8");
+const dossierAssets = fs.readFileSync(path.join(SRC, "dossier-assets.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
@@ -23,7 +26,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.4.22");
+  assert.equal(boot.version, "1.5.0");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -148,7 +151,7 @@ test("增强：卡片内缘光、表盘外环、双层涟漪与更长清理窗�
   assert.match(index, /520\);/);
   assert.match(nativeCss, /scale\(\.972\)/);
   assert.match(nativeCss, /rgb\(190 255 240 \/ 6%\)/);
-  assert.match(nativeCss, /#customOverlayTitle,[\s\S]*?background-image:\s*linear-gradient\(180deg,\s*var\(--mln-glow\)/s);
+  assert.match(nativeCss, /#customOverlayTitle\s*\{[\s\S]*?background-image:\s*linear-gradient\(180deg,\s*var\(--mln-glow\)/s);
 });
 
 test("三套主题动效：环境光、侧栏光带、页签淡入、环形呼吸与三层关断", () => {
@@ -993,6 +996,126 @@ test("关闭顶部四格时：手机窄屏仍把金额/时间/日期排进 3×2 
     /:not\(\[data-ml-opt-stats="1"\]\) #stats#stats \.centered-elements > div\[data-ml-chip="money"\]/s,
     "金额格必须显式落在 money 区域");
 });
+
+test("B1 正文入场动画只做透明度，不得保留 transform 把 fixed 提示困在 passage 内", () => {
+  const start = fx.indexOf("@keyframes mln-passage-in");
+  assert.ok(start >= 0, "mln-passage-in 必须存在");
+  const next = fx.indexOf("@keyframes ", start + 1);
+  const block = fx.slice(start, next > start ? next : start + 220);
+  assert.doesNotMatch(block, /transform/, "正文入场不得写 transform；animation-fill-mode:both 会保留终帧");
+  assert.match(block, /opacity/, "至少保留透明度入场");
+});
+
+test("D1 原生按压只缩放不下沉，按压层不被相邻卡片盖住", () => {
+  const clean = strip(nativeCss);
+  const activeBlocks = Array.from(clean.matchAll(/([^{}]*:active[^{}]*)\{([^{}]*)\}/g));
+  assert.ok(activeBlocks.length > 0, "必须存在按压规则");
+  for (const [, selector, body] of activeBlocks) {
+    assert.doesNotMatch(body, /translateY\(/, "按压规则不得下沉: " + selector.trim());
+  }
+  assert.match(clean, /\.ml-option-group:active\s*\{[^}]*transform:\s*scale\(\.985\)/s,
+    "选项卡片按压必须保留轻微缩放");
+  assert.match(clean, /a\.macro-link:active\s*\{[^}]*transform:\s*scale\(\.96\)/s,
+    "单行选项按压必须保留轻微缩放");
+  assert.match(clean, /\.mln-press-host\s*\{[^}]*z-index:\s*2/s,
+    "按压宿主必须抬高，涟漪/阴影不能被下一张卡盖住");
+});
+
+test("D2 所有 CSS 的 :active 都不得产生非零 translateY", () => {
+  const files = [["style.css", css], ["maplelantern-native.css", nativeCss], ["effects.css", fx], ["custom.css", customCss]];
+  for (const [name, source] of files) {
+    const clean = strip(source);
+    for (const [, selector, body] of clean.matchAll(/([^{}]*:active[^{}]*)\{([^{}]*)\}/g)) {
+      for (const [, value] of body.matchAll(/translateY\(([^)]*)\)/g)) {
+        assert.match(value.trim(), /^0(?:px|%)?$/, `${name} 的按压规则出现非零下沉: ${selector.trim()} → ${value}`);
+      }
+    }
+  }
+});
+
+test("外观自定义：默认关闭按钮底纹时不得给正文内部链接铺底", () => {
+  const clean = strip(customCss);
+  const rule = clean.match(/html\[data-mlc="on"\](?:\[data-mlc-btn="on"\])? #passages \.passage a\.link-internal:not\(\.macro-link\)\s*\{([^}]*)\}/s);
+  assert.ok(rule, "必须存在正文内部链接的自定义样式块");
+  assert.match(rule[0], /\[data-mlc-btn="on"\]/, "按钮底纹必须由 data-mlc-btn 门控；默认 btnOn=false 时不能覆盖原链接");
+});
+
+test("按压/减少动态效果：普通按钮组不依赖 :is(:has)，第三方 CE 排除单独兜底", () => {
+  const clean = strip(nativeCss);
+  assert.ok(!clean.includes("html[data-ml-native=\"on\"] :is(#customOverlayContent"),
+    "按压规则不得整条依赖 :is(:has)；旧 WebView 会连 #passages 分支一起丢弃");
+  assert.match(clean, /html\[data-ml-native="on"\] #passages button,/, "普通按钮组必须平铺保留");
+  assert.match(clean, /html\[data-ml-native="on"\] #customOverlayContent:not\(:has\(/,
+    "CE 排除组必须单独成组，失效时只让 CE 分支缺席");
+});
+
+test("D3 选择器列表不得平铺成员与 :has 成员混排（旧引擎会整条丢弃）", () => {
+  const clean = strip(nativeCss);
+  const splitTop = (s) => {
+    const parts = []; let depth = 0, start = 0;
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      if (ch === "(") depth++;
+      else if (ch === ")") depth = Math.max(0, depth - 1);
+      else if (ch === "," && depth === 0) { parts.push(s.slice(start, i)); start = i + 1; }
+    }
+    parts.push(s.slice(start));
+    return parts;
+  };
+  const mixed = [];
+  let i = 0;
+  while (i < clean.length) {
+    while (i < clean.length && /\s/.test(clean[i])) i++;
+    if (i >= clean.length) break;
+    if (clean.startsWith("/*", i)) { const e = clean.indexOf("*/", i + 2); i = e < 0 ? clean.length : e + 2; continue; }
+    let j = i, paren = 0;
+    while (j < clean.length) {
+      const c = clean[j];
+      if (c === "(") paren++;
+      else if (c === ")") paren = Math.max(0, paren - 1);
+      else if (paren === 0 && (c === "{" || c === ";" || c === "}")) break;
+      j++;
+    }
+    if (j >= clean.length) break;
+    if (clean[j] === ";") { i = j + 1; continue; }
+    if (clean[j] === "}") { i = j + 1; continue; }
+    const sel = clean.slice(i, j).trim();
+    let k = j + 1, depth = 1, q = null;
+    while (k < clean.length && depth > 0) {
+      const c = clean[k];
+      if (q) { if (c === "\\") k++; else if (c === q) q = null; }
+      else { if (c === "\"" || c === "'") q = c; else if (c === "{") depth++; else if (c === "}") depth--; }
+      k++;
+    }
+    i = k;
+    if (sel.startsWith("@")) continue;
+    const parts = splitTop(sel);
+    const has = parts.filter((p) => p.includes(":has("));
+    const plain = parts.filter((p) => !p.includes(":has("));
+    if (has.length && plain.length) mixed.push(sel.slice(0, 160));
+  }
+  assert.equal(mixed.length, 0, "混排列表必须拆净，否则旧 WebView 把平铺按压/表格规则整条丢弃: " + mixed.slice(0, 3).join(" ||| "));
+});
+
+test("A2 桥接入口查询支持 button / input / a", () => {
+  assert.match(index, /querySelectorAll\("button,input\[type=button\],a"\)/,
+    "第三方把入口改成 <a> 时仍应能定位");
+});
+
+test("生命周期与兼容层静态契约：监听摘除、data URL、ctx 空、文件框复用", () => {
+  assert.match(dossierPanel, /var onDocClick = function/, "dossier-panel 必须保存 click 监听引用");
+  assert.match(dossierPanel, /var onResize = function/, "dossier-panel 必须保存 resize 监听引用");
+  assert.match(dossierPanel, /removeEventListener\("click", onDocClick, true\)/, "destroy 必须摘 click");
+  assert.match(dossierPanel, /removeEventListener\("resize", onResize/, "destroy 必须摘 resize");
+  assert.match(dossierPanel, /var filePicker = null/, "文件框必须复用，不能每次点击新建");
+  assert.match(dossierPanel, /function panelOpen\(\)/, "注入/重绘必须能判断面板是否真的打开");
+  assert.match(dossierPanel, /if \(!panelOpen\(\)\) \{ return; \}/, "面板关闭时 inject 必须直接返回");
+  assert.match(dossierPanel, /loaded\[kind\] = true;/, "图片读取成功后才置 loaded，失败可有限重试");
+  assert.match(dossierAssets, /readAsDataURL/, "CSP 只允许 self/data，解码回退必须用 data: URL");
+  assert.doesNotMatch(dossierAssets, /createObjectURL/, "不得再创建 blob: URL");
+  assert.match(dossierAssets, /if \(!ctx\)/, "2d context 为空必须明确拒绝");
+});
+
 
 test("商店：分类格不被选项卡片打包，分页链接不继承整宽卡片", () => {
   assert.match(native, /link\.closest\([^)]*#shopCategories[^)]*\)[\s\S]{0,40}continue/,

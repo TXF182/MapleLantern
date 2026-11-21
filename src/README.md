@@ -1,10 +1,14 @@
-# 灯台 · Lantern（MapleLantern 1.4.22）
+# 灯台 · Lantern（MapleLantern 1.5.0）
 
-- **1.4.22 · 侧栏金额/时间/日期切换修复**：点 `#stats` 后宿主用 `<<replace #stats>>` 重建统计条，灯台补上点击后重扫；展开态的 `.left-fixed` 开关与 `.second-row` 日期搬回 `.centered-elements`，四格重新按 3×2 排布。图标路径被翻译包改写时，按首尾格与星期文本兜底识别。七文件 **218/218** PASS；真实档展开/收起两态金额完整、日期不竖排。
+- **1.5.0 · 升版与检索图**：1.4.22 全仓审计问题全部落修后升版；重新打包并替换启动器旧包；新增 `docs/FUNCTION-MATRIX.md` 与 `docs/KNOWLEDGE-GRAPH.md`，查功能/知识先查这两份。九文件全量复跑 **237/237** PASS，实机探针 15/15 PASS。
+
+- **1.4.22 · 侧栏金额/时间/日期切换修复**：点 `#stats` 后宿主用 `<<replace #stats>>` 重建统计条，灯台补上点击后重扫；展开态的 `.left-fixed` 开关与 `.second-row` 日期搬回 `.centered-elements`，四格重新按 3×2 排布。图标路径被翻译包改写时，按首尾格与星期文本兜底识别。九文件 **236/236** PASS；真实档展开/收起两态金额完整、日期不竖排。
 
 - **1.4.21 · 商店分类栏与分页器排布修复**：`#shopCategories` 的分类链接不再被正文选项逻辑打包，图标与链接留在 44px 分类格内（6 列 3 行），并复位原版 `skewX`；`#shop-pagination` 链接清掉整宽卡片外观，窄屏保留原版“隐藏文字、只显示箭头”，圆点内链接填满 17px，不再竖排溢出。八文件 **218/218** PASS；真实档 14 个分类格 44×44、分页条 294×34、横向溢出 0。
 
 - **1.4.20 · 箭头归位 / 纸灯时间加深 / 手机侧栏安全布局**：非 CE 弹层的 `numberStepper` 恢复 32×32、零内边距与透明底，作弊核心属性行不再把 `|< … >|` 挤到格子外；纸灯左轨时间与顶部时钟改为墨色；关闭顶部四格时，窄屏仍用 3×2 网格排金额/时间/日期，并取消时间 `scale(1.3)`，金额截断与时间覆盖金额不再出现。八文件 **216/216** PASS。
+
+- **1.4.22 · 侧栏开合、正文入场与按压反馈**：`#ui-bar` 收起/展开当帧同步 `data-ml-sidebar-open`，不再等下一轮补扫；正文入场动画移除 `translateY`，避免 `animation-fill-mode:both` 把 fixed 提示困在 `.passage` 内；所有按钮/选项按压改为只缩放不下沉，按压层抬高避免被相邻卡片盖住；前景背景入口查找扩到 `#overlayButtons` / `#ui-bar` / `#menu`。新增 S12b、B1、A1、D1/D2 回归。
 
 - **1.4.19 · 纸灯深色卡片规则收窄与深色浮窗 `.black` 校正**：移除 1.4.18 对 `.traitList .trait` 的统一浅字，避免基础游戏无背景特质卡在纸灯下浅底浅字；只保留确有深底的便利店容器 `.ConveniencestoreGoodsClass > div`，并补卡内 `.black`。非纸灯主题的 `#customOverlayContent` 内，第三方 `.black` 说明文字改为当前主题正文色，避免黑底黑字。
 
@@ -86,17 +90,17 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 - **1.1.10 二次收口**：① 修掉页签被“内容按钮通扫”二次改写（11px→13px、宽度 65→81）的回归，页签与关闭按钮加标记跳过；分类栏收窄 36px 给 ✖ 留真实缺口，右缘加 26px 渐隐提示横向滚动。② 平铺六胶囊解除 CE 固定 `width:100px`，`flex:1 1 0` 等分单行。③ 状态条箭头补充识别 `<div>/<span>` 叶子节点，统一 34×34。④ 分组后双向清理组前后空 `<p>`/`<br>`（含图标的段落不删），3px 间距不再被空段落撑大。
 - **1.1.9 Android 真机收口**：① 选项候补链接类名扩到 `a.link-internal`，并在 `passageend` 后补扫 1200/2400ms + 约 6s 的受控补扫 + `MutationObserver`；汉化或 TweeReplacer 晚一步重建链接时，`repairGroups()` / `adoptOrphanIcons()` 会把新链接接回原图标卡，图标不再单独浮在卡外；卡片间距 3px。② CE overlay 不再依赖 `:has()`：`watchOverlay()` 在面板异步挂载后重算，页签强制单行（旧版平铺等分、两层横向滚动且给关闭按钮留 36px），内容网格单列（用「纯箭头按钮」识别并跳过状态条），状态条箭头压到 34px，`#customOverlay` 手机端硬限 `calc(100vw - 16px)`，关闭按钮 28×28 不再被裁。③ 所有 `color-mix()` 前补 `rgba()` 兜底；旧 WebView 不支持混色时背景不会整条失效。④ 背景再加主题顶部光/底部回光/暗角与不透明底兜底，并降低弹层遮蔽（普通弹层 58% / 内容 62%，CE 60/64）。
 - **1.1.8 背景增强**：整页新增「边缘暗角 + 主题顶部光 + 底部回光」三层；普通 `#customOverlay` / `#ui-dialog` 改为 **68% 半透明**，内容层 **78% / 82%** 并叠页纹理；CheatExtended 的 overlay **66%**、`.dol-shadow` **64%**，面板不再是一块实色，星空/纸纹/网格能从弹层与 CE 面板透上来。
-- **点击/按压反馈**：按钮、页签、分段控件、图标、开关与快捷项按下时轻微下沉提亮；面板内生成短涟漪，松手后自动移除。系统「减少动态效果」或设置关闭动效时不播放，操作仍完整。
+- **点击/按压反馈**：按钮、页签、分段控件、图标、开关与快捷项按下时轻微缩放提亮，不下沉；面板内生成短涟漪，松手后自动移除。系统「减少动态效果」或设置关闭动效时不播放，操作仍完整。
 - **不写存档、不改数值、不接管任何第三方业务。**
 - **1.1.3 热修**：关掉「原生卡片」再开回来时，`OPTIONS` 弹层不再被游戏 `closeOverlay()` 收掉，「灯台」入口保留，页签 `T.tab` 不被清空。
 - **1.1.4 主题迭代**：降低琥珀纸纹与石墨碳纤的细线密度，补青瓷开片斜纹、石墨拉丝与星空底部星云；六套主题面板补内缘高光/主题阴影；按压涟漪改为贴合控件的亮环，原生标题栏同步铺纹理。二次增强再补青瓷釉光、石墨金属光带、星空银河带、卡片内缘光与 20px→3.4 倍双层涟漪。
 - **整页主题背景**：`html` 承担固定整页纹理，`body` / `#passages` / `.passage` 全部透明；六主题不再只是面板换色。
-- **1.1.7 体验收口**：移除“检测到宿主即关闭原生层”的让位逻辑；`native.js` / `native.css` 改为唯一文件名 `maplelantern-native.js` / `maplelantern-native.css`，避免多包同装时通用脚本名被静默跳过；六主题重写高对比度页面纹理（琥珀纸纤维、赛博霓虹网格、青瓷釉面冰裂、石墨拉丝、星空约 70 星点+银河带+十字星芒）；正文选项按压加入下沉、描边与主题辉光。
+- **1.1.7 体验收口**：移除“检测到宿主即关闭原生层”的让位逻辑；`native.js` / `native.css` 改为唯一文件名 `maplelantern-native.js` / `maplelantern-native.css`，避免多包同装时通用脚本名被静默跳过；六主题重写高对比度页面纹理（琥珀纸纤维、赛博霓虹网格、青瓷釉面冰裂、石墨拉丝、星空约 70 星点+银河带+十字星芒）；正文选项按压加入缩放与主题辉光（1.4.22 起不再下沉）。
 
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.4.16.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.0.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -151,8 +155,8 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 | `SAVES` 弹层 | `markSaveRows` | 去掉 `&nbsp;` 后判定空槽：隐藏名称/详情，槽位号与保存/读取/删除同排，行高 46px；非空行保留两行详情。底部 `saveMenuButton` 与行内保存/读取按钮跨主题统一，`全部删除` 保留红色危险语义 |
 
 - 让位：`window.DoLGameUI.ui.apiVersion === 1 && getCapabilities().enabled` 时不挂 `data-ml-native`，并清掉全部标记/入口，恢复原版。
-- 零轮询：无 `setInterval`、无 MutationObserver；只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` / `#passages` 的点击捕获和设置切换时重扫，单飞 rAF，点击后 0 / 150ms 各补扫一次（等游戏异步换 DOM）。
-- 动效：仅 `transition` / 入场 `opacity + translateY`，尊重 `prefers-reduced-motion`、宿主 `data-dol-midnight:not([data-dgu-visualMotion])` 与本包 `data-ml-motion="off"`。
+- 零轮询：无 `setInterval`；侧栏开合用 `#ui-bar` 的 `MutationObserver` 当帧同步，外观设置页用 `#ml-pane-host` 观察器 + 点击节流重绘，均按需断开。只在 `:passageend`、`#overlayButtons` / `#menu` / `#customOverlay` / `#passages` 的点击捕获和设置切换时重扫，单飞 rAF，点击后 0 / 150ms 各补扫一次（等游戏异步换 DOM）。
+- 动效：仅 `transition` / 入场 `opacity`，不再保留 `translateY`；尊重 `prefers-reduced-motion`、宿主 `data-dol-midnight:not([data-dgu-visualMotion])` 与本包 `data-ml-motion="off"`。
 
 ## 性能
 
@@ -187,9 +191,10 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 ## 验证
 
-本轮（2026-11-12，Windows）实测：
+本轮（2026-11-21，Windows）实测：
 
-- `node --test tests\*.test.js`：**130 / 130 PASS**（含 1.3.7 手机面板滚动摘模糊/停止 160ms 恢复契约、九主题调色板/双语文案/设置项/双 CSS 入口、主题纹理三层落点、三套主题动效/纹理合成/三路关断、320/390 页签等分、按压涟漪、双主题入口、宿主存在仍挂载原生层、1.1.8 整页背景/星场/按压/弹层透视契约、`.icon-container` 图标入卡、CE 排除/主题/单列/普通弹层半透明契约、性能补扫收敛、分组稳定跳过 pack、同值写入跳过、晚到 2 秒链接仍接回、`effects.css` 令牌/keyframes/工具类分区与 boot 加载顺序、组件引用的 keyframes/token 全部有定义、主题环境层 9 主题变量/8 粒子/移动端减量/三层关断）
+- `node --test tests\*.test.js`：**237 / 237 PASS**（9 个测试文件；1.5.0 升版后复跑；含 1.4.22 增补：S12b 侧栏当帧同步、pointercancel 结束拖动、destroy 级联与面板监听摘除、MEE 未安装保持 falsy、默认按钮底纹门控、`:is(:has)` 按压规则拆分、CSP data URL 解码回退、文件框复用/图片有限重试、tiredness max=0 边界；1.5.0 新增 D3 契约：选择器列表不得平铺成员与 `:has` 成员混排；旧 130/201 计数已过期）
+- 实机探针（真实导入页 → `file://` IndexedDB → 游戏，Edge headless 全新 profile）：**15 / 15 PASS**——包版本双源 1.5.0、MEE 未安装保持 undefined、默认按钮底纹门控 `data-mlc-btn="off"`、按压只缩放 `scale(.972)` 无 translateY（真实 `mouse.down` 实测 + CDP 样式表审计：平铺按压选择器 16 条、CE 排除 280 条、0 条 translateY）、面板六页签、侧栏四格收起/展开两态打标完整无溢出、零 pageerror
 - `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 314 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **64ms、pack 0 次、写入 0 次（跳过 5160 次同值写）**（上一轮 78ms / 251ms；jsdom 逻辑层，不冒充浏览器帧率）
 - 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明

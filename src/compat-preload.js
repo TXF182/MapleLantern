@@ -80,13 +80,17 @@
     });
   }
 
-  var current = makeProxy(root.mee);
+  var current = root.mee ? makeProxy(root.mee) : undefined;
   try {
     Object.defineProperty(root, "mee", {
       configurable: true,
       enumerable: true,
       get: function () { return current; },
-      set: function (next) { current = makeProxy(next); }
+      set: function (next) {
+        /* MEE 未安装时保持 undefined：其他模组常以 if (window.mee) 判断是否装了 MEE，
+         * 空壳 {} 会让它们走进不存在的 API。 */
+        current = next ? makeProxy(next) : undefined;
+      }
     });
   } catch (ignore) {
     /* 宿主已锁定 mee 时保留现有对象上的访问器 */
