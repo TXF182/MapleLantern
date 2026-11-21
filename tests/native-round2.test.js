@@ -267,6 +267,11 @@ test("O2 关闭原生卡片：结构可还原", async () => {
   assert.equal(restored.hasAttribute("data-ml-empty-holder"), false, "隐藏标记应被清掉");
 });
 
+test("S13 展开态合并后：空 second-row 隐藏，开关恢复 1 倍缩放", () => {
+  assert.match(CSS, /#stats\[data-ml-stats-merged="1"\]\s+\.second-row\s*\{[^}]*display:\s*none/s);
+  assert.match(CSS, /#stats \.centered-elements > div\[data-ml-chip="toggle"\]\s*\{[^}]*scale:\s*1\s*!important/s);
+});
+
 test("S12 侧栏内部普通点击不得把正文切成抽屉隐藏态", async () => {
   const w = make(page("<p>正文</p>", ""));
   const doc = w.document;

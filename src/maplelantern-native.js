@@ -143,9 +143,32 @@
     } else { state.perf.writesSaved++; }
   }
 
+  /* 展开态宿主把开关放到 #stats 直属 .left-fixed，日期放到
+     .content > .second-row；灯台的 3×2 网格只认 .centered-elements 的
+     四个直系格子。这里把两处搬回同一层，再由 CSS 隐藏空 second-row。
+     宿主每次点 #stats 都会整体重建，所以每次 apply 都要能重复执行且
+     不重复搬。 */
+  function mergeStatsRows(wrap) {
+    var stats = wrap && wrap.closest ? wrap.closest("#stats") : null;
+    if (!stats || !stats.querySelector) { return; }
+    var second = stats.querySelector(".content > .second-row");
+    var left = stats.querySelector(".left-fixed");
+    if (left && left.parentNode !== wrap) {
+      wrap.insertBefore(left, wrap.firstChild);
+    }
+    if (second) {
+      while (second.firstElementChild) {
+        wrap.appendChild(second.firstElementChild);
+      }
+    }
+    if (left || second) { setAttr(stats, "data-ml-stats-merged", "1"); }
+    else { setAttr(stats, "data-ml-stats-merged", null); }
+  }
+
   function markStats() {
     var wrap = doc.querySelector("#stats .centered-elements");
     if (!wrap) { return; }
+    mergeStatsRows(wrap);
     var kids = wrap.children || [];
     for (var i = 0; i < kids.length; i++) {
       var node = kids[i];
@@ -157,7 +180,12 @@
       else if (node.querySelector('img[src*="sidebar-open"], img[src*="sidebar-closed"], img[ml-src*="sidebar-open"], img[ml-src*="sidebar-closed"]')) { kind = "toggle"; }
       /* 翻译包可能改写图片路径，日期格不能再只靠 src 认。中文星期与英文星期名
          只出现在日期格里，作为兜底不会误命中金额/时间。 */
-      else if (/星期[日一二三四五六]|(Sun|Mon|Tue|Wed|Thu|Fri|Sat)(day)?$/.test((node.textContent || "").trim())) { kind = "day"; }
+      else if (/星期|周[日一二三四五六]|(Sun|Mon|Tue|Wed|Thu|Fri|Sat)/.test((node.textContent || "").trim())) { kind = "day"; }
+      else if (node.classList && node.classList.contains("left-fixed")) { kind = "toggle"; }
+      /* 图标路径被改成 data URI 后，位置本身仍能兜底：开关永远在第一格，
+         日期永远在最后一格。金额/时间已在前面的选择器里认掉，不会误标。 */
+      else if (i === 0 && node.querySelector("img")) { kind = "toggle"; }
+      else if (i === kids.length - 1 && (node.textContent || "").trim()) { kind = "day"; }
       if (kind) { setAttr(node, "data-ml-chip", kind); }
       else { setAttr(node, "data-ml-chip", null); }
       if (kind === "money") {
@@ -1911,6 +1939,13 @@
     var inBar = !!(t.closest && (t.closest("#overlayButtons") || t.closest("#menu") || t.closest("#customOverlay")));
     /* 只在会异步换 DOM 的内层页点选后补扫；普通正文推进由 passageend 负责。 */
     var inInner = !!(t.closest && t.closest("#clothingShop-div, #clothes-list, #wardrobe"));
+    /* extendStats() 用 <<replace #stats>> 整体重建这块；不在点击后补扫，
+       新生成的金额/时间/日期就没有 data-ml-chip，四格会退回自动排布。 */
+    var inStats = !!(t.closest && t.closest("#stats"));
+    if (inStats) {
+      schedule();
+      setTimeout(schedule, 180);
+    }
     if (inBar || inInner) {
       schedule();
       setTimeout(schedule, 150);

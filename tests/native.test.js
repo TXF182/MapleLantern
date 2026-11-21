@@ -61,6 +61,78 @@ test("日期格图片路径被翻译改写时，仍按 ml-src 或中文星期标
   assert.equal(day.getAttribute("data-ml-chip"), "day", "翻译改图后应靠中文星期文本兜底");
 });
 
+function expandedStatsHtml() {
+  return "<div class='left-fixed expanded' tooltip='inside'>" +
+    "<img class='icon_ui' src='img/ui/sidebar-open.png'></div>" +
+    "<div class='content'><div class='first-row'><div class='centered-elements'>" +
+    "<div><span class='true'>£95,160.00</span></div>" +
+    "<div><span class='clockContainer'>10:14</span></div>" +
+    "</div></div><div class='second-row'><div>" +
+    "<img class='icon_ui' src='img/ui/sidebar-day.png'><span>星期四 10月23日</span>" +
+    "</div></div></div>";
+}
+
+function collapsedStatsHtml() {
+  return "<div class='content'><div class='first-row'><div class='centered-elements'>" +
+    "<div><img src='sidebar-open.png'></div>" +
+    "<div><span class='true'>£95,160.00</span></div>" +
+    "<div><span class='clockContainer'>10:14</span></div>" +
+    "<div><img src='sidebar-day.png'><span>星期四</span></div>" +
+    "</div></div></div>";
+}
+
+test("展开态：left-fixed 与 second-row 日期合并回四格，金额/时间/日期齐", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const stats = w.document.getElementById("stats");
+  stats.innerHTML = expandedStatsHtml();
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+
+  const wrap = stats.querySelector(".centered-elements");
+  assert.equal(stats.getAttribute("data-ml-stats-merged"), "1");
+  assert.equal(wrap.children.length, 4, "展开态必须合并成四个直系格子");
+  assert.equal(wrap.firstElementChild.classList.contains("left-fixed"), true, "开关应回到第一格");
+  const kinds = Array.from(wrap.children).map((n) => n.getAttribute("data-ml-chip")).sort();
+  assert.deepEqual(kinds, ["day", "money", "time", "toggle"]);
+  assert.equal(stats.querySelector(".second-row").children.length, 0, "日期不应留在网格外");
+  assert.match(wrap.lastElementChild.textContent, /10月23日/);
+});
+
+test("点击 #stats 重建后，展开/收起两态都会重新打标", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const stats = w.document.getElementById("stats");
+  let expanded = false;
+  stats.addEventListener("click", () => {
+    expanded = !expanded;
+    stats.innerHTML = expanded ? expandedStatsHtml() : collapsedStatsHtml();
+  });
+  for (const state of [true, false]) {
+    stats.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+    await tick(w, 240);
+    const wrap = stats.querySelector(".centered-elements");
+    const chips = Array.from(wrap.children).map((n) => n.getAttribute("data-ml-chip")).sort();
+    assert.deepEqual(chips, ["day", "money", "time", "toggle"], "切换后四个格子都必须重新打标");
+    assert.equal(wrap.children.length, 4, "切换后仍应是四个直系格子");
+  }
+});
+
+test("图标路径被改写且日期只剩“星期”时，首尾格仍能兜底识别", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const stats = w.document.getElementById("stats");
+  stats.innerHTML = collapsedStatsHtml()
+    .replace("src='sidebar-open.png'", "src='data:image/png;base64,AA'")
+    .replace("src='sidebar-day.png'", "src='data:image/png;base64,AA'")
+    .replace("<span>星期四</span>", "<span>星期</span>");
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+  const wrap = stats.querySelector(".centered-elements");
+  assert.equal(wrap.firstElementChild.getAttribute("data-ml-chip"), "toggle");
+  assert.equal(wrap.lastElementChild.getAttribute("data-ml-chip"), "day");
+});
+
 test("缩放 85%：--ml-caption-top 按元素本地像素归一化，不写视觉坐标", async () => {
   const { w } = createEnv();
   await tick(w);

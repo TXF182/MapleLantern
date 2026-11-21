@@ -407,11 +407,19 @@ html[data-ml-native="on"][data-ml-theme="paper"] #mobileStats .stat.time .vertic
   color: #1F1912 !important;
 }
 
-/* 顶部金钱/时间条在纸灯下同样用墨色时间，避免亮底浅字。 */
-html[data-ml-native="on"][data-ml-theme="paper"] #stats .clockContainer {
+/* 开启四格时金额/时间在浅色卡片上，用墨色时间，避免亮底浅字。 */
+html[data-ml-native="on"][data-ml-opt-stats="1"][data-ml-theme="paper"] #stats .clockContainer {
   color: #1F1912 !important;
   text-shadow: none;
   font-weight: 700;
+}
+
+/* 关闭四格恢复原版深色条；纸灯的墨色会变成黑底黑字，这里回浅字。 */
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="paper"] #stats .centered-elements > div,
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="paper"] #stats .centered-elements .true,
+html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="paper"] #stats .clockContainer {
+  color: #F5ECD9 !important;
+  text-shadow: none;
 }
 
 /* 亮纸底上的原版语义色（青/金/红等）对比不足，换成同色系深墨；逐项均 ≥4.5:1。 */
@@ -581,6 +589,17 @@ html[data-ml-native="on"][data-ml-opt-stats="1"] #stats > .content > .first-row 
   overflow: hidden;
 }
 
+/* 展开态宿主把开关放在 #stats 直属 .left-fixed、日期放在 .second-row；
+   JS 已把两者搬回 .centered-elements。空的 .second-row 不再占一行。 */
+html[data-ml-native="on"] #stats[data-ml-stats-merged="1"] .second-row {
+  display: none !important;
+}
+
+html[data-ml-native="on"] #stats .centered-elements > div[data-ml-chip="toggle"] {
+  scale: 1 !important;
+  align-self: stretch !important;
+}
+
 /* 原版 #stats 是单行 flex，靠 20px gap 分隔；改成四列定宽时，日期字一长
    （中文「星期日 9月4日」约 62px）就会被 44px 的日期格裁掉，金额格也会被
    挤到只剩「£9,4」。这里沿用原版的阅读顺序，但排成两行：
@@ -622,6 +641,7 @@ html[data-ml-native="on"][data-ml-opt-stats="1"] #stats .centered-elements > div
   align-items: center;
   justify-content: center;
   background: var(--mln-surface-2);
+  scale: 1 !important;
 }
 
 html[data-ml-native="on"][data-ml-opt-stats="1"] #stats .centered-elements > div[data-ml-chip="money"] {
@@ -3774,6 +3794,7 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"][data-ml-motion="off"] #menu b
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    scale: 1 !important;
   }
 
   html[data-ml-native="on"]:not([data-ml-opt-stats="1"]) #stats#stats .centered-elements > div[data-ml-chip="money"],
