@@ -73,7 +73,7 @@
 | FN-native-root | hostEnabled/setRoot | native.js:86/95 | DoLGameUI 启用时原生层整体让位（apiVersion!==1 回退） | native |
 | FN-native-stats | markStats/mergeStatsRows/markStatmeters/markRailMeters | native.js:171/154/322/374 | 侧栏四格打标、状态卡、滑杆皮肤（RAIL_KEYS） | native |
 | FN-native-statsmax | STAT_MAX/readStatMax/INVERTED_STAT | native.js:268/287/314 | 各属性上限与反比属性（innocence→awareness） | native |
-| FN-native-shop | markShopCats/tidyShopText/markEmptyDetails/markShopTools | native.js:452/496/509/519 | 商店内层美化 | native |
+| FN-native-shop | markShopCats/tidyShopText/markEmptyDetails/markShopTools | native.js:472/516/529/539 | 商店内层美化；工具栏换标签保留按钮内部链接 | native |
 | FN-native-options | packIconOptions/unpackOptions | native.js:604/966 | 选项图标收纳/还原（含 CE 结构签名识别） | native |
 | FN-native-ce | ceStructureSig/normalizeCheatLayout/rememberCeStyle/restoreCeStyle | native.js:996-1385 | CE 共存：识别 CE 结构、临时接管布局、退出还原 | native |
 | FN-native-passages | packSignature/markPassages | native.js:1386/1398 | 正文打标（签名缓存防重复） | native |

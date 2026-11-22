@@ -561,11 +561,15 @@
       if (state.lang === "zh" && /^(filters?|opt\.?|options?|legend)$/i.test(original)) { labelText = fallback; }
       tools[i].setAttribute("data-ml-tool", key || "");
       tools[i].classList.add("ml-shop-tool");
+      /* 原版 linkifyDivs 是「点外层 div → 点内部第一个 a」；换标签前先把 a 摘出来，
+         清空文本后再挂回去，不能把链接节点一起删掉，否则按钮变成死键。 */
+      var anchors = Array.prototype.slice.call(tools[i].querySelectorAll("a"));
       tools[i].textContent = "";
       var span = doc.createElement("span");
       span.className = "ml-shop-tool-label";
       span.textContent = labelText;
       tools[i].appendChild(span);
+      for (var a = 0; a < anchors.length; a++) { tools[i].appendChild(anchors[a]); }
       bar.appendChild(tools[i]);
     }
   }

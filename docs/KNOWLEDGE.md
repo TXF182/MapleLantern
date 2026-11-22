@@ -486,3 +486,16 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 **落值链路**：设置存 `textColor`（`auto` 或小写 `#rrggbb`，非法值净化回 `auto` 并 `repaired=true`）→ render 写 localStorage 并 `syncNative()` → native 的 `applyStoryColor` 在每次 `apply()` 里重算，写 `data-ml-text` 与 `--mln-text-custom`，原生层关闭时撤除。零 DOM 节点、纯变量覆盖。
 
 **测试**：core 断言八主题预设逐色 ≥4.5:1、白字在绿茵判不合格、非法值修复；dom 断言色点选择落盘、落 `data-ml-text`、换绿茵自动回 `auto`、自定义 `#2f6b2b` 生效；契约断言 CSS 只挂正文层（含 h1–h4）且色点 44px；实机探针 3 项（正文与标题跟随预设、不波及选项、回跟随主题）。
+
+
+## 14. 商店工具栏（1.5.2）
+
+**问题**：商店列表右上角的「筛选 / 选项 / 图例」三个按钮在 1.5.1 里全部点不动，玩家进不去选项面板，也改不了商品默认颜色。
+
+**点击链**：原版三个按钮都是 `.div-link`，结构是「按钮文本 + 一个空 `a`」；`linkifyDivs` 绑的是外层 div，点击时执行 `find("a").first().click()`。灯台把它们收进工具栏时用 `textContent = ""` 清空，`a` 被连带删除，点击链断在找不到链接这一步。
+
+**修法**：换标签前先把按钮内所有 `a` 取出，清空文本、插入 `.ml-shop-tool-label` 后再把 `a` 原样挂回。移动按钮本身不会丢监听，必须保住的是承载链接的子节点。
+
+**入口**：「选项」打开的 `#shop-options` 里本来就有默认主色 / 副色选项，色表含 black、custom、random；按钮恢复即恢复配色路径，不另做功能。
+
+**验证**：`tests/native.test.js` 新增用例断言三个按钮都保留 `a`、点外层仍能命中内部链接；全量 247/247 PASS。

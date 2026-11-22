@@ -1061,6 +1061,36 @@ test("关闭原生卡片时，第三方页仍插入口", async () => {
   assert.equal(w.document.querySelectorAll("#statmeters > div[data-ml-stat-card]").length, 0);
 });
 
+test("商店工具按钮：换标签时保留内部链接，点击仍能落到链接", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<div id="clothingShop-div"><div id="clothes-list">' +
+    '<div class="button-back-to-shop">Back</div>' +
+    '<div class="filters-button no-numberify div-link">Filters<a href="#" data-shop-tool="filters"></a></div>' +
+    '<div class="clothingshop-options-button no-numberify div-link">Opt.<a href="#" data-shop-tool="options"></a></div>' +
+    '<div class="shop-legend-button no-numberify div-link">Help<a href="#" data-shop-tool="legend"></a></div>' +
+    '</div></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w);
+
+  const tools = Array.from(p.querySelectorAll("#clothes-list .ml-shop-tool"));
+  assert.equal(tools.length, 3, "三个商店工具按钮都要收进工具栏");
+  for (const tool of tools) {
+    assert.ok(tool.querySelector("a"), "换标签不能删掉按钮内部的链接节点");
+  }
+
+  let hits = 0;
+  const filters = tools[0];
+  const link = filters.querySelector("a");
+  link.addEventListener("click", (e) => { e.preventDefault(); hits += 1; });
+  /* 复刻原版 linkifyDivs：点外层 div 时触发内部第一个链接。 */
+  filters.addEventListener("click", () => { filters.querySelector("a").click(); });
+  filters.click();
+  assert.equal(hits, 1, "点按钮必须仍能触发内部链接");
+});
+
 test("商店分类栏：分类图标留在 category-tab 内，不被正文选项卡片打包", async () => {
   const { w } = createEnv();
   await tick(w);
