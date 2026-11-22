@@ -2420,6 +2420,35 @@ html[data-ml-native="on"] .customOverlayClose::after {
   background: var(--mln-text);
 }
 
+/* 第三方适配：DolSmartPhone 消息弹窗
+   DolSmartPhone 的 #phone-popup-container 内每个 .phone-popup 复用宿主
+   .customOverlayClose 作为关闭按钮，也会吃到上面的 44px 放大规则，
+   导致 300px 宽的弹窗里出现一排大 X、压住正文。这里按容器回退到
+   DoL 原版 24px 口径；作用域限定在手机弹窗，不影响灯台自己的遮罩关闭键。 */
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose {
+  width: 24px;
+  height: 24px;
+  right: 12px;
+  top: 0;
+  border-radius: 0;
+  opacity: .5;
+  background: transparent;
+}
+
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose:hover {
+  background: transparent;
+  opacity: 1;
+}
+
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose::before,
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose::after {
+  left: 10px;
+  top: 0;
+  width: 3px;
+  height: 24px;
+  background: var(--100);
+}
+
 html[data-ml-native="on"] #overlayTabs {
   display: flex;
   flex-wrap: wrap;

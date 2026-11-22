@@ -6,7 +6,7 @@
 
 | 脚本 | 判据 | 期望 | 产物（可再生） |
 |---|---|---|---|
-| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM / 生命周期 | **237 / 0** | — |
+| `node --test tests\*.test.js` | 契约 / 原生层 / 自定义核心 / DOM / 生命周期 | **258 / 0** | — |
 | `tests\sexdiagram_probe.py` | 属性页真机几何 + 5 个平铺属性列表：原生 flex 换行、卡片不越界/不互压、左右 50% 双列、旧 grid 可复现、开关回原版 | **73 / 0** | `_edge_profile_sexdiagram\`、`shots\sexdiagram_*.png` |
 | `tests\ce_settings_probe.py` | CE 1.20.4 设置页：桌面双列、同行等高、不越界/不互压/不裁切，原生 Options 不被外溢；手机单列 | **24 / 0** | `_edge_profile_ce_settings\`、`shots\ce_settings_*.png` |
 | `tests\custom_host.py` | 真实 DOM 宿主：导入、应用、像素取色、载体必须是 `data:` | **58 / 0** | `_edge_profile_customhost\`、`shots\custom-*.png` |

@@ -1,0 +1,33 @@
+/* DolSmartPhone × MapleLantern 关闭按钮兼容补丁
+ *
+ * 用途：当前已打包的 MapleLantern 1.5.x 原生模式会把全局 .customOverlayClose
+ *       放大到 44px；DolSmartPhone 的 #phone-popup-container 内每个
+ *       .phone-popup 复用了同一个类，导致消息弹窗右侧出现一排大 X。
+ * 用法：把下面整段追加到 UI 自定义 CSS（或 MapleLantern 的 custom.css）末尾，
+ *       无需改动 DolSmartPhone。
+ * 说明：作用域只限手机弹窗，灯台自己的遮罩关闭键仍保持 44px 大点击区。
+ */
+
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose {
+  width: 24px;
+  height: 24px;
+  right: 12px;
+  top: 0;
+  border-radius: 0;
+  opacity: .5;
+  background: transparent;
+}
+
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose:hover {
+  background: transparent;
+  opacity: 1;
+}
+
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose::before,
+html[data-ml-native="on"] #phone-popup-container .phone-popup > .customOverlayClose::after {
+  left: 10px;
+  top: 0;
+  width: 3px;
+  height: 24px;
+  background: var(--100);
+}
