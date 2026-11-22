@@ -1113,3 +1113,195 @@ test("商店分类栏：分类图标留在 category-tab 内，不被正文选项
   }
 });
 
+test("性能：稳定页 apply 不再全量扫描选项链接", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<img class="icon" src="a.png"><a class="link-internal macro-link" data-passage="A">A</a>' +
+    '<img class="icon" src="b.png"><a class="link-internal macro-link" data-passage="B">B</a>';
+  w.MapleLanternNative.refresh();
+  await tick(w, 80);
+  const doc = w.document;
+  const proto = w.Element.prototype;
+  const orig = proto.querySelectorAll;
+  let hits = 0;
+  proto.querySelectorAll = function (sel) {
+    const s = String(sel);
+    if (s.indexOf("a.link-internal.macro-link") >= 0 && s.indexOf("a.macro-link") >= 0) { hits += 1; }
+    return orig.call(this, sel);
+  };
+  try { w.MapleLanternNative.apply(); } finally { proto.querySelectorAll = orig; }
+  assert.equal(hits, 0, "稳定页不应再全量扫描选项链接，实际命中 " + hits + " 次");
+});
+
+test("性能：没有存档容器时不再全文档扫描存档行", async () => {
+  const { w } = createEnv();
+  await tick(w, 80);
+  const doc = w.document;
+  const orig = doc.querySelectorAll.bind(doc);
+  let hits = 0;
+  doc.querySelectorAll = function (sel) {
+    if (String(sel).indexOf("#saves-list-container .savesListRow") >= 0) { hits += 1; }
+    return orig(sel);
+  };
+  try { w.MapleLanternNative.apply(); } finally { doc.querySelectorAll = orig; }
+  assert.equal(hits, 0, "无存档容器时不应全文档查存档行，实际命中 " + hits + " 次");
+});
+
+test("性能：纯文本链接不付祖先 computed style", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  let html = "<p>测试页</p>";
+  for (let i = 0; i < 100; i++) {
+    html += '<a class="link-internal macro-link" data-passage="P' + i + '">(' + i + ') 文本选项</a>';
+  }
+  p.innerHTML = html;
+  let calls = 0;
+  const proto = w.Element.prototype;
+  const orig = proto.getAttribute;
+  proto.getAttribute = function (name) {
+    if (name === "data-ml-layout") { calls += 1; }
+    return orig.call(this, name);
+  };
+  try { w.MapleLanternNative.apply(); } finally { proto.getAttribute = orig; }
+  await tick(w, 80);
+  assert.equal(p.querySelectorAll(".ml-option-group").length, 0, "纯文本链接不应成组");
+  assert.equal(calls, 0, "纯文本链接不应逐条走 layoutShell，实际 " + calls + " 次");
+});
+
+test("性能：商店长列表不触发选项卡片打包", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  let html = '<div id="clothingShop-div"><div id="clothes-list">';
+  for (let i = 0; i < 200; i++) {
+    html += '<div class="clothing-item"><img class="icon" src="i' + i + '.png">' +
+      '<a class="link-internal macro-link" data-passage="Item' + i + '">(' + i + ') Item</a></div>';
+  }
+  html += '</div></div>';
+  p.innerHTML = html;
+  const before = w.MapleLanternNative.stats();
+  w.MapleLanternNative.refresh();
+  await tick(w, 100);
+  const after = w.MapleLanternNative.stats();
+  assert.equal(p.querySelectorAll(".ml-option-group").length, 0,
+    "商店列表不应生成正文选项卡片");
+  assert.equal(after.packs - before.packs, 0, "商店列表不应触发 pack，实际 " + (after.packs - before.packs));
+});
+
+test("性能：分批新增选项只处理新增节点", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  let html = "<p>长页</p>";
+  for (let i = 0; i < 120; i++) {
+    html += '<img class="icon" src="a' + i + '.png"><br><a class="link-internal macro-link" data-passage="A' + i + '">A' + i + '</a>';
+  }
+  p.innerHTML = html;
+  w.MapleLanternNative.refresh();
+  await tick(w, 100);
+  assert.equal(p.querySelectorAll(".ml-option-group").length, 120, "首批应成 120 组");
+
+  let calls = 0;
+  const orig = w.getComputedStyle;
+  Object.defineProperty(w, "getComputedStyle", {
+    configurable: true,
+    value: function (el) { calls += 1; return orig.call(w, el); }
+  });
+  const batch = w.document.createElement("div");
+  let more = "";
+  for (let i = 120; i < 125; i++) {
+    more += '<img class="icon" src="a' + i + '.png"><br><a class="link-internal macro-link" data-passage="A' + i + '">A' + i + '</a>';
+  }
+  batch.innerHTML = more;
+  p.appendChild(batch);
+  await tick(w, 350);
+  Object.defineProperty(w, "getComputedStyle", { configurable: true, value: orig });
+  assert.equal(p.querySelectorAll(".ml-option-group").length, 125, "新增 5 项应补成 125 组");
+  assert.ok(calls < 80, "分批新增不应重扫全部旧项，实际 computed style " + calls + " 次");
+});
+
+test("性能：商店分批新增商品只扫新增行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  let html = '<div id="clothingShop-div"><div id="clothes-list">';
+  for (let i = 0; i < 200; i++) {
+    html += '<div class="clothing-item"><img class="icon" src="i' + i + '.png">' +
+      '<a class="link-internal macro-link" data-passage="Item' + i + '">(' + i + ') Item</a>' +
+      '<div class="clothing-name">Item ' + i + ' | Owned: 1</div>' +
+      '<div class="clothing-details"></div></div>';
+  }
+  html += '</div></div>';
+  p.innerHTML = html;
+  w.MapleLanternNative.refresh();
+  await tick(w, 120);
+
+  const shop = w.document.getElementById("clothingShop-div");
+  const protoQsa = w.Element.prototype.querySelectorAll;
+  let full = 0;
+  shop.querySelectorAll = function (sel) {
+    const s = String(sel);
+    if (s.indexOf("img.icon") >= 0 || s.indexOf(".clothing-name") >= 0 || s.indexOf(".clothing-details") >= 0) {
+      full += 1;
+    }
+    return protoQsa.call(this, sel);
+  };
+  const batch = w.document.createElement("div");
+  batch.innerHTML =
+    '<div class="clothing-item"><img class="icon" src="new.png">' +
+    '<a class="link-internal macro-link" data-passage="New">New</a>' +
+    '<div class="clothing-name">New Item | Owned: 1</div>' +
+    '<div class="clothing-details"></div></div>';
+  p.querySelector("#clothes-list").appendChild(batch);
+  await tick(w, 350);
+  delete shop.querySelectorAll;
+  assert.equal(full, 0, "商店分批新增时不应全量重扫旧商品，实际 " + full + " 次");
+  const name = batch.querySelector(".clothing-name");
+  assert.equal(/\|/.test(name.textContent), false, "新增商品名的竖线也要清掉");
+  assert.equal(batch.querySelector(".clothing-details").getAttribute("data-ml-empty"), "1",
+    "新增空详情也要标记");
+});
+
+test("性能：原生层关闭后不再每拍全页清标", async () => {
+  const { w } = createEnv();
+  await tick(w, 100);
+  const key = w.MapleLanternCore.STORAGE_KEY || "MapleLantern.settings.v1";
+  const raw = w.localStorage.getItem(key);
+  const settings = raw ? JSON.parse(raw) : { v: 1, lang: "zh", native: true };
+  settings.native = false;
+  w.localStorage.setItem(key, JSON.stringify(settings));
+  w.MapleLanternNative.refresh();
+  await tick(w, 160);
+
+  const doc = w.document;
+  const orig = doc.querySelectorAll.bind(doc);
+  let hits = 0;
+  doc.querySelectorAll = function (sel) {
+    if (String(sel).indexOf("[data-ml-chip]") >= 0) { hits += 1; }
+    return orig(sel);
+  };
+  try { w.MapleLanternNative.apply(); } finally { doc.querySelectorAll = orig; }
+  assert.equal(hits, 0, "原生层已关闭时不应每拍全页清标，实际命中 " + hits + " 次");
+  assert.equal(doc.querySelectorAll("[data-ml-option]").length, 0, "关闭后不应残留选项标记");
+});
+
+test("性能：商店内一次点击只安排一拍补扫", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML = '<div id="clothes-list"><div class="clothing-item">' +
+    '<img class="icon" src="a.png"><a class="link-internal macro-link" data-passage="A">A</a></div></div>';
+  w.MapleLanternNative.refresh();
+  await tick(w, 300);
+  const before = w.MapleLanternNative.stats().applies;
+  p.querySelector("#clothes-list .clothing-item").dispatchEvent(
+    new w.MouseEvent("click", { bubbles: true, cancelable: true })
+  );
+  await tick(w, 260);
+  const after = w.MapleLanternNative.stats().applies;
+  assert.ok(after - before <= 1, "商店内单击只应安排一拍 apply，实际 " + (after - before));
+});
+

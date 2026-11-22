@@ -101,7 +101,7 @@ test("读写设置：坏 JSON 回落默认；写入失败返回 false", () => {
 
 test("设置键名与本包版本固定", () => {
   assert.strictEqual(Core.SETTINGS_KEY, "MapleLanternDossier.settings.v1");
-  assert.strictEqual(Core.VERSION, "1.5.2");
+  assert.strictEqual(Core.VERSION, "1.5.3");
 });
 
 /* ---------------------------------------------------------------------------

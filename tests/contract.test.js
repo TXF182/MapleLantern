@@ -28,7 +28,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.2");
+  assert.equal(boot.version, "1.5.3");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -680,10 +680,12 @@ test("1.1.9：Android 真实 DOM 兜底——晚替换链接重组、CE 不超�
   assert.match(native, /a\.link-internal\.macro-link, a\.macro-link, a\.link-internal/);
   assert.match(native, /function repairGroups\(/);
   assert.match(native, /MutationObserver/);
-  /* 1.1.11：补扫由固定 10 拍改为“连续两拍无变化即停”，晚到节点由 observer 兜底。 */
-  assert.match(native, /function packSignature\(/);
+  /* 1.1.11：补扫由固定 10 拍改为“连续两拍无变化即停”，晚到节点由 observer 兜底。
+     1.5.3 性能收口：长页分批渲染只处理新增节点，稳定页直接早退。 */
+  assert.match(native, /function scopedLinks\(/);
+  assert.match(native, /state\.packStable && !dirty/);
   assert.match(native, /state\.stableTicks < 2/);
-  assert.match(native, /a\.link-internal, a\.macro-link, img\.icon, \.icon-container/);
+  assert.match(native, /img\.icon, \.icon, \.icon-container, br/);
   /* CE：不依赖 :has() 的实体规则 + 视口硬约束 + 箭头回缩。 */
   assert.match(nativeCss, /#customOverlay #cheat_extended_options/);
   assert.doesNotMatch(nativeCss, /#customOverlay:has\(#cheat_extended_options/,

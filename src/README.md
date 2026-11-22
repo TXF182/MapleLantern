@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.5.2）
+# 灯台 · Lantern（MapleLantern 1.5.3）
+
+- **1.5.3 · 长列表性能收口**：商店长列表与分批加载只处理新增商品，稳定页不再重复扫描选项链接；商店内点击只补扫一次，关闭原生卡片后不再每拍清理整页标记。九文件 **255/255** PASS。
 
 - **1.5.2 · 商店按钮修复**：修复商店「筛选 / 选项 / 图例」点不动（1.5.1 把按钮收进工具栏时误删内部链接节点）；恢复后可在「选项」里改商品默认主色 / 副色，含黑色、自定义与随机。九文件 **247/247** PASS。
 
@@ -102,7 +104,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.2.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.3.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -194,18 +196,18 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 ## 验证
 
-本轮（2026-11-21，Windows）实测：
+本轮（2026-11-22，Windows）实测；205–209 为历史专项读数：
 
-- `node --test tests\*.test.js`：**247 / 247 PASS**（9 个测试文件；1.5.1 新增绿茵落值/边饰八套与开关/石墨移除与旧档迁移/文字色预设与回退；1.5.2 新增商店按钮链接保留回归）
-- 实机探针（真实导入页 → `file://` IndexedDB → 游戏，Edge headless 全新 profile）：**21 / 21 PASS**——包版本双源 1.5.2；默认赛博朋克 + 边饰已挂（12px SVG 九宫格、`pointer-events:none`）；切绿茵后底色/青绿描边/割草条纹/专属边饰全部生效；≤600 边框收 8px、≤420 不挂边框；关闭总开关后伪元素无边框、正文回到 16px 内衬；文字色预设落到正文且不波及选项，切回跟随主题恢复；设置页无石墨；商店三按钮点击链命中；零 pageerror
-- `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 314 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **64ms、pack 0 次、写入 0 次（跳过 5160 次同值写）**（上一轮 78ms / 251ms；jsdom 逻辑层，不冒充浏览器帧率）
+- `node --test tests\*.test.js`：**255 / 255 PASS**（9 个测试文件；1.5.1 绿茵/边饰/文字色；1.5.2 商店按钮链接；1.5.3 原生长列表性能与关闭态清标回归）
+- 实机安装探针（真实导入页 → `file://` IndexedDB → 游戏，Edge headless 全新 profile）：**PASS**——包版本三源 1.5.3（core/native/panel 一致）；原生层默认挂载、根节点已就位；零 pageerror
+- `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 345 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **39ms、pack 0 次、写入 0 次（跳过 1380 次同值写）**
 - 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明
 - CE 1.20.3.1 合成 DOM（390 宽）：`#customOverlayContent` padding 0、CE 页签 47×30 / padding 4px 8px / min-height auto、`.settingsGrid` 334px 单列、72% 半透明主题底 + 星空纹理；桌面 1280 不命中单列、保持 CE 两列
 - 普通 OPTIONS 弹层（390 宽）：`#customOverlay` / `#customOverlayContent` 68% / 78% 半透明主题底 + 页纹理，8 个原生入口几何不变
 - 真实正文按压：`pointerdown` 后 `pressed:true` / `ring:true`，`mln-press-ring` 出现在卡片内
 - 8 个侧栏入口逐页走查：**CHARACTERISTICS / SOCIAL / TRAITS / JOURNAL / STATS / FEATS / OPTIONS / SAVES**，8/8 `clicked:true`、`overlayHidden:false`、`errors:[]`；OPTIONS 页灯台入口保留
-- `check_ui_mod.py`：**13 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
+- `check_ui_mod.py`：**14 PASS / 1 WARN / 0 FAIL**（WARN 为「未声明 StoneFreeHost」，属可选接入）
 - 动效实机（540×1170，Edge 隔离 profile，三套主题）：`#ml-panel::after` `ml-panel-ambient` 26/31/22s、`::before` `ml-hairline`、`.ml-pane` `ml-pane-in`、`.ml-ring::after` `ml-ring-breathe` 5.6s；`#ui-bar` `mln-bar-drift` 28/32/24s，`background-size` 5 层（2 环境光 + 3 纹理）；hover `matrix(1,0,0,1,0,-1)`；关断后 panel/ring/bar/pane 全 `none`；0 pageerror。
 - 窄屏回归（390×844、320×568，paper）：面板宽 390/320，6 个页签等分且全部可见；320 主题网格 3×91×44，文档无横向溢出；`ml-pane-in` / `ml-panel-ambient` / `mln-bar-drift` 仍运行，0 pageerror。面板 `scrollWidth` 的额外值来自 `::after ambient` 负 inset，不是内容溢出。
 

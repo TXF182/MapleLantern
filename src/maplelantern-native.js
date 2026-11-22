@@ -36,6 +36,8 @@
     packChanged: false,
     packStable: false,
     packAnchor: null,
+    packDirty: null,
+    innerTimer: null,
     stableTicks: 0,
     ceDirty: true,
     ceReady: false,
@@ -43,6 +45,9 @@
     ceStyleHome: null,
     perf: { applies: 0, sweeps: 0, ceNorm: 0, packs: 0, writes: 0, writesSaved: 0 }
   };
+
+  var LINK_MARK_SEL = "a.link-internal.macro-link, a.macro-link";
+  var LINK_PACK_SEL = "a.link-internal.macro-link, a.macro-link, a.link-internal";
 
   /* 同值写入会触发样式失效/观察记录；先比对再写，稳定页可省掉绝大多数
      attribute 变更（CE 参考的“缓存 + 只做增量”同思路）。 */
@@ -469,10 +474,11 @@
   }
 
   /* 商店分类是「img.icon + a」两个兄弟节点；包成一层，图标才能和卡片同排。 */
-  function markShopCats(root) {
-    var shop = root.querySelector("#clothingShop-div");
+  function markShopCats(root, scope, scoped) {
+    var shop = (scope && scope.id === "clothingShop-div")
+      ? scope : root.querySelector("#clothingShop-div");
     if (!shop) { return; }
-    var imgs = shop.querySelectorAll("img.icon");
+    var imgs = scoped ? scopedNodes(scoped, shop, "img.icon") : shop.querySelectorAll("img.icon");
     var pairs = [];
     for (var i = 0; i < imgs.length; i++) {
       if (imgs[i].parentNode !== shop) { continue; }
@@ -513,8 +519,11 @@
   }
 
   /* 商品名后的「| Owned: 1」是分隔符，卡片化后去掉竖线。 */
-  function tidyShopText(root) {
-    var names = root.querySelectorAll(".clothing-name");
+  function tidyShopText(root, scope, scoped) {
+    var shop = scope || root.querySelector("#clothingShop-div, #clothes-list");
+    if (!shop) { return; }
+    var names = scoped ? scopedNodes(scoped, shop, ".clothing-name")
+      : shop.querySelectorAll(".clothing-name");
     for (var i = 0; i < names.length; i++) {
       var walker = doc.createTreeWalker(names[i], 4, null);
       while (walker.nextNode()) {
@@ -526,8 +535,11 @@
   }
 
   /* 商品详情容器在空态会留下一个白描边气泡，先标成空态隐藏。 */
-  function markEmptyDetails(root) {
-    var details = root.querySelectorAll(".clothing-details");
+  function markEmptyDetails(root, scope, scoped) {
+    var host = scope || root.querySelector("#clothingShop-div, #clothes-list, #wardrobe");
+    if (!host) { return; }
+    var details = scoped ? scopedNodes(scoped, host, ".clothing-details")
+      : host.querySelectorAll(".clothing-details");
     for (var i = 0; i < details.length; i++) {
       var empty = !(details[i].textContent || "").trim() && details[i].children.length === 0;
       if (empty) { details[i].setAttribute("data-ml-empty", "1"); }
@@ -536,8 +548,9 @@
   }
 
   /* 商店列表右上三颗绝对定位小按钮会压住版本号，收进一条工具栏。 */
-  function markShopTools(root) {
-    var list = root.querySelector("#clothes-list");
+  function markShopTools(root, scope) {
+    var list = (scope && scope.id === "clothes-list") ? scope
+      : (scope ? scope.querySelector("#clothes-list") : root.querySelector("#clothes-list"));
     if (!list || list.querySelector(".ml-shop-tools")) { return; }
     var tools = list.querySelectorAll(".filters-button, .clothingshop-options-button, .shop-legend-button");
     if (!tools.length) { return; }
@@ -575,8 +588,10 @@
   }
 
   /* 原版正文用连续 <br> 做空行；选项之间因此出现大段空白。只折叠连续空行，
-     并去掉正文起始的空行，保留段落之间的一行间距。 */
-  function collapseBreaks(root) {
+     并去掉正文起始的空行，保留段落之间的一行间距。商店长列表不跑这一步：
+     商品行之间没有正文空行，全页 <br> 扫描只会白付成本。 */
+  function collapseBreaks(root, shop) {
+    if (shop) { return; }
     var passages = root.querySelectorAll("#passages .passage");
     for (var i = 0; i < passages.length; i++) {
       var passage = passages[i];
@@ -625,7 +640,8 @@
      3) 图标容器：<span class="water-outdoor-night"><img class="icon"></span><a>；
      4) 本地化只包链接：<img class="icon"><span><a class="macro-link"></a></span>。
      只在该容器只含这一个链接（和它的图标）时搬家，避免误包内层页。 */
-  function packIconOptions(root) {
+  function packIconOptions(root, scoped) {
+    var memo = typeof WeakMap === "function" ? new WeakMap() : null;
     function blank(node) {
       return node && node.nodeType === 3 && !(node.nodeValue || "").trim();
     }
@@ -718,29 +734,41 @@
        把图标和链接搬进新卡、再删掉宿主容器，会让整页布局崩掉，而且关闭
        原生卡片也还原不回来。这里在搬节点之前先判定布局壳层，命中就整页
        保持原样（只保留游戏原生链接样式）。 */
-    function layoutShell(node, stop) {
-      var el = node;
+    function shellElement(el) {
+      if (!el || el.nodeType !== 1) { return false; }
+      var tag = el.tagName;
+      if (tag === "TABLE" || tag === "TBODY" || tag === "TR" ||
+          tag === "TD" || tag === "TH" || tag === "THEAD" || tag === "TFOOT") {
+        return true;
+      }
+      if (el.getAttribute && el.getAttribute("data-ml-layout") === "1") { return true; }
+      try {
+        var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
+        var d = (cs && cs.display) || (el.style && el.style.display) || "";
+        if (d === "grid" || d === "inline-grid" || d.indexOf("table") === 0) { return true; }
+      } catch (e) { /* 取不到计算样式时按普通流处理 */ }
+      return false;
+    }
+    function layoutShell(node, stop, memo, skipOwn) {
+      if (!node || node.nodeType !== 1) { return false; }
+      if (!skipOwn && shellElement(node)) { return true; }
+      /* 同一父容器下的链接共享同一条祖先链；缓存父容器结果，避免 400+
+         个商品链接各自把祖先 getComputedStyle 再走一遍。 */
+      var parent = node.parentNode;
+      var key = parent && parent.nodeType === 1 ? parent : node;
+      if (memo && memo.has && memo.has(key)) { return memo.get(key); }
+      var result = false;
+      var el = parent;
       while (el) {
-        if (el.nodeType === 1) {
-          var tag = el.tagName;
-          if (tag === "TABLE" || tag === "TBODY" || tag === "TR" ||
-              tag === "TD" || tag === "TH" || tag === "THEAD" || tag === "TFOOT") {
-            return true;
-          }
-          if (el.getAttribute && el.getAttribute("data-ml-layout") === "1") { return true; }
-          try {
-            var cs = window.getComputedStyle ? window.getComputedStyle(el) : null;
-            var d = (cs && cs.display) || (el.style && el.style.display) || "";
-            if (d === "grid" || d === "inline-grid" || d.indexOf("table") === 0) { return true; }
-          } catch (e) { /* 取不到计算样式时按普通流处理 */ }
-        }
+        if (shellElement(el)) { result = true; break; }
         if (el === stop) { break; }
         el = el.parentNode;
       }
-      return false;
+      if (memo && memo.set) { memo.set(key, result); }
+      return result;
     }
     function optionLinks(passage) {
-      return passage.querySelectorAll("a.link-internal.macro-link, a.macro-link, a.link-internal");
+      return passage.querySelectorAll(LINK_PACK_SEL);
     }
     function linkNode(node) {
       if (!node || node.nodeType !== 1) { return null; }
@@ -752,11 +780,11 @@
     }
     /* 图标已进组、链接被重建到组外时，把紧随其后的新链接接回该组，
        避免“图标一张空卡、选项一张卡”的 Android 现象。 */
-    function repairGroups(passage) {
+    function repairGroups(passage, memo) {
       var groups = passage.querySelectorAll(".ml-option-group");
       for (var g = 0; g < groups.length; g++) {
         var group = groups[g];
-        if (layoutShell(group, passage)) { continue; }
+        if (layoutShell(group, passage, memo, true)) { continue; }
         if (group.querySelector("a.link-internal, a.macro-link")) { continue; }
         var next = group.nextSibling;
         while (next && (blank(next) || (next.nodeType === 1 && next.tagName === "BR"))) {
@@ -778,7 +806,7 @@
         if (holder && heldLink) {
           group.appendChild(heldLink);
           if (holder.parentNode && !(holder.textContent || "").trim() && !holder.querySelector("img") &&
-              !layoutShell(holder, passage)) {
+              !layoutShell(holder, passage, memo)) {
             holder.parentNode.removeChild(holder);
           }
         } else {
@@ -795,7 +823,7 @@
     /* 汉化/宿主把图标与链接拆到同一层、但中间多了空壳包裹时，向前回溯会失败。
        这里从图标向后找最近的一个选项链接，把它接进同一张卡；已被别的卡收走
        的链接跳过，避免同一个选项出现两张卡。 */
-    function adoptOrphanIcons(passage) {
+    function adoptOrphanIcons(passage, memo) {
       var icons = passage.querySelectorAll("img.icon, .icon-container");
       var list = [];
       for (var i = 0; i < icons.length; i++) {
@@ -810,7 +838,7 @@
         var icon = list[k];
         if (icon.closest && icon.closest(".ml-option-group")) { continue; }
         if (!icon.parentNode) { continue; }
-        if (layoutShell(icon, passage)) { continue; }
+        if (layoutShell(icon, passage, memo, true)) { continue; }
         var next = icon.nextSibling;
         var link = null;
         for (var s = 0; next && s < 6; s++) {
@@ -878,7 +906,7 @@
     var passages = root.querySelectorAll("#passages .passage");
     for (var i = 0; i < passages.length; i++) {
       var passage = passages[i];
-      var links = optionLinks(passage);
+      var links = scoped ? scopedLinks(scoped, passage, LINK_PACK_SEL) : optionLinks(passage);
       for (var j = 0; j < links.length; j++) {
         var link = links[j];
         try {
@@ -890,7 +918,6 @@
         /* 商店分类栏有自己的 44px 格子与 CSS；把图标+链接收进整宽选项卡会让
            .category-tab 变空壳，分类栏塌成“全宽空条 + 小方块”。 */
         if (link.closest && link.closest("#shopCategories")) { continue; }
-        if (layoutShell(link, passage)) { continue; }
 
         var holder = link.parentNode;
         var icon = iconBefore(link);
@@ -909,6 +936,8 @@
           }
         }
         if (!icon) { continue; }
+        /* 先确认真的存在图标，再付祖先链 shell 判定；纯文本链接直接跳过。 */
+        if (layoutShell(link, passage, memo, true)) { continue; }
         if (holder !== passage &&
             !onlyLink(holder, link, iconInHolder ? iconOuter : null)) { continue; }
 
@@ -981,8 +1010,8 @@
         }
         } catch (err) { /* 单个选项结构异常时跳过它，不能让整页选项都留在卡外 */ }
       }
-      repairGroups(passage);
-      adoptOrphanIcons(passage);
+      repairGroups(passage, memo);
+      adoptOrphanIcons(passage, memo);
       tidyGroupGaps(passage);
     }
   }
@@ -1405,27 +1434,57 @@
     state.ceSig = ceStructureSig();
   }
 
-  /* 补扫收敛判据：只数链接/图标/选项组，不读文本、不碰几何。DOM 没变就说明
-     这一拍没有新东西可接，连续两拍稳定即可停止补扫（CE 的分批渲染同思路）。 */
-  function packSignature(passages) {
-    var nodes = passages.querySelectorAll("a.link-internal, a.macro-link, img.icon, .icon-container");
-    var links = 0;
-    var icons = 0;
-    for (var i = 0; i < nodes.length; i++) {
-      var n = nodes[i];
-      if (n.tagName === "A") { links++; } else { icons++; }
+  /* 从 MutationObserver 的新增节点里取候选链接；只处理这些节点，
+     不再对整页 400+ 链接重跑 layoutShell。root 用于限定在某个 passage 内。 */
+  function scopedNodes(roots, root, sel, onlyLinks) {
+    var out = [];
+    if (!roots || !roots.length) { return out; }
+    function push(n) {
+      if (!n || n.nodeType !== 1) { return; }
+      if (onlyLinks && n.tagName !== "A") { return; }
+      if (root && n !== root && !root.contains(n)) { return; }
+      try { if (!n.matches || !n.matches(sel)) { return; } } catch (e) { return; }
+      if (out.indexOf(n) < 0) { out.push(n); }
     }
-    var groups = passages.querySelectorAll(".ml-option-group").length;
-    return links + ":" + icons + ":" + groups;
+    for (var i = 0; i < roots.length; i++) {
+      var r = roots[i];
+      if (!r || r.nodeType !== 1) { continue; }
+      if (root && r !== root && !root.contains(r)) { continue; }
+      push(r);
+      if (r.querySelectorAll) {
+        var list = r.querySelectorAll(sel);
+        for (var j = 0; j < list.length; j++) { push(list[j]); }
+      }
+    }
+    return out;
+  }
+
+  function scopedLinks(roots, root, sel) {
+    return scopedNodes(roots, root, sel, true);
   }
 
   function markPassages() {
     var passages = doc.getElementById("passages");
     if (!passages) { return; }
     var optionOn = state.settings.optOptions !== false;
+    var dirty = state.packDirty && state.packDirty.length ? state.packDirty : null;
+
+    /* 稳定页：上一拍已经做完标记/分组，且没有新节点。这里不查选择器，
+       直接退回；长列表页重复 apply 的固定扫描成本因此归零。 */
+    if (optionOn && state.packStable && !dirty &&
+        (!state.packAnchor || passages.contains(state.packAnchor))) {
+      state.packChanged = false;
+      return;
+    }
+
+    var shopPage = passages.querySelector("#clothingShop-div, #clothes-list");
+    var wardrobeBits = passages.querySelector(".wardrobe-action, #listoutfits, #wardrobe");
+
     /* 只标记，不替换链接；CSS 依据 [data-ml-option] 区分正文选项与行内链接。
-       商店分类链接不在此列，避免关掉「正文选项卡片」时误伤商店导航。 */
-    var links = passages.querySelectorAll("a.link-internal.macro-link, a.macro-link");
+       商店分类链接不在此列，避免关掉「正文选项卡片」时误伤商店导航。
+       有新增节点时只处理新增链接，旧链接的标记保持不动。 */
+    var links = dirty ? scopedLinks(dirty, passages, LINK_MARK_SEL)
+      : passages.querySelectorAll(LINK_MARK_SEL);
     for (var i = 0; i < links.length; i++) {
       var link = links[i];
       var shop = link.closest && link.closest("#clothingShop-div, .ml-shop-cat");
@@ -1436,35 +1495,51 @@
          否则只停 CSS 会留下被重排过的 DOM。 */
       unpackOptions();
       state.packStable = false;
-      markShopCats(passages);
-      markShopTools(passages);
-      tidyShopText(passages);
-      markEmptyDetails(passages);
+      state.packDirty = null;
+      if (shopPage) {
+        markShopCats(passages, shopPage, dirty);
+        markShopTools(passages, shopPage);
+        tidyShopText(passages, shopPage, dirty);
+        markEmptyDetails(passages, shopPage, dirty);
+      }
+      if (wardrobeBits) {
+        tidySeparators(passages);
+        markEmptyDetails(passages, wardrobeBits);
+      }
       return;
     }
-    tidySeparators(passages);
-    markShopCats(passages);
-    markShopTools(passages);
-    tidyShopText(passages);
-    markEmptyDetails(passages);
-    collapseBreaks(passages);
-    /* 本页分组已经稳定且没有新节点：直接跳过整轮 pack（含两次签名扫描、
-       repairGroups / adoptOrphanIcons / tidyGroupGaps 三轮全页遍历）。
-       任何新增/替换链接都会先经过 MutationObserver，把 packStable 打回 false。
-       锚点（首个选项链接）变了也视为新页：直接 innerHTML 替换时 observer 回调
-       可能还没跑，不能只信 flags。 */
-    if (state.packStable && state.packAnchor && passages.contains(state.packAnchor) &&
-        passages.querySelector("a.link-internal.macro-link, a.macro-link, a.link-internal") === state.packAnchor) {
+    if (shopPage) {
+      /* 商店列表/分类是网格容器，pack 本来就会被 layoutShell 整页跳过。
+         直接不进 pack，避免 400+ 商品链接逐条付祖先 computed style。 */
+      markShopCats(passages, shopPage, dirty);
+      markShopTools(passages, shopPage);
+      tidyShopText(passages, shopPage, dirty);
+      markEmptyDetails(passages, shopPage, dirty);
+      if (wardrobeBits) { tidySeparators(passages); }
       state.packChanged = false;
+      state.packStable = true;
+      state.packDirty = null;
+      if (!state.packAnchor || !passages.contains(state.packAnchor)) {
+        state.packAnchor = links.length ? links[0] : null;
+      }
+      if (state.packObserver && state.packObserver.takeRecords) { state.packObserver.takeRecords(); }
       return;
     }
-    var before = packSignature(passages);
+    if (wardrobeBits) {
+      tidySeparators(passages);
+      markEmptyDetails(passages, wardrobeBits);
+    }
+    collapseBreaks(passages, null);
+    var before = passages.querySelectorAll(".ml-option-group").length;
     state.perf.packs++;
-    packIconOptions(passages);
-    var after = packSignature(passages);
+    packIconOptions(passages, dirty);
+    var after = passages.querySelectorAll(".ml-option-group").length;
     state.packChanged = before !== after;
     state.packStable = true;
-    state.packAnchor = passages.querySelector("a.link-internal.macro-link, a.macro-link, a.link-internal");
+    state.packDirty = null;
+    if (!state.packAnchor || !passages.contains(state.packAnchor)) {
+      state.packAnchor = links.length ? links[0] : null;
+    }
     /* 丢弃 pack 自己搬节点产生的观察记录；否则下一拍会把自己误判成“新节点”，
        再白跑一轮全页遍历。 */
     if (state.packObserver && state.packObserver.takeRecords) { state.packObserver.takeRecords(); }
@@ -1683,15 +1758,23 @@
   /* 空存档槽在原版里仍保留两个 &nbsp; 详情行和一行按钮，卡片化后会留下
      一整块空白。只读地标出空槽，由 CSS 压成单行；不碰任何按钮与存档数据。 */
   function markSaveRows() {
-    var rows = doc.querySelectorAll("#saves-list-container .savesListRow, #savesListContainer .savesListRow");
-    for (var i = 0; i < rows.length; i++) {
-      var row = rows[i];
-      var nameNode = row.querySelector(".saveName");
-      var detailNode = row.querySelector(".saveDetails");
-      var name = nameNode ? (nameNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
-      var details = detailNode ? (detailNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
-      if (!name && !details) { row.setAttribute("data-ml-save-empty", "1"); }
-      else { row.removeAttribute("data-ml-save-empty"); }
+    /* 存档页不一定存在；先按 id 取容器，再只查容器内部。
+       旧实现每次 apply 都对整个 31k 节点文档跑双 id 选择器，
+       在商店长列表页单次约 4.6ms，且一行存档都没有。 */
+    var ids = ["saves-list-container", "savesListContainer"];
+    for (var c = 0; c < ids.length; c++) {
+      var container = doc.getElementById(ids[c]);
+      if (!container) { continue; }
+      var rows = container.querySelectorAll(".savesListRow");
+      for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var nameNode = row.querySelector(".saveName");
+        var detailNode = row.querySelector(".saveDetails");
+        var name = nameNode ? (nameNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
+        var details = detailNode ? (detailNode.textContent || "").replace(/\u00a0/g, " ").trim() : "";
+        if (!name && !details) { row.setAttribute("data-ml-save-empty", "1"); }
+        else { row.removeAttribute("data-ml-save-empty"); }
+      }
     }
   }
 
@@ -1834,7 +1917,9 @@
     state.perf.applies++;
     publishViewport();
     state.settings = readSettings();
-    state.lang = C.pickLang(state.settings.lang, navigator.language || "zh");
+    var nextLang = C.pickLang(state.settings.lang, navigator.language || "zh");
+    if (nextLang !== state.lang) { state.packStable = false; }
+    state.lang = nextLang;
     state.host = hostEnabled();
     /* 独立外观层不能因为检测到 DoLGameUI 就把自己关掉：
        面板里的「原生卡片」开关是玩家对本包的明确指令，宿主的全局按钮/
@@ -1842,6 +1927,7 @@
        1.1.6 及以前在 Android 上正是因此出现“面板是 1.1.6、正文却退回
        宿主原生卡片”的分裂状态。 */
     var on = state.settings.native !== false;
+    var wasOn = state.nativeOn;
     /* 第三方美化页复用同一层 #customOverlayContent。只有确实检测到第三方美化页
        且它当前可见时才让位；没有检测到时按 native 开关立即挂载，不受第三方开关影响。
        让位时默认只插入口，不把灯台的卡片样式套到别人的设置页；玩家可显式启用。
@@ -1857,8 +1943,11 @@
     watchSidebar();
     syncSidebar();
     if (!effective) {
-      clearMarks();
+      /* 只有从「开」切到「关」才需要清一次全页打标；关闭状态下每拍再扫
+         39k 节点只会白付成本。初始 nativeOn=false 时页面本来就没有标记。 */
+      if (wasOn) { clearMarks(); }
       state.packStable = false;
+      state.packDirty = null;
       /* 入口是面板入口，不是原生样式的一部分；关原生卡片或第三方页让位时仍要能进来。 */
       markThirdPartyOverlay(overlay);
       if (overlay) { setAttr(overlay, "data-ml-overlay", overlayKey(overlay)); }
@@ -1896,6 +1985,7 @@
   function onPassage() {
     state.stableTicks = 0;
     state.packStable = false;
+    state.packDirty = null;
     state.zoom = zoomFactor();
     schedule();
     setTimeout(schedule, 140);
@@ -1923,29 +2013,43 @@
     var relevant = function (node) {
       if (!node || node.nodeType !== 1) { return false; }
       try {
-        if (node.matches && node.matches("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
+        if (node.matches && node.matches("a.link-internal, a.macro-link, img.icon, .icon, .icon-container, br")) { return true; }
         /* 纯文本包裹没有后代元素，不必为它跑一次 querySelector。 */
         if (!node.firstElementChild) { return false; }
-        if (node.querySelector && node.querySelector("a.link-internal, a.macro-link, img.icon, .icon, .icon-container")) { return true; }
+        if (node.querySelector && node.querySelector("a.link-internal, a.macro-link, img.icon, .icon, .icon-container, br")) { return true; }
       } catch (e) { /* 选择器不支持时按无关处理 */ }
       return false;
     };
     state.packObserver = new window.MutationObserver(function (records) {
       if (state.disposed || !state.nativeOn) { return; }
       var hit = false;
-      for (var r = 0; r < records.length && !hit; r++) {
+      var dirty = [];
+      for (var r = 0; r < records.length; r++) {
         var rec = records[r];
         var target = rec.target;
         if (target && target.nodeType === 1 && target.closest &&
             target.closest(".ml-option-group")) { continue; }
-        var list = [];
-        if (rec.addedNodes) { for (var a = 0; a < rec.addedNodes.length; a++) { list.push(rec.addedNodes[a]); } }
-        if (rec.removedNodes) { for (var d = 0; d < rec.removedNodes.length; d++) { list.push(rec.removedNodes[d]); } }
-        for (var i = 0; i < list.length; i++) {
-          if (relevant(list[i])) { hit = true; break; }
+        if (rec.addedNodes) {
+          for (var a = 0; a < rec.addedNodes.length; a++) {
+            if (relevant(rec.addedNodes[a])) {
+              hit = true;
+              if (dirty.indexOf(rec.addedNodes[a]) < 0) { dirty.push(rec.addedNodes[a]); }
+            }
+          }
+        }
+        if (rec.removedNodes) {
+          for (var d = 0; d < rec.removedNodes.length; d++) {
+            if (relevant(rec.removedNodes[d])) { hit = true; }
+          }
         }
       }
       if (!hit) { return; }
+      if (dirty.length) {
+        if (!state.packDirty) { state.packDirty = []; }
+        for (var k = 0; k < dirty.length; k++) {
+          if (state.packDirty.indexOf(dirty[k]) < 0) { state.packDirty.push(dirty[k]); }
+        }
+      }
       state.packStable = false;
       if (state.packTimer) { clearTimeout(state.packTimer); }
       state.packTimer = setTimeout(schedule, 120);
@@ -2002,7 +2106,7 @@
       schedule();
       setTimeout(schedule, 180);
     }
-    if (inBar || inInner) {
+    if (inBar) {
       schedule();
       setTimeout(schedule, 150);
       if (t.closest && t.closest("#overlayButtons")) { armFeatsIntro(); }
@@ -2018,6 +2122,14 @@
           }
         }, 80);
       }
+    } else if (inInner) {
+      /* 商店/衣柜的内层页会在点击后异步换 DOM；只保留一拍 150ms 防抖，
+         不再“立即 + 150ms”连跑两次全量 apply。 */
+      if (state.innerTimer) { clearTimeout(state.innerTimer); }
+      state.innerTimer = setTimeout(function () {
+        state.innerTimer = null;
+        if (!state.disposed) { schedule(); }
+      }, 150);
     }
   }
 
@@ -2177,6 +2289,7 @@
       if (window.jQuery) { window.jQuery(doc).off(":passageend", onPassage); }
     } catch (e) { /* ignore */ }
     if (state.packTimer) { clearTimeout(state.packTimer); state.packTimer = null; }
+    if (state.innerTimer) { clearTimeout(state.innerTimer); state.innerTimer = null; }
     restoreCeStyle();
     if (state.packObserver) { state.packObserver.disconnect(); state.packObserver = null; }
     if (state.overlayObserver) { state.overlayObserver.disconnect(); state.overlayObserver = null; }
