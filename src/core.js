@@ -13,10 +13,25 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.5.5";
+  var VERSION = "1.5.6";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
-  var THEMES = ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"];
+
+  /* 主题唯一真源：id / 文案键 / 色板 / 预览 id / CSS 落点一次声明。
+     THEMES 不再手写第二份；render.js 的主题选项也由这里生成。
+     panel/native 用来让矩阵测试按“该主题应有哪些样式块”判定，而不是一刀切。 */
+  var THEME_META = [
+    { id: "auto", labelKey: "theme.auto", palette: "cyberpunk", preview: "auto", panelBlock: false, nativeTheme: "cyberpunk", ornament: false },
+    { id: "cyberpunk", labelKey: "theme.cyberpunk", palette: "cyberpunk", preview: "cyberpunk", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "amber", labelKey: "theme.amber", palette: "amber", preview: "amber", panelBlock: true, nativeTheme: "root", ornament: true },
+    { id: "jade", labelKey: "theme.jade", palette: "jade", preview: "jade", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "star", labelKey: "theme.star", palette: "star", preview: "star", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "fog", labelKey: "theme.fog", palette: "fog", preview: "fog", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "school", labelKey: "theme.school", palette: "school", preview: "school", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "paper", labelKey: "theme.paper", palette: "paper", preview: "paper", panelBlock: true, nativeTheme: "self", ornament: true },
+    { id: "grass", labelKey: "theme.grass", palette: "grass", preview: "grass", panelBlock: true, nativeTheme: "self", ornament: true }
+  ];
+  var THEMES = THEME_META.map(function (meta) { return meta.id; });
   var DENSITIES = ["cozy", "compact"];
   var LANGS = ["auto", "zh", "en"];
 
@@ -121,8 +136,10 @@
       "settings.ornamentHint": "正文四周的装饰花边，随主题换样式；关闭后正文恢复原宽度",
       "settings.textColor": "文字色",
       "settings.textColorHint": "只改故事正文与标题；选项、按钮和状态读数保持主题色",
+      "settings.textColorInactive": "当前主题下对比度不足，正文暂时跟随主题；切回兼容主题会自动恢复",
       "textColor.auto": "跟随主题", "textColor.custom": "自定义",
       "toast.colorContrast": "这个颜色和背景太接近（低于 4.5:1），换一个更清楚的",
+      "toast.colorInactive": "自定义文字色在当前主题下对比度不足，已暂时跟随主题；切回兼容主题会自动恢复",
       "settings.native": "原生卡片",
       "settings.panel": "悬浮灯台",
       "settings.thirdPartyNative": "美化页启用灯台 UI",
@@ -198,8 +215,10 @@
       "settings.ornamentHint": "Decorative frame around the story text; changes with the theme. Off restores full text width",
       "settings.textColor": "Text color",
       "settings.textColorHint": "Story text and headings only; options, buttons and stat readouts keep the theme colors",
+      "settings.textColorInactive": "Too low contrast on this theme; story text follows the theme temporarily. Switch back to restore",
       "textColor.auto": "Theme", "textColor.custom": "Custom",
       "toast.colorContrast": "Too close to the background (below 4.5:1); pick a clearer color",
+      "toast.colorInactive": "Your custom text color is too low-contrast on this theme; story text follows the theme until you switch back",
       "settings.native": "Native cards",
       "settings.panel": "Floating Lantern",
       "settings.thirdPartyNative": "Lantern UI on beauty pages",
@@ -599,7 +618,17 @@
     return (hi + 0.05) / (lo + 0.05);
   }
 
-  function paletteFor(theme) { return PALETTES[theme] || PALETTES.cyberpunk; }
+  function themeMeta(id) {
+    for (var i = 0; i < THEME_META.length; i++) {
+      if (THEME_META[i].id === id) { return THEME_META[i]; }
+    }
+    return null;
+  }
+
+  function paletteFor(theme) {
+    var meta = themeMeta(theme);
+    return PALETTES[meta ? meta.palette : ""] || PALETTES.cyberpunk;
+  }
 
   /* 正文文字色：只作用于故事正文（#passages / .passage）。
      "auto" 表示跟随主题；自定义色按当前主题底色算对比度，低于 4.5:1 不生效。
@@ -711,6 +740,7 @@
     VERSION: VERSION,
     STORAGE_KEY: STORAGE_KEY,
     TAB_KEYS: TAB_KEYS,
+    THEME_META: THEME_META,
     THEMES: THEMES,
     DENSITIES: DENSITIES,
     LANGS: LANGS,
@@ -737,6 +767,7 @@
     normalizeHex: normalizeHex,
     textColorFor: textColorFor,
     textColorChoices: textColorChoices,
+    themeMeta: themeMeta,
     paletteFor: paletteFor,
     zoomFactor: zoomFactor,
     viewportSize: viewportSize,

@@ -28,7 +28,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.5");
+  assert.equal(boot.version, "1.5.6");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -428,22 +428,30 @@ test("1.1.18：CE 关闭后必须还原 #customOverlay 内联样式", () => {
 });
 
 test("1.1.15：正文图标按钮不得被 background 简写清空图标", () => {
-  const base = nativeCss.match(/html\[data-ml-native="on"\] #passages \.passage button\s*\{([^}]*)\}/);
-  assert.ok(base, "必须能定位正文按钮基础规则");
-  assert.match(base[1], /background-color:\s*var\(--mln-surface-2\)/,
+  const baseStart = nativeCss.indexOf(
+    'html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button,'
+  );
+  assert.ok(baseStart >= 0, "必须能定位正文按钮基础规则");
+  const base = nativeCss.slice(baseStart, nativeCss.indexOf("}", baseStart) + 1);
+  assert.match(base, /background-color:\s*var\(--mln-surface-2\)/,
     "正文按钮必须用 background-color 设底色");
-  assert.doesNotMatch(base[1], /background\s*:\s*var/,
+  assert.doesNotMatch(base, /background\s*:\s*var/,
     "background 简写会同时清掉 background-image/size/position，图标按钮会变成空框");
-  const hover = nativeCss.match(/html\[data-ml-native="on"\] #passages \.passage button:hover\s*\{([^}]*)\}/);
-  assert.ok(hover, "必须能定位正文按钮 hover 规则");
-  assert.match(hover[1], /background-color:\s*var\(--mln-surface-3\)/);
-  assert.doesNotMatch(hover[1], /background\s*:\s*var/,
+  const hoverStart = nativeCss.indexOf(
+    'html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:hover,'
+  );
+  assert.ok(hoverStart >= 0, "必须能定位正文按钮 hover 规则");
+  const hover = nativeCss.slice(hoverStart, nativeCss.indexOf("}", hoverStart) + 1);
+  assert.match(hover, /background-color:\s*var\(--mln-surface-3\)/);
+  assert.doesNotMatch(hover, /background\s*:\s*var/,
     "hover 也不能用简写，否则按下/悬停时图标再次消失");
 });
 
 test("1.1.16/1.1.17：正文按钮规则不得接管原生弹层，紧凑 settingsGrid 恢复原版几何", () => {
-  const scoped = (nativeCss.match(/#passages \.passage button/g) || []).length;
-  assert.equal(scoped, 6, "基础/hover/active/focus-visible 与赛博朋克两条都必须收在 .passage 内");
+  const scoped = (nativeCss.match(/#passages \.passage > :not\(#phone-wrapper\) button/g) || []).length;
+  assert.ok(scoped >= 6, "基础/hover/active/focus-visible 与赛博朋克两条都必须收在非手机正文内");
+  assert.doesNotMatch(nativeCss, /#passages \.passage button\s*\{/,
+    "不能再有裸 .passage button 规则：DolSmartPhone 的 #phone-wrapper 是 .passage 直接子级");
   assert.doesNotMatch(nativeCss, /#passages button\s*\{/,
     "不能再有裸 #passages button 规则：customOverlayContainer 就在 PassageFooter 里；正文规则必须收在 .passage");
   assert.match(nativeCss,
@@ -488,7 +496,8 @@ test("普通弹层：主题页纹理与半透明材质透出，不只是纯色�
 test("赛博朋克主题：默认调色板、双 CSS 入口与设置项齐全，旧主题仍保留", () => {
   assert.match(core, /theme: "cyberpunk"/);
   assert.match(core, /cyberpunk:\s*\{/);
-  assert.match(index, /value: "cyberpunk", label: s\["theme\.cyberpunk"\]/);
+  assert.match(index, /C\.THEME_META\.map/, "主题设置项必须由 THEME_META 生成");
+  assert.ok(coreModule.THEME_META.some((meta) => meta.id === "cyberpunk"), "赛博朋克必须在主题元数据里");
   assert.match(css, /#ml-root\[data-theme="cyberpunk"\][\s\S]*--ml-accent:\s*#00E5FF/);
   assert.match(css, /赛博朋克主题装饰/);
   assert.match(nativeCss, /data-ml-theme="cyberpunk"\]\s*\{[\s\S]*--mln-accent:\s*#00E5FF/);
@@ -504,7 +513,7 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   for (const name of ["fog", "school", "paper"]) {
     assert.match(core, new RegExp(name + ":\\s*\\{"), "缺少调色板: " + name);
     assert.match(core, new RegExp('"theme\\.' + name + '"'), "缺少中文主题名: " + name);
-    assert.match(index, new RegExp('value: "' + name + '", label: s\\["theme\\.' + name + '"\\]'), "缺少设置项: " + name);
+    assert.ok(coreModule.THEME_META.some((meta) => meta.id === name), "缺少主题元数据: " + name);
     assert.match(css, new RegExp('#ml-root\\[data-theme="' + name + '"\\]'), "缺少面板主题块: " + name);
     assert.match(nativeCss, new RegExp('data-ml-theme="' + name + '"\\]\\s*\\{'), "缺少原生主题块: " + name);
   }
@@ -512,7 +521,7 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   assert.equal((core.match(/theme\.school/g) || []).length >= 2, true, "中英文都要有旧校舍");
   assert.equal((core.match(/theme\.paper/g) || []).length >= 2, true, "中英文都要有纸灯");
   assert.match(nativeCss, /data-ml-theme="paper"\] #mobileStats \.stat\.red\s*\{[^}]*#9E2F25/s);
-  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.gold\s*\{[^}]*#6F5210/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage > :not\(#phone-wrapper\) \.gold\s*\{[^}]*#6F5210/s);
   assert.match(css, /data-ml-theme="paper"\] #passages \.passage \.ConveniencestoreGoodsClass > div\s*\{[^}]*color:\s*#E8DFD2/s,
     "纸灯浅色主题下，原版优化便利店的深底商品卡必须恢复浅字，不能继承深墨正文色");
   assert.doesNotMatch(css, /data-ml-theme="paper"\] #passages \.passage :is\([^)]*traitList \.trait/s,
@@ -523,7 +532,7 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
     "非纸灯主题下，第三方浮窗里的 .black 说明文字必须改成当前主题正文色，避免黑底黑字");
   assert.match(css, /data-ml-theme="paper"\] #passages \.passage \.ConveniencestoreGoodsClass > div \.gold\s*\{[^}]*var\(--gold/s,
     "深色卡片内的 .gold 语义色必须回到原生亮色，不能被纸灯深金覆盖");
-  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage \.teal\s*\{[^}]*#0E5F5F/s);
+  assert.match(nativeCss, /data-ml-theme="paper"\] #passages \.passage > :not\(#phone-wrapper\) \.teal\s*\{[^}]*#0E5F5F/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.gold\s*\{[^}]*#6F5210/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #startCaption \.link-external\s*\{[^}]*#2C4F85/s);
   assert.match(nativeCss, /data-ml-theme="paper"\] #ui-bar a\.link-external\s*\{[^}]*#2C4F85/s);
@@ -535,8 +544,8 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   assert.ok(nativeCss.includes('#customOverlay:not([data-overlay="modloader"]):not(:has('));
   assert.match(nativeCss, /data-ml-theme="fog"\] #history-backward/);
   assert.match(nativeCss, /data-ml-theme="school"\] #history-backward/);
-  assert.match(nativeCss, /data-ml-theme="fog"\] #passages \.passage \.red\s*\{[^}]*#E58C7F/s);
-  assert.match(nativeCss, /data-ml-theme="school"\] #passages \.passage \.red\s*\{[^}]*#E08373/s);
+  assert.match(nativeCss, /data-ml-theme="fog"\] #passages \.passage > :not\(#phone-wrapper\) \.red\s*\{[^}]*#E58C7F/s);
+  assert.match(nativeCss, /data-ml-theme="school"\] #passages \.passage > :not\(#phone-wrapper\) \.red\s*\{[^}]*#E08373/s);
   assert.match(nativeCss, /data-ml-theme="fog"\] #gameVersionDisplay/);
   assert.match(nativeCss, /data-ml-theme="school"\] #gameVersionDisplay/);
   assert.match(nativeCss, /data-ml-theme="paper"\] #gameVersionDisplay/);
@@ -549,9 +558,10 @@ test("主题预览卡：9 套场景、当前选中态与切换过场", () => {
   assert.match(index, /ml-theme-scene/);
   assert.match(index, /data-theme-preview/);
   assert.match(index, /ml-theme-wash/);
-  for (const theme of ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
-    assert.match(index, new RegExp('preview: "' + theme + '"'), theme + " 缺少预览声明");
-    assert.match(css, new RegExp('data-theme-preview="' + theme + '"'), theme + " 缺少专属场景");
+  for (const theme of coreModule.THEMES) {
+    const meta = coreModule.themeMeta(theme);
+    assert.equal(meta.preview, theme, theme + " 预览 id 必须与主题 id 对齐");
+    assert.match(css, new RegExp('data-theme-preview="' + meta.preview + '"'), theme + " 缺少专属场景");
   }
   assert.match(css, /\.ml-theme-tile\[aria-checked="true"\]/);
   assert.match(css, /--ml-pv-accent/);
@@ -1065,7 +1075,8 @@ test("按压/减少动态效果：普通按钮组不依赖 :is(:has)，第三方
   const clean = strip(nativeCss);
   assert.ok(!clean.includes("html[data-ml-native=\"on\"] :is(#customOverlayContent"),
     "按压规则不得整条依赖 :is(:has)；旧 WebView 会连 #passages 分支一起丢弃");
-  assert.match(clean, /html\[data-ml-native="on"\] #passages button,/, "普通按钮组必须平铺保留");
+  assert.match(clean, /html\[data-ml-native="on"\] #passages \.passage > :not\(#phone-wrapper\) button,\s*\nhtml\[data-ml-native="on"\] #passages \.passage > button,/,
+    "普通按钮组必须平铺保留，且排除手机壳");
   assert.match(clean, /html\[data-ml-native="on"\] #customOverlayContent:not\(:has\(/,
     "CE 排除组必须单独成组，失效时只让 CE 分支缺席");
 });
@@ -1138,6 +1149,16 @@ test("生命周期与兼容层静态契约：监听摘除、data URL、ctx 空�
 });
 
 
+test("日志 carry 列表：卡片内边距不得让悬挂图标越出边框", () => {
+  const carry = nativeCss.match(/html\[data-ml-native="on"\][^{]*ul\.journal\.carry\s*\{[^}]*\}/s);
+  assert.ok(carry, "缺 journal.carry 作用域修正；原版 padding-left:40px/text-indent:-35px 会被卡片 padding 覆盖，图标左移出框");
+  assert.match(carry[0], /padding-left:\s*40px/, "carry 必须保留原版 40px 悬挂缩进");
+  assert.match(carry[0], /text-indent:\s*-35px/, "carry 必须保留原版 -35px 悬挂缩进");
+  const li = nativeCss.match(/html\[data-ml-native="on"\][^{]*ul\.journal\.carry li\s*\{[^}]*\}/s);
+  assert.ok(li, "carry 的 li 必须单独复位 margin-left，否则图标仍被二次右移");
+  assert.match(li[0], /margin-left:\s*0/, "carry 的 li 不得沿用通用 li 的 10px 左边距");
+});
+
 test("商店：分类格不被选项卡片打包，分页链接不继承整宽卡片", () => {
   assert.match(native, /link\.closest\([^)]*#shopCategories[^)]*\)[\s\S]{0,40}continue/,
     "商店分类链接必须跳过正文选项打包，否则 category-tab 会被搬空");
@@ -1160,13 +1181,13 @@ test("绿茵主题：调色板、双语、设置项、双 CSS 入口与青绿描
     "绿茵调色板必须齐全（bg/accent/danger 三端都在）");
   assert.match(core, /"theme\.grass": "绿茵"/);
   assert.match(core, /"theme\.grass": "Meadow"/);
-  assert.match(index, /value: "grass"/, "设置页必须有绿茵按钮");
+  assert.ok(coreModule.THEME_META.some((meta) => meta.id === "grass"), "设置页必须有绿茵主题元数据");
   assert.match(css, /#ml-root\[data-theme="grass"\][\s\S]{0,560}?--ml-line: rgba\(27, 122, 110, \.34\)/,
     "组件边缘必须是青绿描边（--ml-line）");
   assert.match(css, /#ml-root\[data-theme="grass"\][\s\S]{0,760}?--ml-line-strong: rgba\(20, 138, 124, \.62\)/);
   assert.match(nativeCss, /data-ml-theme="grass"\] \{[\s\S]{0,460}?--mln-border: rgb\(27 122 110 \/ 34%\)/,
     "原生层同样要青绿边框，不能只改面板");
-  assert.match(nativeCss, /data-ml-theme="grass"\] #passages \.passage \.gold \{ color: #6F5210; \}/,
+  assert.match(nativeCss, /data-ml-theme="grass"\] #passages \.passage > :not\(#phone-wrapper\) \.gold \{ color: #6F5210; \}/,
     "浅底上原版金色数值必须换深墨，否则对比度不足");
   assert.match(nativeCss, /data-ml-theme="grass"\][\s\S]{0,2600}?rgb\(223 234 202 \/ 45%\) 28px 56px/, "割草条纹必须落在正文背景纹理里");
 });
@@ -1177,8 +1198,8 @@ test("石墨主题已移除：源码零残留，旧设置值回落默认主题",
     assert.ok(!/graphite/.test(strip(text)), name + " 仍残留 graphite");
   }
   assert.doesNotMatch(core, /theme\.graphite/, "文案键不许留");
-  assert.match(core, /var THEMES = \["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"\];/,
-    "主题清单必须是 auto + 7 套深色/浅色 + 绿茵");
+  assert.deepEqual(coreModule.THEMES, ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"],
+    "主题清单必须是 auto + 7 套深色/浅色 + 绿茵（由 THEME_META 生成，不再手写第二份）");
   const parsed = coreModule.sanitizeSettings({ theme: "graphite" });
   assert.equal(parsed.value.theme, "cyberpunk", "旧档里的石墨必须回落默认主题");
   assert.equal(parsed.repaired, true, "回落必须打 repaired 标记，供一次性提示");
@@ -1208,11 +1229,11 @@ test("主题边饰：8 套图案、仅原生层+开关生效、不可点击、au
 
 
 test("正文文字色：只作用于正文层，设置入口与落值链路齐全", () => {
-  assert.match(nativeCss, /\[data-ml-text="custom"\] #passages,[\s\S]{0,600}?color: var\(--mln-text-custom\) !important/,
+  assert.match(nativeCss, /\[data-ml-text="custom"\] #passages,[\s\S]{0,1200}?color: var\(--mln-text-custom\) !important/,
     "自定义文字色必须走专用变量，不能改写 --mln-text 本身");
-  const block = nativeCss.match(/\/\* 正文自定义文字色[\s\S]{0,600}?\n\}/);
+  const block = nativeCss.match(/\/\* 正文自定义文字色[\s\S]{0,1200}?\n\}/);
   assert.ok(block, "缺自定义文字色规则块");
-  assert.match(block[0], /#passages \.passage h1[\s\S]{0,400}?h4/, "标题必须跟随自定义文字色");
+  assert.match(block[0], /#passages \.passage > h1[\s\S]{0,700}?h4/, "标题必须跟随自定义文字色");
   assert.ok(!/button|input|\.ml-stat/.test(block[0]), "自定义色不得波及选项按钮、输入框或状态读数");
   assert.match(native, /setAttribute\("data-ml-text", "custom"\)/);
   assert.match(native, /--mln-text-custom/);

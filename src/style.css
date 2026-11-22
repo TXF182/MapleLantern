@@ -1393,6 +1393,11 @@
   #ml-root .ml-seg--themes .ml-theme-tile::after { top: 6px; right: 6px; width: 14px; height: 14px; font-size: calc(8px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
 }
 #ml-root .ml-color { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; min-height: 44px; }
+#ml-root .ml-color[data-inactive="1"] .ml-color-dot[aria-checked="true"]::before {
+  opacity: .55;
+  box-shadow: inset 0 0 0 1px var(--ml-accent);
+}
+#ml-root .ml-color-note { margin: 4px 0 0; }
 #ml-root .ml-color-dot {
   position: relative;
   width: 44px;

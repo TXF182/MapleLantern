@@ -198,12 +198,11 @@
     state.settings[key] = value;
     if (key === "tab") { state.tab = value; }
     if (key === "lang") { state.lang = C.pickLang(value, navigator.language || "zh"); }
-    /* 换主题时自定义正文色可能在新底色上不达标：直接回落跟随主题，
-       避免留下一个“设置里还亮着、正文却没生效”的悬挂值。 */
-    if (key === "theme" && state.settings.textColor !== "auto" &&
+    /* 换主题时自定义正文色可能在新底色上不达标：保留玩家原值不覆盖，
+       只让正文临时回落主题色；切回兼容主题会自动恢复。 */
+    if (key === "theme" && fromTheme !== value && state.settings.textColor !== "auto" &&
         !C.textColorFor(state.settings.textColor, value)) {
-      state.settings.textColor = "auto";
-      toast(text("toast.colorContrast"));
+      toast(text("toast.colorInactive"));
     }
     applySettings();
     if (key === "theme" && fromTheme !== value) { pulseTheme(); }
@@ -1100,17 +1099,9 @@
     switchControl("panel", s["settings.panel"], s["settings.panelHint"]);
     switchControl("thirdPartyNative", s["settings.thirdPartyNative"], s["settings.thirdPartyNativeHint"]);
 
-    pane.appendChild(field(s["settings.theme"], segmented([
-      { value: "auto", label: s["theme.auto"], preview: "auto" },
-      { value: "cyberpunk", label: s["theme.cyberpunk"], preview: "cyberpunk" },
-      { value: "amber", label: s["theme.amber"], preview: "amber" },
-      { value: "jade", label: s["theme.jade"], preview: "jade" },
-      { value: "star", label: s["theme.star"], preview: "star" },
-      { value: "fog", label: s["theme.fog"], preview: "fog" },
-      { value: "school", label: s["theme.school"], preview: "school" },
-      { value: "paper", label: s["theme.paper"], preview: "paper" },
-      { value: "grass", label: s["theme.grass"], preview: "grass" }
-    ], state.settings.theme, function (v) {
+    pane.appendChild(field(s["settings.theme"], segmented(C.THEME_META.map(function (meta) {
+      return { value: meta.id, label: s[meta.labelKey], preview: meta.preview };
+    }), state.settings.theme, function (v) {
       setSetting("theme", v, false);
       if (colorCtl) { colorCtl.refresh(); }
     }, "ml-seg--themes")));
@@ -1121,7 +1112,11 @@
        自定义走原生取色器并当场校验，不合格就不落值。
        换主题只重画这一行色点，不重建整页（焦点与滚动位置都保留）。 */
     function colorControl() {
+      var box = el("div", "ml-color-box");
       var wrap = el("div", "ml-color", { role: "radiogroup", "aria-label": s["settings.textColor"] });
+      var note = el("p", "ml-note is-faint ml-color-note");
+      note.hidden = true;
+      box.appendChild(wrap); box.appendChild(note);
 
       function paint() {
         while (wrap.firstChild) { wrap.removeChild(wrap.firstChild); }
@@ -1129,6 +1124,10 @@
         var current = state.settings.textColor;
         var choices = C.textColorChoices(theme);
         var known = choices.some(function (c) { return c.value === current; });
+        var inactive = current !== "auto" && !C.textColorFor(current, theme);
+        wrap.setAttribute("data-inactive", inactive ? "1" : "0");
+        note.hidden = !inactive;
+        note.textContent = inactive ? s["settings.textColorInactive"] : "";
 
         choices.forEach(function (choice) {
           var isAuto = choice.value === "auto";
@@ -1168,7 +1167,7 @@
       }
 
       paint();
-      return { node: wrap, refresh: paint };
+      return { node: box, refresh: paint };
     }
 
     var colorCtl = colorControl();

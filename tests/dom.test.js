@@ -326,12 +326,18 @@ test("持久化：设置写入 localStorage，刷新后沿用", () => {
   assert.equal(next.w.document.querySelector("#ml-root").getAttribute("data-theme"), "jade");
 });
 
-test("主题预览：9 张卡读取各自调色板，选中态唯一", () => {
+test("主题预览：卡片数量与 THEME_META 对齐，选中态唯一", () => {
   const { w } = createEnv();
   w.MapleLantern.open();
   w.document.querySelector('[data-tab="settings"]').click();
   const tiles = Array.from(w.document.querySelectorAll(".ml-theme-tile"));
-  assert.equal(tiles.length, 9, "9 套主题都应有一张预览卡");
+  const meta = w.MapleLanternCore.THEME_META;
+  assert.equal(tiles.length, meta.length, "主题卡数量必须等于 THEME_META");
+  assert.deepEqual(
+    tiles.map((tile) => tile.getAttribute("data-theme-preview")),
+    Array.from(meta, (item) => item.preview),
+    "主题卡顺序与 THEME_META 不一致"
+  );
   for (const tile of tiles) {
     const key = tile.getAttribute("data-theme-preview");
     assert.ok(key, "缺 data-theme-preview");
@@ -343,6 +349,32 @@ test("主题预览：9 张卡读取各自调色板，选中态唯一", () => {
     }
   }
   assert.equal(tiles.filter((t) => t.getAttribute("aria-checked") === "true").length, 1);
+});
+
+test("换主题不覆盖自定义文字色：暂时回落，切回兼容主题自动恢复", async () => {
+  const { w } = createEnv({
+    seed: { v: 1, lang: "zh", motion: false, theme: "cyberpunk", textColor: "#ffffff" }
+  });
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const html = w.document.documentElement;
+  assert.equal(html.getAttribute("data-ml-text"), "custom");
+  assert.equal(html.style.getPropertyValue("--mln-text-custom"), "#ffffff");
+
+  w.document.querySelector('.ml-seg-btn[data-value="paper"]').click();
+  await new Promise((r) => w.setTimeout(r, 120));
+  const saved = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(saved.textColor, "#ffffff", "换主题不得把玩家自定义色改成 auto");
+  assert.equal(html.hasAttribute("data-ml-text"), false, "纸灯下 #ffffff 应暂时不生效");
+  const note = w.document.querySelector(".ml-color-note");
+  assert.ok(note && !note.hidden, "应显示当前主题不适用提示");
+  assert.match(note.textContent, /暂时/, "提示必须说明是暂时回落，不是删除设置");
+
+  w.document.querySelector('.ml-seg-btn[data-value="cyberpunk"]').click();
+  await new Promise((r) => w.setTimeout(r, 120));
+  assert.equal(html.getAttribute("data-ml-text"), "custom", "切回兼容主题应自动恢复");
+  assert.equal(html.style.getPropertyValue("--mln-text-custom"), "#ffffff");
+  assert.equal(JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1")).textColor, "#ffffff");
 });
 
 test("主题切换：过场层只在动效开启时挂 is-on", () => {
@@ -737,7 +769,7 @@ test("设置页：主题边饰默认开、可关闭、同步 data-ml-orn 并持�
   assert.equal(saved.ornament, false);
 });
 
-test("正文文字色：色点可选、落值到正文层、换浅色主题自动回避不达标色", async () => {
+test("正文文字色：色点可选、落值到正文层、换浅色主题暂时回落不覆盖", async () => {
   const { w } = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
   w.MapleLantern.open();
   w.document.querySelector('[data-tab="settings"]').click();
@@ -753,12 +785,14 @@ test("正文文字色：色点可选、落值到正文层、换浅色主题自�
   assert.equal(w.document.documentElement.getAttribute("data-ml-text"), "custom");
   assert.match(w.document.documentElement.style.getPropertyValue("--mln-text-custom"), /^#[0-9a-f]{6}$/);
 
-  /* 赛博的青蓝放到绿茵浅底上必然低于 4.5:1：换主题时应自动回跟随主题，不留悬挂值 */
+  /* 预设色放到绿茵浅底上必然低于 4.5:1：换主题时保留玩家色值，
+     只让正文暂时回落主题色；切回兼容主题会自动恢复。 */
   w.document.querySelector('.ml-seg-btn[data-value="grass"]').click();
   await new Promise((r) => w.setTimeout(r, 120));
-  const healed = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
-  assert.equal(healed.textColor, "auto");
+  const kept = JSON.parse(w.localStorage.getItem("MapleLantern.settings.v1"));
+  assert.equal(kept.textColor, saved.textColor, "换主题不得覆盖玩家自定义色");
   assert.equal(w.document.documentElement.getAttribute("data-ml-text"), null);
+  assert.equal(w.document.querySelector(".ml-color-note").hidden, false);
 
   const input = w.document.querySelector('.ml-color-dot.is-custom input[type="color"]');
   input.value = "#2f6b2b";

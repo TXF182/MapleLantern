@@ -327,8 +327,10 @@ html[data-ml-native="on"][data-ml-theme="fog"] #history-forward,
 html[data-ml-native="on"][data-ml-theme="school"] #history-backward,
 html[data-ml-native="on"][data-ml-theme="school"] #history-forward { color: var(--mln-muted); }
 
-html[data-ml-native="on"][data-ml-theme="fog"] #passages .passage .red { color: #E58C7F; }
-html[data-ml-native="on"][data-ml-theme="school"] #passages .passage .red { color: #E08373; }
+html[data-ml-native="on"][data-ml-theme="fog"] #passages .passage > .red,
+html[data-ml-native="on"][data-ml-theme="fog"] #passages .passage > :not(#phone-wrapper) .red { color: #E58C7F; }
+html[data-ml-native="on"][data-ml-theme="school"] #passages .passage > .red,
+html[data-ml-native="on"][data-ml-theme="school"] #passages .passage > :not(#phone-wrapper) .red { color: #E08373; }
 
 html[data-ml-native="on"][data-ml-theme="fog"] #gameVersionDisplay,
 html[data-ml-native="on"][data-ml-theme="fog"] #gameVersionDisplay2,
@@ -424,15 +426,24 @@ html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="paper"] #s
 }
 
 /* 亮纸底上的原版语义色（青/金/红等）对比不足，换成同色系深墨；逐项均 ≥4.5:1。 */
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .gold { color: #6F5210; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .teal { color: #0E5F5F; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .red { color: #A02A1F; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .green { color: #2F6B45; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .blue { color: #2C4F85; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .lblue { color: #2E6378; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .pink { color: #8A3D6A; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .purple { color: #5D3F86; }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .orange { color: #8A4B1E; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .gold,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .teal,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .teal { color: #0E5F5F; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .red,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .red { color: #A02A1F; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .green,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .green { color: #2F6B45; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .blue,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .blue { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .lblue,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .lblue { color: #2E6378; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .pink,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .pink { color: #8A3D6A; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .purple,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .purple { color: #5D3F86; }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .orange,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .orange { color: #8A4B1E; }
 
 /* 纸灯的亮底同样要覆盖原生侧栏与开始页说明：原版这些位置用金色/浅灰/浅白写死。 */
 html[data-ml-native="on"][data-ml-theme="paper"] #startCaption .gold { color: #6F5210; }
@@ -449,7 +460,8 @@ html[data-ml-native="on"][data-ml-theme="paper"] #ui-bar .macro-button:hover {
   background: var(--mln-surface-3);
   border-color: var(--mln-border-strong);
 }
-html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage .small-description { color: var(--mln-muted); }
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > .small-description,
+html[data-ml-native="on"][data-ml-theme="paper"] #passages .passage > :not(#phone-wrapper) .small-description { color: var(--mln-muted); }
 html[data-ml-native="on"][data-ml-theme="paper"] #gameVersionDisplay,
 html[data-ml-native="on"][data-ml-theme="paper"] #gameVersionDisplay2 { color: var(--mln-muted); }
 
@@ -523,15 +535,24 @@ html[data-ml-native="on"]:not([data-ml-opt-stats="1"])[data-ml-theme="grass"] #s
   text-shadow: none;
 }
 
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .gold { color: #6F5210; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .teal { color: #0E5F5F; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .red { color: #A02A1F; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .green { color: #2F6B45; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .blue { color: #2C4F85; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .lblue { color: #2E6378; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .pink { color: #8A3D6A; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .purple { color: #5D3F86; }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .orange { color: #8A4B1E; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .gold,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .gold { color: #6F5210; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .teal,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .teal { color: #0E5F5F; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .red,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .red { color: #A02A1F; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .green,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .green { color: #2F6B45; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .blue,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .blue { color: #2C4F85; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .lblue,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .lblue { color: #2E6378; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .pink,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .pink { color: #8A3D6A; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .purple,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .purple { color: #5D3F86; }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .orange,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .orange { color: #8A4B1E; }
 
 html[data-ml-native="on"][data-ml-theme="grass"] #startCaption .gold { color: #6F5210; }
 html[data-ml-native="on"][data-ml-theme="grass"] #startCaption .link-external { color: #2C4F85; }
@@ -547,7 +568,8 @@ html[data-ml-native="on"][data-ml-theme="grass"] #ui-bar .macro-button:hover {
   background: var(--mln-surface-3);
   border-color: var(--mln-border-strong);
 }
-html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage .small-description { color: var(--mln-muted); }
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > .small-description,
+html[data-ml-native="on"][data-ml-theme="grass"] #passages .passage > :not(#phone-wrapper) .small-description { color: var(--mln-muted); }
 html[data-ml-native="on"][data-ml-theme="grass"] #gameVersionDisplay,
 html[data-ml-native="on"][data-ml-theme="grass"] #gameVersionDisplay2 { color: var(--mln-muted); }
 
@@ -1256,13 +1278,18 @@ html[data-ml-native="on"] #passages {
 }
 
 /* 正文自定义文字色：只接管故事正文与标题的继承色。
-   选项卡片、按钮、状态读数都有各自的 color 规则，不受这里影响。 */
+   手机标题由 DolSmartPhone 自己的深底白字决定，不跟这里的自定义色；
+   选项卡片、按钮、状态读数也各有 color 规则，不受这里影响。 */
 html[data-ml-native="on"][data-ml-text="custom"] #passages,
 html[data-ml-native="on"][data-ml-text="custom"] #passages .passage,
-html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h1,
-html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h2,
-html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h3,
-html[data-ml-native="on"][data-ml-text="custom"] #passages .passage h4 {
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > h1,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > h2,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > h3,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > h4,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > :not(#phone-wrapper) h1,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > :not(#phone-wrapper) h2,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > :not(#phone-wrapper) h3,
+html[data-ml-native="on"][data-ml-text="custom"] #passages .passage > :not(#phone-wrapper) h4 {
   color: var(--mln-text-custom) !important;
 }
 
@@ -1317,50 +1344,83 @@ html[data-ml-native="on"] #passages .passage > br:first-child {
   display: none !important;
 }
 
-html[data-ml-native="on"] #passages .passage h1,
-html[data-ml-native="on"] #passages .passage h2,
-html[data-ml-native="on"] #passages .passage h3,
-html[data-ml-native="on"] #passages .passage h4 {
+/* 手机岛：DolSmartPhone 把整台手机（#phone-wrapper）作为 .passage 的直接子级。
+   手机有自己的深色底和白字，灯台的正文标题色/字号、段落间距、列表缩进、
+   语义色（.red/.green 等）都不能越过这一层：纸灯/草甸是亮底主题，
+   --mln-text 是深色，染进手机后会出现“深字深底”的不可读标题。
+   这里只排除直接子级 #phone-wrapper，旧 WebView 也能解析；非手机子树的
+   普通正文仍照常接管。手机内部排版由 DolSmartPhone 自己的 CSS 决定。 */
+html[data-ml-native="on"] #passages .passage > #phone-wrapper {
+  /* 排除规则挡不住“继承”：.passage 的 1.7 行高、pretty 断行、break-word
+     和灯台字体仍会传进整机，把手机纯文本行高从 normal 撑到 20.4px。
+     这里只在手机根恢复 DoL 原版默认，不写任何手机内部控件样式。 */
+  font-family: "Noto Sans SC", sans-serif;
+  font-size: 16px;
+  line-height: normal;
+  text-wrap: wrap;
+  overflow-wrap: normal;
+}
+html[data-ml-native="on"] #passages .passage > h1,
+html[data-ml-native="on"] #passages .passage > h2,
+html[data-ml-native="on"] #passages .passage > h3,
+html[data-ml-native="on"] #passages .passage > h4,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h1,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h2,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h3,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h4 {
   margin: 1.2em 0 .5em;
   color: var(--mln-text);
   line-height: 1.35;
   letter-spacing: .01em;
 }
 
-html[data-ml-native="on"] #passages .passage h1 {
+html[data-ml-native="on"] #passages .passage > h1,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h1 {
   font-size: 19px;
 }
 
-html[data-ml-native="on"] #passages .passage h2 {
+html[data-ml-native="on"] #passages .passage > h2,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h2 {
   font-size: 17px;
 }
 
-html[data-ml-native="on"] #passages .passage h3,
-html[data-ml-native="on"] #passages .passage h4 {
+html[data-ml-native="on"] #passages .passage > h3,
+html[data-ml-native="on"] #passages .passage > h4,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h3,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) h4 {
   font-size: 15.5px;
 }
 
-html[data-ml-native="on"] #passages .passage p {
+html[data-ml-native="on"] #passages .passage > p,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) p {
   margin: 0 0 .78em;
 }
 
-html[data-ml-native="on"] #passages .passage p:last-child {
+html[data-ml-native="on"] #passages .passage > p:last-child,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) p:last-child {
   margin-bottom: 0;
 }
 
 html[data-ml-native="on"] #passages .passage img {
   max-width: 100%;
-  height: auto;
 }
 
-html[data-ml-native="on"] #passages .passage a.link-internal:not(.macro-link) {
+/* 手机模组把整台手机（#phone-wrapper）挂在正文 .passage 下。通用正文链接与
+   按钮规则必须绕开这棵子树，否则 44px 触控尺寸、灯台配色会压过手机自己的
+   25px 紧凑按钮，表现为“手机模组被适配坏了”。:not(#phone-wrapper) 只排除
+   直接子级容器，旧 WebView 也能解析；手机内部控件仍由 DolSmartPhone 自己的
+   CSS 接管，本包只在下面单独修它的关闭键/标题图。 */
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) a.link-internal:not(.macro-link),
+html[data-ml-native="on"] #passages .passage > a.link-internal:not(.macro-link) {
   color: var(--mln-accent);
   text-decoration-color: rgb(227 178 95 / 45%);
   text-underline-offset: .12em;
 }
 
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link,
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link {
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage > :not(#phone-wrapper) a.link-internal.macro-link,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage > a.link-internal.macro-link,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage > :not(#phone-wrapper) a.macro-link,
+html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage > a.macro-link {
   display: flex !important;
   align-items: center;
   gap: 10px;
@@ -1553,12 +1613,15 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-li
   object-fit: contain;
 }
 
-html[data-ml-native="on"] #passages .passage ul,
-html[data-ml-native="on"] #passages .passage ol {
+html[data-ml-native="on"] #passages .passage > ul,
+html[data-ml-native="on"] #passages .passage > ol,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) ul,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) ol {
   padding-left: 1.25em;
 }
 
-html[data-ml-native="on"] #passages .passage blockquote {
+html[data-ml-native="on"] #passages .passage > blockquote,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) blockquote {
   margin: 1em 0;
   padding: 10px 14px;
   border-left: 2px solid var(--mln-accent);
@@ -1567,7 +1630,8 @@ html[data-ml-native="on"] #passages .passage blockquote {
   color: var(--mln-muted);
 }
 
-html[data-ml-native="on"] #passages .passage hr {
+html[data-ml-native="on"] #passages .passage > hr,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) hr {
   border: 0;
   border-top: 1px solid var(--mln-border);
 }
@@ -2588,7 +2652,8 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
    不在 `.passage` 内，因此天然被排除；不用 `:not()` 的复杂选择器，避免旧
    Android WebView 的选择器支持差异。弹层内部只走上面两条已排除 CE 的选择器。 */
 
-html[data-ml-native="on"] #passages .passage button {
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button,
+html[data-ml-native="on"] #passages .passage > button {
   min-height: 44px;
   padding: 9px 14px;
   box-sizing: border-box;
@@ -2629,7 +2694,8 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
   transition: border-color 120ms ease, background-color 120ms ease, transform 80ms ease;
 }
 
-html[data-ml-native="on"] #passages .passage button:hover {
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:hover,
+html[data-ml-native="on"] #passages .passage > button:hover {
   border-color: var(--mln-accent);
   background-color: var(--mln-surface-3);
 }
@@ -2640,7 +2706,8 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
   background-color: var(--mln-surface-3);
 }
 
-html[data-ml-native="on"] #passages .passage button:active {
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:active,
+html[data-ml-native="on"] #passages .passage > button:active {
   transform: scale(.985);
 }
 
@@ -2656,7 +2723,8 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContainer butto
   transform: none !important;
 }
 
-html[data-ml-native="on"] #passages .passage button:focus-visible,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:focus-visible,
+html[data-ml-native="on"] #passages .passage > button:focus-visible,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:focus-visible {
   outline: 2px solid var(--mln-accent);
   outline-offset: 2px;
@@ -3554,6 +3622,18 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   margin: 3px 0 3px 10px;
 }
 
+/* 原版 ul.journal.carry 用 padding-left:40px + text-indent:-35px 把 30px 图标挂在文字左侧；
+   卡片的 padding 简写会把 padding-left 压成 12px，图标就外溢到边框外。这里还原悬挂缩进，
+   并清掉通用 li 的 10px 左边距，让图标落在卡片内 5px 处。 */
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) ul.journal.carry {
+  padding-left: 40px;
+  text-indent: -35px;
+}
+
+html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) ul.journal.carry li {
+  margin-left: 0;
+}
+
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) div.map img {
   max-width: 100%;
   height: auto;
@@ -4426,7 +4506,8 @@ html[data-ml-native="on"][data-ml-opt-options="1"][data-ml-theme="cyberpunk"] #p
   box-shadow: 0 0 16px rgb(255 61 154 / 12%);
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage a.link-internal:not(.macro-link) {
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > a.link-internal:not(.macro-link),
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > :not(#phone-wrapper) a.link-internal:not(.macro-link) {
   text-decoration-color: rgb(0 229 255 / 48%);
 }
 
@@ -4475,7 +4556,8 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #overlayTabs button[aria-se
   box-shadow: 0 0 14px rgb(0 229 255 / 16%);
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage button {
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > :not(#phone-wrapper) button,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > button {
   border-color: rgb(0 229 255 / 24%);
   background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 72%), #0A1120;
 }
@@ -4486,7 +4568,8 @@ html[data-ml-native="on"][data-ml-theme="cyberpunk"] #ui-dialog-body:not(:has(#c
   background: linear-gradient(180deg, rgb(0 229 255 / 5%), transparent 72%), #0A1120;
 }
 
-html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage button:hover {
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > :not(#phone-wrapper) button:hover,
+html[data-ml-native="on"][data-ml-theme="cyberpunk"] #passages .passage > button:hover {
   border-color: #FF3D9A !important;
   background: linear-gradient(180deg, rgb(255 61 154 / 10%), transparent 72%), #111A2D !important;
 }
@@ -4718,7 +4801,9 @@ html[data-ml-native="on"] #passages .passage {
  * 只给点击结果一个短反馈，不改变任何业务动作的执行顺序。
  * -------------------------------------------------------------------------- */
 
-html[data-ml-native="on"] #passages button,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button,
+html[data-ml-native="on"] #passages .passage > button,
+html[data-ml-native="on"] #passages > :not(.passage) button,
 html[data-ml-native="on"] #overlayTabs button,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button,
@@ -4733,7 +4818,9 @@ html[data-ml-native="on"] #ui-dialog-body:not(:has(#cheat_extended_options,#CE_s
   transition: transform .1s ease, filter .12s ease, box-shadow .12s ease;
 }
 
-html[data-ml-native="on"] #passages button:active,
+html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:active,
+html[data-ml-native="on"] #passages .passage > button:active,
+html[data-ml-native="on"] #passages > :not(.passage) button:active,
 html[data-ml-native="on"] #overlayTabs button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active,
@@ -4797,7 +4884,9 @@ html[data-ml-native="on"] .mln-press-ring {
 /* mln-press-ripple 见 effects.css */
 
 @media (prefers-reduced-motion: reduce) {
-  html[data-ml-native="on"] #passages button:active,
+  html[data-ml-native="on"] #passages .passage > :not(#phone-wrapper) button:active,
+html[data-ml-native="on"] #passages .passage > button:active,
+html[data-ml-native="on"] #passages > :not(.passage) button:active,
 html[data-ml-native="on"] #overlayTabs button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:active,
