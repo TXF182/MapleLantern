@@ -28,7 +28,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.4");
+  assert.equal(boot.version, "1.5.5");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -542,6 +542,23 @@ test("新增主题：雾港/旧校舍/纸灯 的调色板、双语文案、设�
   assert.match(nativeCss, /data-ml-theme="paper"\] #gameVersionDisplay/);
   assert.match(index, /"ml-seg--themes"/);
   assert.match(css, /\.ml-seg--themes\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
+});
+
+test("主题预览卡：9 套场景、当前选中态与切换过场", () => {
+  assert.match(index, /ml-theme-tile/);
+  assert.match(index, /ml-theme-scene/);
+  assert.match(index, /data-theme-preview/);
+  assert.match(index, /ml-theme-wash/);
+  for (const theme of ["auto", "cyberpunk", "amber", "jade", "star", "fog", "school", "paper", "grass"]) {
+    assert.match(index, new RegExp('preview: "' + theme + '"'), theme + " 缺少预览声明");
+    assert.match(css, new RegExp('data-theme-preview="' + theme + '"'), theme + " 缺少专属场景");
+  }
+  assert.match(css, /\.ml-theme-tile\[aria-checked="true"\]/);
+  assert.match(css, /--ml-pv-accent/);
+  assert.match(css, /\.ml-theme-wash\s*\{[^}]*z-index:\s*0/s);
+  assert.match(fx, /@keyframes ml-theme-wash/);
+  assert.match(fx, /\.ml-theme-wash\.is-on[^}]*animation/);
+  assert.match(fx, /prefers-reduced-motion[\s\S]*ml-theme-wash/);
 });
 
 test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () => {

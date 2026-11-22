@@ -17,6 +17,7 @@
   --ml-fx-dur-panel: .22s;
   --ml-fx-dur-fade: .22s;
   --ml-fx-dur-sweep: .42s;
+  --ml-fx-dur-theme: .56s;
   --ml-fx-dur-ripple: .46s;
   --ml-fx-dur-orb: 4.2s;
   --ml-fx-dur-hairline: 7s;
@@ -51,6 +52,17 @@
   0% { transform: translate3d(-3.5%, -2%, 0) scale(1.03); opacity: .34; }
   50% { opacity: .5; }
   100% { transform: translate3d(3.5%, 2%, 0) scale(1.07); opacity: .38; }
+}
+
+@keyframes ml-theme-wash {
+  0% { opacity: 0; transform: scale(.985); }
+  30% { opacity: .20; }
+  100% { opacity: 0; transform: scale(1.015); }
+}
+
+/* 只在换主题时挂一次；动画自带 both，结束后回到透明，不挡后续交互。 */
+#ml-root .ml-theme-wash.is-on {
+  animation: ml-theme-wash var(--ml-fx-dur-theme) var(--ml-fx-ease-out) both;
 }
 
 @keyframes ml-pane-in {
@@ -720,6 +732,13 @@ html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-ambient {
   display: none !important;
 }
 
+#ml-root[data-motion="off"] .ml-theme-wash,
+html[data-ml-motion="off"] #ml-root .ml-theme-wash,
+html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-theme-wash {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
 html[data-ml-motion="off"] #ml-root .ml-head::after,
 html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-head::after {
   animation: none !important;
@@ -728,6 +747,7 @@ html[data-dol-midnight]:not([data-dgu-visualMotion]) #ml-root .ml-head::after {
 
 @media (prefers-reduced-motion: reduce) {
   #ml-root .ml-ambient { display: none !important; }
+  #ml-root .ml-theme-wash { animation: none !important; opacity: 0 !important; }
 }
 
 @keyframes ml-ambient-drift {

@@ -326,6 +326,43 @@ test("持久化：设置写入 localStorage，刷新后沿用", () => {
   assert.equal(next.w.document.querySelector("#ml-root").getAttribute("data-theme"), "jade");
 });
 
+test("主题预览：9 张卡读取各自调色板，选中态唯一", () => {
+  const { w } = createEnv();
+  w.MapleLantern.open();
+  w.document.querySelector('[data-tab="settings"]').click();
+  const tiles = Array.from(w.document.querySelectorAll(".ml-theme-tile"));
+  assert.equal(tiles.length, 9, "9 套主题都应有一张预览卡");
+  for (const tile of tiles) {
+    const key = tile.getAttribute("data-theme-preview");
+    assert.ok(key, "缺 data-theme-preview");
+    assert.ok(tile.querySelector(".ml-theme-scene"), key + " 缺场景层");
+    const name = tile.querySelector(".ml-theme-name");
+    assert.ok(name && name.textContent.trim(), key + " 缺主题名");
+    for (const prop of ["--ml-pv-bg", "--ml-pv-accent", "--ml-pv-text"]) {
+      assert.match(tile.style.getPropertyValue(prop), /^#[0-9A-Fa-f]{6}$/, key + " 缺 " + prop);
+    }
+  }
+  assert.equal(tiles.filter((t) => t.getAttribute("aria-checked") === "true").length, 1);
+});
+
+test("主题切换：过场层只在动效开启时挂 is-on", () => {
+  const on = createEnv({ seed: { v: 1, lang: "zh", motion: true } });
+  on.w.MapleLantern.open();
+  on.w.document.querySelector('[data-tab="settings"]').click();
+  const wash = on.w.document.querySelector("#ml-panel .ml-theme-wash");
+  assert.ok(wash, "面板内应有主题过场层");
+  on.w.document.querySelector('.ml-seg-btn[data-value="grass"]').click();
+  assert.equal(wash.classList.contains("is-on"), true);
+
+  const off = createEnv({ seed: { v: 1, lang: "zh", motion: false } });
+  off.w.MapleLantern.open();
+  off.w.document.querySelector('[data-tab="settings"]').click();
+  const washOff = off.w.document.querySelector("#ml-panel .ml-theme-wash");
+  assert.ok(washOff);
+  off.w.document.querySelector('.ml-seg-btn[data-value="paper"]').click();
+  assert.equal(washOff.classList.contains("is-on"), false, "动效关闭时不应触发过场");
+});
+
 test("设置页稳定：切换主题不重建，剧情推进不冲掉焦点", async () => {
   const { w } = createEnv();
   w.MapleLantern.open();

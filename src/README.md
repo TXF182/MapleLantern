@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.5.4）
+# 灯台 · Lantern（MapleLantern 1.5.5）
+
+- **1.5.5 · 主题预览卡**：设置页 9 套主题从纯文字按钮升级为 mini 场景卡——每张卡用该主题的底色、强调光、正文层级和专属纹理画出 38px 场景，选中卡用主题强调色描边并显示勾选；仍是 3 列九宫格，`data-value`、焦点稳定与持久化不变。换主题时面板背景过一层短促强调光，动效关闭或系统减少动效时不播放。窄屏（≤430px）只收高度、圆角与字号，不改成横滑列表。十文件 **261/261** PASS；桌面 1280、手机 390/320 三档截图复核。
 
 - **1.5.4 · DolSmartPhone 手机弹窗关闭键修复**：DolSmartPhone 的消息弹窗复用了灯台原生模式的 44px 遮罩关闭区，在 300px 弹窗里被放大成一排大 X、压住正文；现在按手机弹窗容器恢复原版 24px 紧凑 X，灯台自己的遮罩关闭键仍保持 44px 大点击区。真实浏览器计算尺寸 44×44 → 24×24、正文遮挡 12.41px → 0；十文件 **258/258** PASS。
 
@@ -106,7 +108,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 ## 安装
 
 1. 打开游戏，`Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.4.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.5.mod.zip`；如果已装旧包（含 1.4.12 及更早），先停用旧包，再导入新包；同名技术身份只能启用一个版本。
 3. 刷新页面。安装后无需重启游戏。
 
 > 直接把 zip 复制进 `game\` 目录**不等于安装**：玩家侧 Mod 来自 `file://` origin 的 IndexedDB。
@@ -200,8 +202,8 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-22，Windows）实测；205–209 为历史专项读数：
 
-- `node --test tests\*.test.js`：**258 / 258 PASS**（10 个测试文件；1.5.1 绿茵/边饰/文字色；1.5.2 商店按钮链接；1.5.3 原生长列表性能与关闭态清标回归；1.5.4 DolSmartPhone 手机弹窗关闭键）
-- 实机安装探针（真实导入页 → `file://` IndexedDB → 游戏，Edge headless 全新 profile）：**PASS**——包版本三源 1.5.4（core/native/panel 一致）；原生层默认挂载、根节点已就位；零 pageerror
+- `node --test tests\*.test.js`：**261 / 261 PASS**（10 个测试文件；1.5.1 绿茵/边饰/文字色；1.5.2 商店按钮链接；1.5.3 原生长列表性能与关闭态清标回归；1.5.4 DolSmartPhone 手机弹窗关闭键；1.5.5 主题预览卡与切换过场）
+- 实机安装探针（真实导入页 → `file://` IndexedDB → 游戏，Edge headless 全新 profile）：**PASS**——包版本三源 1.5.5（core/native/panel 一致）；原生层默认挂载、根节点已就位；零 pageerror
 - `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 345 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **39ms、pack 0 次、写入 0 次（跳过 1380 次同值写）**
 - 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明

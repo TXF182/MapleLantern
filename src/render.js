@@ -194,6 +194,7 @@
 
   function setSetting(key, value, rerender) {
     if (!state.settings) { return; }
+    var fromTheme = state.settings.theme;
     state.settings[key] = value;
     if (key === "tab") { state.tab = value; }
     if (key === "lang") { state.lang = C.pickLang(value, navigator.language || "zh"); }
@@ -205,11 +206,22 @@
       toast(text("toast.colorContrast"));
     }
     applySettings();
+    if (key === "theme" && fromTheme !== value) { pulseTheme(); }
     saveSettings();
     syncNative();
     if (rerender === false) { return; }
     renderChrome();
     renderActive();
+  }
+
+  /* 换主题时的一层短促强调光：只染面板底色，不压字、不新增布局。
+     动效关闭时不挂 class，CSS 侧还有 reduced-motion 兜底。 */
+  function pulseTheme() {
+    if (!els.wash || !state.settings || state.settings.motion === false) { return; }
+    els.wash.classList.remove("is-on");
+    /* 读一次布局，连续切换时也能重新触发同一段动画。 */
+    if (doc.body) { void els.wash.offsetWidth; }
+    els.wash.classList.add("is-on");
   }
 
   function syncNative() {
@@ -440,11 +452,13 @@
     var ver = el("span", "ml-ver");
     foot.appendChild(note); foot.appendChild(status); foot.appendChild(ver);
 
+    var wash = el("span", "ml-theme-wash", { "aria-hidden": "true" });
+
     var toast = el("div", "ml-toast", { role: "status", "aria-live": "polite", hidden: "" });
     var sr = el("div", "ml-sr", { "aria-live": "polite" });
 
     panel.appendChild(grip); panel.appendChild(head); panel.appendChild(tabs);
-    panel.appendChild(body); panel.appendChild(foot);
+    panel.appendChild(body); panel.appendChild(foot); panel.appendChild(wash);
 
     root.appendChild(ambient); root.appendChild(scrim); root.appendChild(orb); root.appendChild(panel);
     root.appendChild(toast); root.appendChild(sr);
@@ -455,6 +469,7 @@
     els.miniClock = miniClock; els.closeBtn = closeBtn;
     els.nameNode = name; els.subNode = sub;
     els.footNote = note; els.footStatus = status; els.footVer = ver;
+    els.wash = wash;
     els.toast = toast; els.sr = sr;
 
     closeBtn.addEventListener("click", function () { closePanel("button"); });
@@ -1039,12 +1054,37 @@
     function segmented(options, current, onPick, modifier) {
       var group = el("div", modifier ? "ml-seg " + modifier : "ml-seg", { role: "radiogroup" });
       options.forEach(function (opt) {
-        var btn = el("button", "ml-seg-btn", {
+        var btn = el("button", opt.preview ? "ml-seg-btn ml-theme-tile" : "ml-seg-btn", {
           type: "button", role: "radio",
           "aria-checked": current === opt.value ? "true" : "false",
           "data-value": opt.value
         });
-        btn.textContent = opt.label;
+        if (opt.preview) {
+          /* 设置页里的主题卡只读该主题调色板：卡内场景走 --ml-pv-*，
+             卡片自身仍是当前已生效主题的控件，不整体切主题造成闪烁。 */
+          var palette = C.paletteFor(opt.value);
+          var pv = {
+            "--ml-pv-bg": palette.bg,
+            "--ml-pv-soft": palette.bgSoft,
+            "--ml-pv-raise": palette.bgRaise,
+            "--ml-pv-text": palette.text,
+            "--ml-pv-muted": palette.muted,
+            "--ml-pv-line": palette.line,
+            "--ml-pv-accent": palette.accent,
+            "--ml-pv-accent-ink": palette.accentInk,
+            "--ml-pv-jade": palette.jade,
+            "--ml-pv-rose": palette.rose
+          };
+          Object.keys(pv).forEach(function (k) { btn.style.setProperty(k, pv[k]); });
+          btn.setAttribute("data-theme-preview", opt.value);
+          btn.title = opt.label;
+          var scene = el("span", "ml-theme-scene", { "aria-hidden": "true" });
+          var name = el("span", "ml-theme-name");
+          name.textContent = opt.label;
+          btn.appendChild(scene); btn.appendChild(name);
+        } else {
+          btn.textContent = opt.label;
+        }
         btn.addEventListener("click", function () {
           Array.prototype.forEach.call(group.children, function (b) {
             b.setAttribute("aria-checked", b.getAttribute("data-value") === opt.value ? "true" : "false");
@@ -1061,15 +1101,15 @@
     switchControl("thirdPartyNative", s["settings.thirdPartyNative"], s["settings.thirdPartyNativeHint"]);
 
     pane.appendChild(field(s["settings.theme"], segmented([
-      { value: "auto", label: s["theme.auto"] },
-      { value: "cyberpunk", label: s["theme.cyberpunk"] },
-      { value: "amber", label: s["theme.amber"] },
-      { value: "jade", label: s["theme.jade"] },
-      { value: "star", label: s["theme.star"] },
-      { value: "fog", label: s["theme.fog"] },
-      { value: "school", label: s["theme.school"] },
-      { value: "paper", label: s["theme.paper"] },
-      { value: "grass", label: s["theme.grass"] }
+      { value: "auto", label: s["theme.auto"], preview: "auto" },
+      { value: "cyberpunk", label: s["theme.cyberpunk"], preview: "cyberpunk" },
+      { value: "amber", label: s["theme.amber"], preview: "amber" },
+      { value: "jade", label: s["theme.jade"], preview: "jade" },
+      { value: "star", label: s["theme.star"], preview: "star" },
+      { value: "fog", label: s["theme.fog"], preview: "fog" },
+      { value: "school", label: s["theme.school"], preview: "school" },
+      { value: "paper", label: s["theme.paper"], preview: "paper" },
+      { value: "grass", label: s["theme.grass"], preview: "grass" }
     ], state.settings.theme, function (v) {
       setSetting("theme", v, false);
       if (colorCtl) { colorCtl.refresh(); }

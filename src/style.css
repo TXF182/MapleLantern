@@ -592,6 +592,18 @@
   animation: ml-panel-ambient var(--ml-ambient-speed, 26s) ease-in-out infinite alternate;
 }
 
+/* 主题切换过场：一层强调色径向光，短促淡出；不占布局、不压文字。
+   放在面板子层 z-index:0，面板本身 overflow:hidden 会裁掉外溢。 */
+#ml-root .ml-theme-wash {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 80% at 50% 0%, var(--ml-accent), transparent 62%);
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* 环境光层在内容之下；只抬层级，不改任何盒模型。 */
 #ml-root .ml-panel > .ml-grip,
 #ml-root .ml-panel > .ml-head,
@@ -1181,8 +1193,205 @@
   background: var(--ml-accent-soft);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 0 0 1px var(--ml-accent-soft);
 }
-/* 正文文字色：色点是 44px 触控目标，视觉圆 26px；自动点用「A」字样，
-   自定义点用彩虹环 + 内嵌原生取色器，不额外占一行。 */
+/* 主题预览卡：3×3 仍是九宫格，但每一格先用该主题的底色、强调光、
+   正文层级和专属纹理画出 38px 小场景，再在下方保留主题名。
+   卡片只读 --ml-pv-*，不整体切换主题；选中卡用该主题自己的强调色描边。
+   浅色主题（纸灯 / 绿茵）的卡面也使用各自浅底，名字保持深色正文。 */
+#ml-root .ml-seg--themes .ml-theme-tile {
+  position: relative;
+  min-height: 76px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  border: 1px solid var(--ml-pv-line);
+  border-radius: 12px;
+  background-color: var(--ml-pv-soft);
+  background-image: linear-gradient(180deg, var(--ml-pv-raise), var(--ml-pv-soft));
+  color: var(--ml-pv-text);
+  text-align: left;
+  overflow: hidden;
+  transform: none;
+  transition: border-color .16s ease, box-shadow .18s ease, transform .12s ease, background-color .16s ease;
+}
+#ml-root .ml-seg--themes .ml-theme-tile:hover {
+  border-color: var(--ml-pv-accent);
+  box-shadow: 0 6px 16px -12px var(--ml-pv-accent);
+  transform: scale(1.015);
+}
+#ml-root .ml-seg--themes .ml-theme-tile:active { box-shadow: none; transform: scale(.97); }
+#ml-root .ml-seg--themes .ml-theme-tile[aria-checked="true"] {
+  border-color: var(--ml-pv-accent);
+  background-color: var(--ml-pv-raise);
+  box-shadow: 0 0 0 1px var(--ml-pv-accent), 0 8px 18px -14px var(--ml-pv-accent), inset 0 1px 0 rgba(255, 255, 255, .16);
+}
+#ml-root .ml-seg--themes .ml-theme-tile[aria-checked="true"] .ml-theme-name { font-weight: 600; }
+#ml-root .ml-seg--themes .ml-theme-tile::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ml-pv-accent);
+  color: var(--ml-pv-accent-ink);
+  font-size: calc(9px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0;
+  transform: scale(.55);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .30), 0 1px 3px rgba(0, 0, 0, .24);
+  transition: opacity .14s ease, transform .16s var(--ml-fx-ease-spring);
+  pointer-events: none;
+}
+#ml-root .ml-seg--themes .ml-theme-tile[aria-checked="true"]::after { opacity: 1; transform: scale(1); }
+#ml-root .ml-seg--themes .ml-theme-name {
+  display: block;
+  min-width: 0;
+  padding: 0 2px;
+  color: var(--ml-pv-text);
+  font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  line-height: 1.25;
+  letter-spacing: .01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#ml-root .ml-seg--themes .ml-theme-scene {
+  position: relative;
+  display: block;
+  height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: var(--ml-pv-bg);
+  background-image: linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+  box-shadow: inset 0 0 0 1px var(--ml-pv-line), inset 0 -10px 16px rgba(0, 0, 0, .10);
+  isolation: isolate;
+}
+#ml-root .ml-seg--themes .ml-theme-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(80% 100% at 80% 0%, var(--ml-pv-accent), transparent 62%);
+  opacity: .20;
+  pointer-events: none;
+}
+#ml-root .ml-seg--themes .ml-theme-scene::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 10px;
+  z-index: 2;
+  width: 40%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ml-pv-text);
+  opacity: .72;
+  box-shadow: 0 5px 0 -.5px var(--ml-pv-muted), 0 10px 0 -.5px var(--ml-pv-muted), 0 15px 0 -.5px var(--ml-pv-rose);
+  pointer-events: none;
+}
+
+/* 自动：四色斜带 + 中央 A，表示跟随宿主主题。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="auto"] .ml-theme-scene {
+  background-image:
+    linear-gradient(180deg, transparent 40%, rgba(5, 7, 15, .48)),
+    linear-gradient(135deg, rgba(0, 229, 255, .36) 0 24%, rgba(227, 178, 95, .36) 24% 48%, rgba(95, 191, 172, .36) 48% 72%, rgba(143, 166, 255, .36) 72% 100%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="auto"] .ml-theme-scene::after {
+  content: "A";
+  left: 50%;
+  top: 50%;
+  width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, .60);
+  border-radius: 50%;
+  background: rgba(5, 7, 15, .46);
+  color: #fff;
+  font-family: var(--ml-mono, ui-monospace, "SFMono-Regular", Consolas, monospace);
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 0 10px rgba(255, 255, 255, .18);
+  opacity: .94;
+  transform: translate(-50%, -50%);
+}
+/* 赛博朋克：霓虹网格。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="cyberpunk"] .ml-theme-scene {
+  background-image:
+    linear-gradient(rgba(0, 229, 255, .18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, .18) 1px, transparent 1px),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+  background-size: 10px 10px, 10px 10px, 100% 100%;
+}
+/* 琥珀：灯晕 + 细斜纹。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="amber"] .ml-theme-scene {
+  background-image:
+    radial-gradient(60% 52% at 72% 24%, rgba(255, 240, 210, .40), transparent 70%),
+    repeating-linear-gradient(115deg, rgba(227, 178, 95, .10) 0px, rgba(227, 178, 95, .10) 1px, transparent 1px, transparent 9px),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 青瓷：两道釉光弧。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="jade"] .ml-theme-scene {
+  background-image:
+    radial-gradient(85% 70% at 18% 92%, rgba(95, 191, 172, .34), transparent 62%),
+    radial-gradient(70% 55% at 92% 20%, rgba(95, 191, 172, .20), transparent 66%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 星空：三颗定位星 + 蓝色星带。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="star"] .ml-theme-scene {
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, .92) 0, rgba(255, 255, 255, .92) 1px, transparent 1.5px),
+    radial-gradient(circle at 68% 18%, rgba(255, 255, 255, .88) 0, rgba(255, 255, 255, .88) 1px, transparent 1.5px),
+    radial-gradient(circle at 84% 64%, rgba(255, 255, 255, .82) 0, rgba(255, 255, 255, .82) 1px, transparent 1.5px),
+    radial-gradient(75% 60% at 82% 10%, rgba(143, 166, 255, .34), transparent 62%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 雾港：横向雾带 + 码头灯。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="fog"] .ml-theme-scene {
+  background-image:
+    linear-gradient(160deg, rgba(231, 182, 107, .18) 0 18%, transparent 18% 34%, rgba(231, 182, 107, .10) 34% 52%, transparent 52%),
+    radial-gradient(90% 70% at 20% 8%, rgba(231, 182, 107, .28), transparent 66%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 旧校舍：木纹 + 暖窗。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="school"] .ml-theme-scene {
+  background-image:
+    repeating-linear-gradient(92deg, rgba(201, 174, 114, .12) 0 2px, transparent 2px 8px),
+    radial-gradient(70% 60% at 78% 20%, rgba(201, 174, 114, .26), transparent 66%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 纸灯：纸纤维 + 暖白灯面。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="paper"] .ml-theme-scene {
+  background-image:
+    repeating-linear-gradient(78deg, rgba(169, 54, 42, .08) 0 1px, transparent 1px 7px),
+    radial-gradient(65% 55% at 72% 20%, rgba(255, 255, 255, .62), transparent 70%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+/* 绿茵：草叶斜纹 + 地平线。 */
+#ml-root .ml-seg--themes .ml-theme-tile[data-theme-preview="grass"] .ml-theme-scene {
+  background-image:
+    repeating-linear-gradient(78deg, rgba(47, 107, 43, .14) 0 1px, transparent 1px 8px),
+    radial-gradient(75% 60% at 20% 100%, rgba(47, 107, 43, .24), transparent 65%),
+    linear-gradient(135deg, var(--ml-pv-raise), var(--ml-pv-bg) 72%);
+}
+
+/* 320/390 的紧凑版：仍是 3 列，只收场景高度、圆角和字号；
+   这段必须放在基础主题卡规则之后，否则同特异性会被上面的 76px/38px 覆盖。 */
+@media (max-width: 430px) {
+  #ml-root .ml-seg--themes { gap: 6px; }
+  #ml-root .ml-seg--themes .ml-theme-tile { min-height: 70px; padding: 5px; gap: 5px; border-radius: 10px; }
+  #ml-root .ml-seg--themes .ml-theme-scene { height: 32px; border-radius: 6px; }
+  #ml-root .ml-seg--themes .ml-theme-name { font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+  #ml-root .ml-seg--themes .ml-theme-tile::after { top: 6px; right: 6px; width: 14px; height: 14px; font-size: calc(8px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+}
 #ml-root .ml-color { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; min-height: 44px; }
 #ml-root .ml-color-dot {
   position: relative;
