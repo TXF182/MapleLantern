@@ -13,9 +13,9 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.5.7";
+  var VERSION = "1.5.8";
   var STORAGE_KEY = "MapleLantern.settings.v1";
-  var TAB_KEYS = ["now", "vitals", "worn", "system", "switches", "settings"];
+  var TAB_KEYS = ["now", "vitals", "worn", "deco", "system", "switches", "settings"];
 
   /* 主题唯一真源：id / 文案键 / 色板 / 预览 id / CSS 落点一次声明。
      THEMES 不再手写第二份；render.js 的主题选项也由这里生成。
@@ -99,6 +99,7 @@
       "app.name": "灯台", "app.sub": "LANTERN", "app.readonly": "只读 · 不写入存档",
       "orb.label": "灯台：{date} {clock}，点击打开",
       "tab.now": "此刻", "tab.vitals": "身心", "tab.worn": "着装",
+      "tab.deco": "布景",
       "tab.system": "系统", "tab.switches": "开关", "tab.settings": "设置",
       "now.progress": "今日已过", "now.money": "金钱", "now.scene": "场景", "now.phase": "时段",
       "now.quick": "身心速览",
@@ -130,6 +131,7 @@
       "motion.system": "跟随系统", "motion.off": "已关闭",
       "mode.auto": "自动 / 跟随宿主", "mode.manual": "手动主题",
       "settings.title": "设置", "settings.theme": "主题", "settings.scale": "字号",
+      "deco.loading": "布景模块尚未就绪",
       "settings.glass": "通透度", "settings.density": "密度", "settings.motion": "动效", "settings.lang": "语言",
       "settings.position": "悬浮球位置",
       "settings.ornament": "主题边饰",
@@ -178,6 +180,7 @@
       "app.name": "Lantern", "app.sub": "MAPLELANTERN", "app.readonly": "Read-only · never writes saves",
       "orb.label": "Lantern: {date} {clock}, click to open",
       "tab.now": "Now", "tab.vitals": "Vitals", "tab.worn": "Worn",
+      "tab.deco": "Scenery",
       "tab.system": "System", "tab.switches": "Switches", "tab.settings": "Settings",
       "now.progress": "Day elapsed", "now.money": "Money", "now.scene": "Scene", "now.phase": "Phase",
       "now.quick": "Vitals",
@@ -209,6 +212,7 @@
       "motion.system": "Follow system", "motion.off": "Off",
       "mode.auto": "Auto / follow host", "mode.manual": "Manual theme",
       "settings.title": "Settings", "settings.theme": "Theme", "settings.scale": "Text size",
+      "deco.loading": "Scenery module is not ready",
       "settings.glass": "Clarity", "settings.density": "Density", "settings.motion": "Motion", "settings.lang": "Language",
       "settings.position": "Orb position",
       "settings.ornament": "Theme ornament",

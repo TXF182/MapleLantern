@@ -1,10 +1,10 @@
 /* ============================================================================
  * 灯台 · MapleLantern — deco-panel.js
- * 布景工作台：设置页入口 + 九层图层面板 + 图库选择器 + 预设 + 滤镜 + 自动地点。
+ * 布景页：九层图层 + 图库 + 预设 + 自动地点 + 滤镜，全部直接渲染在页签内。
  *
  * 设计边界：
- * - 不改灯台 6 页签；入口注入设置页「恢复默认」之前，与 dossier-panel 同模式。
- * - 原「前景背景模组」实际接入渲染时显示「原模组接管」，本面板只写兼容变量，不抢渲染。
+ * - 不生成独立弹层/工作台；内容由 render.js 的 deco 页签调用 renderPage() 挂载。
+ * - 不抢原「前景背景模组」渲染权；检测到原模组实际接入时只写兼容变量。
  * - 缩略图优先走 modUtils.getImage → data: URL；CSP 禁止 blob:。
  * ========================================================================== */
 (function (root) {
@@ -16,15 +16,10 @@
   if (root.MapleLanternDecoPanel && root.MapleLanternDecoPanel.__ready) return;
 
   var doc = root.document;
-  var MARK = "data-ml-deco-entry";
   var T = {
     zh: {
-      title: "布景工作台",
-      entry: "布景 / 前景背景",
+      title: "布景",
       entryHint: "九层独立布景；原模组已接入渲染时自动让出渲染权。",
-      open: "打开工作台",
-      match: "匹配当前地点",
-      close: "关闭",
       layers: "九层图层",
       layerBg: "背景",
       layerFg: "前景",
@@ -40,16 +35,26 @@
       apply: "应用",
       presets: "预设",
       presetName: "预设名称",
-      savePreset: "保存当前到新槽位",
+      savePreset: "储存",
       applyPreset: "套用",
-      overwrite: "覆盖",
       remove: "删除",
+      newPreset: "+ 新增预设",
+      blankPreset: "空白预设",
       noPresets: "还没有预设。",
       filter: "地点滤镜",
-      autoBg: "自动地点背景",
-      autoFilter: "按地点/时间/天气叠色",
+      autoSection: "自动背景（按地点）",
+      autoBg: "启用自动背景切换",
+      autoFilter: "启用滤镜效果（实验性功能）",
+      disabled: "已停用",
+      autoEnabled: "已启用",
+      locationEmpty: "（列表为空）",
+      disabledEmpty: "还没有停用地点。",
+      add: "添加",
+      addCurrent: "加入当前地点",
+      resetDisabled: "重置",
+      match: "匹配当前地点",
       filterLayers: "作用层",
-      filterHint: "只对背景层生效；前景不参与。",
+      filterHint: "滤镜独立于自动背景；只作用于背景 1–4。",
       outside: "室外",
       indoors: "室内",
       current: "当前",
@@ -59,22 +64,41 @@
       modeExternal: "原模组接管",
       modeUnavailable: "未接入",
       unavailable: "宿主 Renderer 尚未就绪；进入游戏后会自动重试。",
-      externalHint: "检测到原模组已接入渲染的九层：本面板只写兼容变量，渲染由原模组负责。",
+      externalHint: "检测到原模组已接入渲染的九层：本页只写兼容变量，渲染由原模组负责。",
       filterNote: "原模组接管时，滤镜颜色仍会写入；亮度由灯台原生模式消费。",
       empty: "未选择图片",
-      saved: "已保存",
       reset: "恢复当前地点",
       unknown: "未知",
       loading: "载入中…",
-      failed: "读取失败"
+      failed: "读取失败",
+      missingImage: "图片缺失",
+      packReady: "图库已接入",
+      packMissing: "图库包未加载：缩略图与自动背景无图可读",
+      packPartial: "图库不完整",
+      packProbe: "图库检测中…",
+      packHint: "请安装与本体同版本的 MapleLantern ImagePack，并确认 GameVersion 0.5.12.13 与 ImageLoaderHook 2.3+，再刷新游戏或点“重新检测”。",
+      packPartialHint: "图库包只读到部分图片：请重装与本体同版本的 ImagePack，再点“重新检测”。",
+      packRetry: "重新检测",
+      noCatalogImage: "图库无此图",
+      autoNoImageHint: "名单内这些地点在图中没有对应图，自动背景会跳过：",
+      currentBg: "当前背景1",
+      lastAuto: "上次自动匹配",
+      autoHint: "只有名单内地点会触发自动背景；空名单不会切换。",
+      overwrite: "覆盖",
+      overwriteConfirm: "覆盖这个预设？",
+      deleteConfirm: "确定删除这个预设？",
+      presetNamePrompt: "输入预设名称",
+      locationPlaceholder: "地点名称（V.location）",
+      applyCurrent: "按当前地点套用",
+      restorePlayer: "恢复玩家背景",
+      autoReset: "关闭自动并清空名单",
+      layerGroupBg: "背景 1–4",
+      layerGroupFg: "前景 1–5",
+      selectedCount: "已选"
     },
     en: {
-      title: "Scenery Workbench",
-      entry: "Scenery / Foreground & Background",
+      title: "Scenery",
       entryHint: "Nine independent layers; yields rendering to the original mod when present.",
-      open: "Open workbench",
-      match: "Match current location",
-      close: "Close",
       layers: "Nine layers",
       layerBg: "Background",
       layerFg: "Foreground",
@@ -90,16 +114,26 @@
       apply: "Apply",
       presets: "Presets",
       presetName: "Preset name",
-      savePreset: "Save current to new slot",
+      savePreset: "Save",
       applyPreset: "Apply",
-      overwrite: "Overwrite",
       remove: "Delete",
+      newPreset: "+ New preset",
+      blankPreset: "Blank preset",
       noPresets: "No presets yet.",
       filter: "Location filter",
-      autoBg: "Auto location background",
-      autoFilter: "Location / time / weather tint",
+      autoSection: "Auto background (by location)",
+      autoBg: "Enable auto background switching",
+      autoFilter: "Enable filter effect (experimental)",
+      disabled: "Disabled",
+      autoEnabled: "Enabled",
+      locationEmpty: "(list is empty)",
+      disabledEmpty: "No disabled locations yet.",
+      add: "Add",
+      addCurrent: "Add current location",
+      resetDisabled: "Reset",
+      match: "Match current location",
       filterLayers: "Layers",
-      filterHint: "Background layers only; foreground is excluded.",
+      filterHint: "Filter is independent of auto background; background layers 1–4 only.",
       outside: "Outdoor",
       indoors: "Indoor",
       current: "Current",
@@ -109,34 +143,62 @@
       modeExternal: "Original mod active",
       modeUnavailable: "Not connected",
       unavailable: "Host Renderer is not ready; it will retry after the game starts.",
-      externalHint: "Original mod layers are attached to a render model: this panel only writes compatible variables; rendering stays with the original mod.",
+      externalHint: "Original mod layers are attached to a render model: this page only writes compatible variables; rendering stays with the original mod.",
       filterNote: "With the original mod active, tint colours are still written; brightness is consumed by native mode.",
       empty: "No image selected",
-      saved: "Saved",
       reset: "Reset to current location",
       unknown: "Unknown",
       loading: "Loading…",
-      failed: "Read failed"
+      failed: "Read failed",
+      missingImage: "Image missing",
+      packReady: "Gallery connected",
+      packMissing: "Image pack not loaded: thumbnails and auto backgrounds are unavailable",
+      packPartial: "Gallery incomplete",
+      packProbe: "Checking gallery…",
+      packHint: "Install the MapleLantern ImagePack that matches this build, confirm GameVersion 0.5.12.13 and ImageLoaderHook 2.3+, then refresh the game or press Retry.",
+      packPartialHint: "Only part of the image pack could be read. Reinstall the matching ImagePack, then press Retry.",
+      packRetry: "Retry",
+      noCatalogImage: "No image in gallery",
+      autoNoImageHint: "These whitelisted locations have no gallery image and will be skipped:",
+      currentBg: "Current background 1",
+      lastAuto: "Last auto match",
+      autoHint: "Only whitelisted locations trigger auto background; an empty list does not switch.",
+      overwrite: "Overwrite",
+      overwriteConfirm: "Overwrite this preset?",
+      deleteConfirm: "Delete this preset?",
+      presetNamePrompt: "Preset name",
+      locationPlaceholder: "Location name (V.location)",
+      applyCurrent: "Apply current location",
+      restorePlayer: "Restore player background",
+      autoReset: "Disable auto and clear list",
+      layerGroupBg: "Backgrounds 1–4",
+      layerGroupFg: "Foregrounds 1–5",
+      selectedCount: "Selected"
     }
   };
 
   var state = {
-    ui: null,
-    modal: null,
+    pane: null,
+    page: null,
     picker: null,
     pickerLayer: null,
     pickerQuery: "",
     pickerSource: "background1",
-    observer: null,
+    presetSlot: 1,
     timer: 0,
     timers: [],
     token: 0,
-    booted: false,
     bound: false,
     hostJq: null,
     imageCache: {},
     queue: [],
-    active: 0
+    active: 0,
+    observers: [],
+    packStatus: "unknown",
+    packPromise: null,
+    packCount: 0,
+    packTotal: 0,
+    openGroups: { background: true, foreground: false }
   };
 
   function later(fn, ms) {
@@ -202,13 +264,6 @@
     return b;
   }
 
-  function panelOpen() {
-    var panel = doc.getElementById("ml-panel");
-    if (!panel) return true;
-    var shell = doc.getElementById("ml-root");
-    return panel.hidden !== true && (shell ? shell.getAttribute("data-open") === "1" : true);
-  }
-
   function mode() {
     return D.mode();
   }
@@ -222,43 +277,6 @@
 
   function refresh() {
     try { D.refresh(); } catch (e) { /* 不向游戏抛 */ }
-    updateEntry();
-    if (state.modal && !state.modal.hidden) syncStatus();
-  }
-
-  function setImage(layer, name) {
-    var v = vars();
-    if (!v) return;
-    var normalized = D.normalizeName(name);
-    v[layer.varKey] = normalized;
-    v[layer.showKey] = true;
-    if (layer.id === "background1") v.decoAutoBgEnabled = false;
-    if (!v.decoImagePath || typeof v.decoImagePath !== "object") v.decoImagePath = {};
-    if (normalized !== "none") {
-      if (layer.id === "background1") delete v.decoImagePath[layer.id];
-      else v.decoImagePath[layer.id] = D.libraryPath(normalized);
-    } else {
-      delete v.decoImagePath[layer.id];
-    }
-    refresh();
-    if (state.modal && !state.modal.hidden) renderLayers();
-  }
-
-  function setVisible(layer, on) {
-    var v = vars();
-    if (!v) return;
-    v[layer.showKey] = !!on;
-    refresh();
-  }
-
-  function setZ(layer, value, labelNode) {
-    var v = vars();
-    if (!v) return;
-    if (!v.decoImageZ || typeof v.decoImageZ !== "object") v.decoImageZ = {};
-    var n = Math.max(-50, Math.min(50, Math.round(Number(value) || 0)));
-    v.decoImageZ[layer.zKey] = n;
-    if (labelNode) labelNode.textContent = (n > 0 ? "+" : "") + n;
-    refresh();
   }
 
   /* ------------------------------------------------------------------ 图片 */
@@ -271,12 +289,12 @@
     return value;
   }
 
-  function imageKey(name, folder) { return folder + "/" + D.normalizeName(name); }
+  function imageKey(name) { return "library/" + D.normalizeName(name); }
 
   function resolveImage(name, folder) {
     name = D.normalizeName(name);
     if (name === "none") return Promise.resolve("");
-    var key = imageKey(name, folder || "background1");
+    var key = imageKey(name);
     if (state.imageCache[key]) return Promise.resolve(state.imageCache[key]);
     var path = typeof D.libraryPath === "function" ? D.libraryPath(name) : "img/decorations/ml/background1/" + name + ".png";
     var modUtils = root.modUtils;
@@ -310,156 +328,330 @@
     }
   }
 
+  function setThumbState(imgNode, kind, fallbackText) {
+    var wrap = imgNode && imgNode.parentNode;
+    if (!wrap) return;
+    wrap.setAttribute("data-thumb-state", kind);
+    var label = wrap.querySelector(".ml-deco-thumb-empty");
+    if (label) {
+      label.hidden = kind === "ready";
+      label.textContent = kind === "missing" ? t("missingImage") : (fallbackText || t("empty"));
+    }
+    var pickLabel = wrap.querySelector(".ml-deco-pick-label");
+    if (pickLabel) {
+      var base = pickLabel.getAttribute("data-label") || pickLabel.textContent || "";
+      pickLabel.textContent = kind === "missing" ? base + " · " + t("missingImage") : base;
+    }
+    if (kind === "missing") wrap.classList.add("is-missing");
+    else wrap.classList.remove("is-missing");
+    if (wrap.closest) {
+      var item = wrap.closest(".ml-deco-pick");
+      if (item) item.disabled = kind === "missing";
+    }
+  }
+
+  function dropObserver(observer) {
+    var idx = state.observers.indexOf(observer);
+    if (idx >= 0) state.observers.splice(idx, 1);
+  }
+
+  function disconnectObservers() {
+    for (var i = 0; i < state.observers.length; i++) {
+      try { state.observers[i].disconnect(); } catch (e) { /* 已断开 */ }
+    }
+    state.observers = [];
+  }
+
   function loadThumb(imgNode, name, folder, fallbackText) {
     if (!imgNode) return;
     var token = String(name) + "|" + String(folder);
     imgNode.__mlDecoToken = token;
     imgNode.removeAttribute("src");
     imgNode.alt = "";
+    imgNode.style.visibility = "hidden";
     if (fallbackText) imgNode.setAttribute("data-empty", fallbackText);
     if (D.normalizeName(name) === "none") {
-      imgNode.style.visibility = "hidden";
+      setThumbState(imgNode, "empty", fallbackText);
       return;
     }
-    enqueueLoad(function () {
-      return resolveImage(name, folder).then(function (url) {
-        if (imgNode.__mlDecoToken !== token) return;
-        if (!url) { imgNode.style.visibility = "hidden"; return; }
-        imgNode.onload = function () { imgNode.style.visibility = "visible"; };
-        imgNode.onerror = function () { imgNode.style.visibility = "hidden"; };
-        imgNode.src = url;
+    function load() {
+      if (state.packStatus === "missing") {
+        setThumbState(imgNode, "missing", fallbackText);
+        return;
+      }
+      enqueueLoad(function () {
+        return resolveImage(name, folder).then(function (url) {
+          if (imgNode.__mlDecoToken !== token) return;
+          if (!url) {
+            setThumbState(imgNode, "missing", fallbackText);
+            return;
+          }
+          imgNode.onload = function () {
+            imgNode.style.visibility = "visible";
+            setThumbState(imgNode, "ready", fallbackText);
+          };
+          imgNode.onerror = function () {
+            imgNode.style.visibility = "hidden";
+            setThumbState(imgNode, "missing", fallbackText);
+          };
+          imgNode.src = url;
+        });
       });
+    }
+    if (typeof root.IntersectionObserver === "function" && state.pane) {
+      var observer = new root.IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) {
+            observer.disconnect();
+            dropObserver(observer);
+            load();
+            return;
+          }
+        }
+      }, { root: state.pane, rootMargin: "240px 0px" });
+      try {
+        observer.observe(imgNode);
+        state.observers.push(observer);
+        return;
+      } catch (e) {
+        dropObserver(observer);
+      }
+    }
+    load();
+  }
+
+  /* ------------------------------------------------------------------ 状态读写 */
+
+  function setImage(layer, name, folder) {
+    var v = vars();
+    if (!v || !layer) return;
+    var normalized = D.normalizeName(name);
+    if (layer.id === "background1") {
+      D.restoreAutoBackground(v);
+      v.decoAutoBgEnabled = false;
+    }
+    v[layer.varKey] = normalized;
+    v[layer.showKey] = true;
+    if (layer.id === "background1") delete v.decoAutoBgSource;
+    if (!v.decoImagePath || typeof v.decoImagePath !== "object") v.decoImagePath = {};
+    if (normalized !== "none") {
+      if (layer.id === "background1") delete v.decoImagePath[layer.id];
+      else v.decoImagePath[layer.id] = D.libraryPath(normalized);
+    } else {
+      delete v.decoImagePath[layer.id];
+    }
+    refresh();
+    rebuildPage();
+  }
+
+  function setVisible(layer, on) {
+    var v = vars();
+    if (!v || !layer) return;
+    v[layer.showKey] = !!on;
+    refresh();
+  }
+
+  function setZ(layer, value, labelNode) {
+    var v = vars();
+    if (!v || !layer) return;
+    if (!v.decoImageZ || typeof v.decoImageZ !== "object") v.decoImageZ = {};
+    var n = Math.max(-50, Math.min(50, Math.round(Number(value) || 0)));
+    v.decoImageZ[layer.zKey] = n;
+    if (labelNode) labelNode.textContent = (n > 0 ? "+" : "") + n;
+    refresh();
+  }
+
+  function readList(v, key) {
+    return v && Array.isArray(v[key]) ? v[key] : [];
+  }
+
+  function ensureList(v, key) {
+    if (!Array.isArray(v[key])) v[key] = [];
+    return v[key];
+  }
+
+  function catalogHas(name) {
+    var normalized = D.normalizeName(name);
+    if (normalized === "none") return false;
+    var list = D.CATALOG || [];
+    for (var i = 0; i < list.length; i++) {
+      if (D.normalizeName(list[i]) === normalized) return true;
+    }
+    return false;
+  }
+
+  function addLocation(name) {
+    var v = vars();
+    if (!v) return;
+    var normalized = D.normalizeName(name);
+    if (normalized === "none") return;
+    var list = ensureList(v, "decoAutoBgLocations");
+    if (list.indexOf(normalized) < 0) list.push(normalized);
+    delete v.decoAutoBgDisabled;
+    refresh();
+    rebuildPage();
+  }
+
+  function removeLocation(name) {
+    var v = vars();
+    if (!v) return;
+    var normalized = D.normalizeName(name);
+    var list = readList(v, "decoAutoBgLocations");
+    var idx = list.indexOf(normalized);
+    if (idx >= 0) list.splice(idx, 1);
+    delete v.decoAutoBgDisabled;
+    refresh();
+    rebuildPage();
+  }
+
+  /* ------------------------------------------------------------------ 页骨架 */
+
+  function packText() {
+    if (state.packStatus === "ready") return t("packReady") + " · " + D.CATALOG.length;
+    if (state.packStatus === "partial") return t("packPartial") + " · " + state.packCount + "/" + state.packTotal;
+    if (state.packStatus === "missing") return t("packMissing");
+    return t("packProbe");
+  }
+
+  /* 只抽查首/中/末三张，避免为了判断图库是否完整而把 83 张图全部读进内存。
+     三张全中 = ready；全空 = missing；部分命中 = partial，界面会提示重装图库。 */
+  function probeSamples() {
+    var list = D.CATALOG || [];
+    if (!list.length) return ["home"];
+    var idx = [0, Math.floor((list.length - 1) / 2), list.length - 1];
+    var out = [];
+    for (var i = 0; i < idx.length; i++) {
+      var name = list[idx[i]];
+      if (name && out.indexOf(name) < 0) out.push(name);
+    }
+    return out;
+  }
+
+  function probeImagePack(force) {
+    if (state.packPromise && !force) return state.packPromise;
+    var modUtils = root.modUtils;
+    var names = probeSamples();
+    state.packTotal = names.length;
+    if (!modUtils || typeof modUtils.getImage !== "function") {
+      state.packStatus = "missing";
+      state.packCount = 0;
+      state.packPromise = Promise.resolve("missing");
+      syncPackStatus();
+      return state.packPromise;
+    }
+    state.packPromise = Promise.all(names.map(function (name) {
+      var path = typeof D.libraryPath === "function" ? D.libraryPath(name) : "img/decorations/ml/background1/" + name + ".png";
+      return Promise.resolve()
+        .then(function () { return Promise.resolve(modUtils.getImage(path)); })
+        .then(function (value) { return normalizeImageUrl(value) ? 1 : 0; })
+        .catch(function () { return 0; });
+    })).then(function (hits) {
+      var ok = 0;
+      for (var i = 0; i < hits.length; i++) ok += hits[i];
+      state.packCount = ok;
+      state.packStatus = ok === names.length ? "ready" : (ok === 0 ? "missing" : "partial");
+      syncPackStatus();
+      return state.packStatus;
+    }).catch(function () {
+      state.packStatus = "missing";
+      state.packCount = 0;
+      syncPackStatus();
+      return "missing";
+    });
+    return state.packPromise;
+  }
+
+  function retryPack() {
+    state.packPromise = null;
+    state.packStatus = "unknown";
+    state.packCount = 0;
+    state.packTotal = 0;
+    state.imageCache = {};
+    syncPackStatus();
+    probeImagePack(true).then(function () {
+      if (state.page) rebuildPage();
     });
   }
 
-  /* ------------------------------------------------------------------ 入口 */
-
-  function buildEntry() {
-    var group = el("div", "ml-field ml-deco-entry", {});
-    group.setAttribute(MARK, "1");
-    var head = el("div", "ml-field-head");
-    head.appendChild(text("span", t("entry"), "ml-field-label"));
-    var badge = text("span", "", "ml-deco-badge");
-    head.appendChild(badge);
-    group.appendChild(head);
-    group.appendChild(text("p", t("entryHint"), "ml-hint"));
-    var status = text("p", "", "ml-deco-entry-status");
-    group.appendChild(status);
-    var actions = el("div", "ml-deco-entry-actions");
-    actions.appendChild(button(t("open"), "ml-btn is-primary", function () { openWorkbench(); }));
-    actions.appendChild(button(t("match"), "ml-btn", function () {
-      var v = vars();
-      if (!v) return;
-      D.applyAutoBackground(v, setup(), D.CATALOG, true);
-      refresh();
-    }));
-    group.appendChild(actions);
-    group.__badge = badge;
-    group.__status = status;
-    return group;
-  }
-
-  function updateEntry() {
-    if (!state.ui || !state.ui.group) return;
-    var info = D.locationInfo(vars() || {}, setup());
-    var badge = modeLabel();
-    var status = t("current") + ": " + (info.visual || t("unknown")) + " · " + (info.outside ? t("outside") : t("indoors"));
-    /* 只在文案变化时写 DOM：MutationObserver 监听 childList，无条件赋值会自触发 90ms 循环。 */
-    if (state.ui.group.__badge.textContent !== badge) state.ui.group.__badge.textContent = badge;
-    if (state.ui.group.__status.textContent !== status) state.ui.group.__status.textContent = status;
-  }
-
-  function injectEntry() {
-    if (!panelOpen()) return;
-    var pane = doc.getElementById("ml-pane");
-    var tab = doc.getElementById("ml-tab-settings");
-    if (!pane || !tab || tab.getAttribute("aria-selected") !== "true") return;
-    var existing = pane.querySelector("[" + MARK + "]");
-    if (existing && state.ui && state.ui.group === existing && existing.parentNode === pane) {
-      updateEntry();
-      return;
+  function syncPackStatus() {
+    if (!state.page) return;
+    var node = state.page.querySelector("[data-deco-pack-status]");
+    if (node) {
+      node.textContent = packText();
+      node.className = "ml-deco-pack-state is-" + state.packStatus;
     }
-    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
-    var group = buildEntry();
-    /* 设置页里可能有第三方注入的同名 .ml-resets（档案面板就在 .md-custom
-       内嵌了一层）。只认 pane 的直接子节点，且找不到时退回末尾，绝不把
-       非兄弟节点当 insertBefore 的参照，否则 SugarCube 会弹全局错误框。 */
-    var anchor = null;
-    var resets = pane.querySelectorAll(".ml-resets");
-    for (var i = 0; i < resets.length; i++) {
-      if (resets[i].parentNode === pane) { anchor = resets[i]; break; }
+    var hintText = state.packStatus === "partial" ? t("packPartialHint") : t("packHint");
+    var showHint = state.packStatus === "missing" || state.packStatus === "partial";
+    var hints = state.page.querySelectorAll("[data-deco-pack-hint]");
+    for (var i = 0; i < hints.length; i++) {
+      hints[i].hidden = !showHint;
+      hints[i].textContent = hintText;
     }
-    try {
-      pane.insertBefore(group, anchor || null);
-    } catch (e) {
-      pane.appendChild(group);
+    var retry = state.page.querySelector("[data-deco-pack-retry]");
+    if (retry) retry.hidden = !showHint;
+    var missing = state.packStatus === "missing";
+    var auto = state.page.querySelector("[data-deco-auto-toggle]");
+    if (auto) auto.disabled = missing;
+    var required = state.page.querySelectorAll("[data-deco-pack-required]");
+    for (var j = 0; j < required.length; j++) required[j].disabled = missing;
+    if (missing) {
+      var picks = state.page.querySelectorAll(".ml-deco-pick");
+      for (var k = 0; k < picks.length; k++) {
+        if (picks[k].getAttribute("data-deco-pick-name") !== "none") picks[k].disabled = true;
+      }
     }
-    state.ui = { group: group };
-    updateEntry();
   }
 
-  function scheduleInject() {
-    if (state.timer) return;
-    state.timer = root.setTimeout(function () {
-      state.timer = 0;
-      injectEntry();
-    }, 90);
+  function buildStatus() {
+    var v = vars() || {};
+    var info = D.locationInfo(v, setup());
+    var section = el("section", "ml-deco-status", { "data-ml-deco-status": "1" });
+    var line1 = el("div", "ml-deco-status-line");
+    line1.appendChild(text("span", modeLabel(), "ml-deco-pill"));
+    var where = info.outside ? t("outside") : t("indoors");
+    line1.appendChild(text("span", t("current") + ": " + (info.visual || t("unknown")) + " · " + where, "ml-deco-muted"));
+    section.appendChild(line1);
+    section.appendChild(text("div", t("chain") + ": " + (info.chain.join(" → ") || t("unknown")), "ml-deco-chain"));
+    var pack = el("div", "ml-deco-pack-state is-" + state.packStatus, { "data-deco-pack-status": "1" });
+    pack.textContent = packText();
+    section.appendChild(pack);
+    var packHint = text("p", state.packStatus === "partial" ? t("packPartialHint") : t("packHint"), "ml-hint is-warn");
+    packHint.setAttribute("data-deco-pack-hint", "1");
+    packHint.hidden = state.packStatus !== "missing" && state.packStatus !== "partial";
+    section.appendChild(packHint);
+    var retry = button(t("packRetry"), "ml-btn ml-btn-sm", retryPack);
+    retry.setAttribute("data-deco-pack-retry", "1");
+    retry.hidden = state.packStatus !== "missing" && state.packStatus !== "partial";
+    section.appendChild(retry);
+    var bgName = D.normalizeName(v.background_image1);
+    section.appendChild(text("div", t("currentBg") + ": " + (bgName === "none" ? t("none") : bgName), "ml-deco-muted"));
+    if (v.decoAutoBgEnabled === true && v.decoAutoBgSource) {
+      var sourceName = D.normalizeName(v.decoAutoBgSource);
+      section.appendChild(text("div", t("lastAuto") + ": " + (sourceName === "none" ? t("none") : sourceName), "ml-deco-muted"));
+    }
+    if (mode() === D.MODE.external) section.appendChild(text("p", t("externalHint"), "ml-hint is-warn"));
+    if (mode() === D.MODE.unavailable) section.appendChild(text("p", t("unavailable"), "ml-hint is-warn"));
+    return section;
   }
 
-  /* ------------------------------------------------------------------ 弹层 */
+  function buildPicker() {
+    var picker = el("div", "ml-deco-picker", { hidden: "", "data-deco-picker": "1" });
+    var head = el("div", "ml-deco-picker-head");
+    head.appendChild(text("h4", t("picker"), "ml-deco-section-title"));
+    head.appendChild(button("×", "ml-deco-close", closePicker));
+    picker.appendChild(head);
 
-  function ensureModal() {
-    if (state.modal) return state.modal;
-    var modal = el("div", "ml-deco-modal", { hidden: "", "data-ml-deco-modal": "1" });
-    var backdrop = el("div", "ml-deco-backdrop", { "data-ml-deco-close": "1" });
-    modal.appendChild(backdrop);
-    var sheet = el("div", "ml-deco-sheet", { role: "dialog", "aria-modal": "true", "aria-label": t("title") });
-    var head = el("div", "ml-deco-sheet-head");
-    head.appendChild(text("h3", t("title"), "ml-deco-title"));
-    var close = button("×", "ml-deco-close", function () { closeWorkbench(); });
-    close.setAttribute("aria-label", t("close"));
-    head.appendChild(close);
-    sheet.appendChild(head);
-    var body = el("div", "ml-deco-body");
-    sheet.appendChild(body);
-
-    var status = el("section", "ml-deco-status");
-    body.appendChild(status);
-
-    var layers = el("section", "ml-deco-section");
-    layers.appendChild(text("h4", t("layers"), "ml-deco-section-title"));
-    var grid = el("div", "ml-deco-grid");
-    layers.appendChild(grid);
-    body.appendChild(layers);
-
-    var options = el("div", "ml-deco-options");
-    var filter = el("section", "ml-deco-section");
-    filter.appendChild(text("h4", t("filter"), "ml-deco-section-title"));
-    options.appendChild(filter);
-    var presets = el("section", "ml-deco-section");
-    presets.appendChild(text("h4", t("presets"), "ml-deco-section-title"));
-    options.appendChild(presets);
-    body.appendChild(options);
-
-    var picker = el("div", "ml-deco-picker", { hidden: "" });
-    var pickerHead = el("div", "ml-deco-picker-head");
-    pickerHead.appendChild(text("h4", t("picker"), "ml-deco-section-title"));
-    pickerHead.appendChild(button("×", "ml-deco-close", function () { closePicker(); }));
-    picker.appendChild(pickerHead);
-    var pickerTools = el("div", "ml-deco-picker-tools");
+    var tools = el("div", "ml-deco-picker-tools");
     var search = el("input", "ml-deco-search", { type: "search", placeholder: t("search") });
-    pickerTools.appendChild(search);
-    var source = el("select", "ml-deco-select");
-    D.LAYERS.forEach(function (layer) {
-      var option = el("option", "", { value: layer.id });
-      option.textContent = layer.folder;
-      source.appendChild(option);
-    });
-    source.value = "background1";
-    pickerTools.appendChild(source);
-    picker.appendChild(pickerTools);
-    var pickerGrid = el("div", "ml-deco-picker-grid");
-    picker.appendChild(pickerGrid);
+    tools.appendChild(search);
+    picker.appendChild(tools);
+
+    var grid = el("div", "ml-deco-picker-grid");
+    picker.appendChild(grid);
+    var packHint = text("p", state.packStatus === "partial" ? t("packPartialHint") : t("packHint"), "ml-hint is-warn");
+    packHint.setAttribute("data-deco-pack-hint", "1");
+    packHint.hidden = state.packStatus !== "missing" && state.packStatus !== "partial";
+    picker.appendChild(packHint);
     var customRow = el("div", "ml-deco-custom");
     var customInput = el("input", "ml-deco-input", { type: "text", placeholder: t("custom") });
     customRow.appendChild(customInput);
@@ -467,93 +659,451 @@
       var layer = state.pickerLayer;
       if (!layer) return;
       setImage(layer, customInput.value, state.pickerSource);
-      closePicker();
     }));
     picker.appendChild(customRow);
-    sheet.appendChild(picker);
 
-    modal.appendChild(sheet);
-    modal.__body = body;
-    modal.__status = status;
-    modal.__grid = grid;
-    modal.__filter = filter;
-    modal.__presets = presets;
-    modal.__picker = picker;
-    modal.__pickerGrid = pickerGrid;
-    modal.__search = search;
-    modal.__source = source;
-    modal.__customInput = customInput;
+    picker.__grid = grid;
+    picker.__search = search;
+    picker.__customInput = customInput;
+    state.picker = picker;
 
-    modal.addEventListener("click", function (e) {
-      if (e.target && e.target.getAttribute && e.target.getAttribute("data-ml-deco-close") === "1") closeWorkbench();
-    });
     search.addEventListener("input", function () {
       state.pickerQuery = String(search.value || "").trim().toLowerCase();
       renderPickerGrid();
     });
-    source.addEventListener("change", function () {
-      state.pickerSource = String(source.value || "background1");
-      renderPickerGrid();
+    return picker;
+  }
+
+  function layerCard(layer, v) {
+    var card = el("div", "ml-deco-card", { "data-layer": layer.id });
+    var head = el("div", "ml-deco-card-head");
+    head.appendChild(text("span", (layer.kind === "background" ? t("layerBg") : t("layerFg")) + " " + layer.index, "ml-deco-card-title"));
+    head.appendChild(text("code", D.normalizeName(v[layer.varKey]) || "none", "ml-deco-name"));
+    card.appendChild(head);
+
+    var thumbWrap = el("div", "ml-deco-thumb");
+    var img = el("img", "ml-deco-thumb-img");
+    img.alt = "";
+    img.loading = "lazy";
+    thumbWrap.appendChild(img);
+    thumbWrap.appendChild(text("span", t("empty"), "ml-deco-thumb-empty"));
+    loadThumb(img, v[layer.varKey], "background1", t("empty"));
+    card.appendChild(thumbWrap);
+
+    var row = el("div", "ml-deco-card-row");
+    var choose = button(t("select"), "ml-btn ml-btn-sm", function () { openPicker(layer); });
+    choose.setAttribute("data-deco-select-image", layer.id);
+    row.appendChild(choose);
+    row.appendChild(button(t("clear"), "ml-btn ml-btn-sm", function () { setImage(layer, "none", "background1"); }));
+    card.appendChild(row);
+
+    var row2 = el("div", "ml-deco-card-row");
+    var vis = el("label", "ml-deco-check");
+    var checkbox = el("input", "", { type: "checkbox", "data-deco-visible": layer.id });
+    checkbox.checked = D.layerVisible(layer, v);
+    checkbox.addEventListener("change", function () { setVisible(layer, checkbox.checked); });
+    vis.appendChild(checkbox);
+    vis.appendChild(text("span", t("visible")));
+    row2.appendChild(vis);
+    card.appendChild(row2);
+
+    var zrow = el("div", "ml-deco-z");
+    zrow.appendChild(text("span", t("z"), "ml-deco-z-label"));
+    var range = el("input", "ml-deco-range", { type: "range", min: "-50", max: "50", step: "1", "data-deco-z": layer.id });
+    range.value = String(v.decoImageZ && v.decoImageZ[layer.zKey] || 0);
+    var zval = text("span", (range.value > 0 ? "+" : "") + range.value, "ml-deco-zval");
+    range.addEventListener("input", function () { setZ(layer, range.value, zval); });
+    zrow.appendChild(range);
+    zrow.appendChild(zval);
+    card.appendChild(zrow);
+
+    if (state.picker && state.pickerLayer && state.pickerLayer.id === layer.id) card.appendChild(state.picker);
+    return card;
+  }
+
+  function layerGroup(kind, title, layers, v) {
+    var details = el("details", "ml-deco-group", { "data-deco-group": kind });
+    details.open = state.openGroups[kind] !== false;
+    details.addEventListener("toggle", function () { state.openGroups[kind] = details.open; });
+    var summary = el("summary", "ml-deco-group-head");
+    summary.appendChild(text("span", title, "ml-deco-group-title"));
+    var selected = layers.filter(function (layer) { return D.normalizeName(v[layer.varKey]) !== "none"; }).length;
+    summary.appendChild(text("span", t("selectedCount") + " " + selected + "/" + layers.length, "ml-deco-group-meta"));
+    details.appendChild(summary);
+    var grid = el("div", "ml-deco-grid");
+    layers.forEach(function (layer) { grid.appendChild(layerCard(layer, v)); });
+    details.appendChild(grid);
+    return details;
+  }
+
+  function buildLayers() {
+    var v = vars() || {};
+    var section = el("section", "ml-deco-section", { "data-deco-layers": "1" });
+    section.appendChild(text("h4", t("layers"), "ml-deco-section-title"));
+    section.appendChild(text("p", t("layerBg") + " 1–4 / " + t("layerFg") + " 1–5", "ml-hint"));
+    section.appendChild(layerGroup("background", t("layerGroupBg"), D.LAYERS.filter(function (layer) { return layer.kind === "background"; }), v));
+    section.appendChild(layerGroup("foreground", t("layerGroupFg"), D.LAYERS.filter(function (layer) { return layer.kind === "foreground"; }), v));
+    return section;
+  }
+
+  function dialogConfirm(message) {
+    try {
+      if (typeof root.confirm === "function") return root.confirm(message) !== false;
+    } catch (e) { /* 宿主无 confirm 时按确认处理 */ }
+    return true;
+  }
+
+  function askText(message, fallback) {
+    try {
+      if (typeof root.prompt === "function") {
+        var answer = root.prompt(message, fallback);
+        if (answer === null) return null;
+        if (answer === undefined) return fallback;
+        var trimmed = String(answer).trim();
+        return trimmed || fallback;
+      }
+    } catch (e) { /* 宿主无 prompt 时用默认名 */ }
+    return fallback;
+  }
+
+  function buildPresets() {
+    var v = vars() || {};
+    var presets = v.decoPresets && typeof v.decoPresets === "object" ? v.decoPresets : {};
+    var slots = Object.keys(presets).map(Number).filter(function (n) { return isFinite(n) && n > 0; }).sort(function (a, b) { return a - b; });
+    var maxSlot = slots.length ? Math.max.apply(Math, slots) : 1;
+
+    var section = el("section", "ml-deco-section", { "data-deco-presets": "1" });
+    section.appendChild(text("h4", t("presets"), "ml-deco-section-title"));
+
+    for (var slot = 1; slot <= maxSlot; slot++) {
+      (function (currentSlot) {
+        var preset = presets[currentSlot];
+        var row = el("div", "ml-deco-preset", { "data-deco-preset": String(currentSlot) });
+        row.appendChild(text("span", preset ? String(preset.name || ("#" + currentSlot)) : (t("blankPreset") + " " + currentSlot), "ml-deco-preset-name"));
+
+        var apply = button(t("applyPreset"), "ml-btn ml-btn-sm", function () {
+          var current = vars();
+          if (!current) return;
+          if (D.applyPreset(current, currentSlot)) { refresh(); rebuildPage(); }
+        });
+        apply.setAttribute("data-deco-preset-apply", String(currentSlot));
+        apply.disabled = !preset;
+        row.appendChild(apply);
+
+        var save = button(preset ? t("overwrite") : t("savePreset"), "ml-btn ml-btn-sm", function () {
+          var current = vars();
+          if (!current) return;
+          if (preset && !dialogConfirm(t("overwriteConfirm") + " " + String(preset.name || ("#" + currentSlot)))) return;
+          var name = askText(t("presetNamePrompt"), preset && preset.name || ("预设 " + currentSlot));
+          if (name === null) return;
+          D.savePreset(current, currentSlot, name);
+          refresh();
+          rebuildPage();
+        });
+        save.setAttribute("data-deco-preset-save", String(currentSlot));
+        row.appendChild(save);
+
+        var remove = button(t("remove"), "ml-btn ml-btn-sm", function () {
+          var current = vars();
+          if (!current) return;
+          if (!dialogConfirm(t("deleteConfirm") + " " + String(preset && preset.name || ("#" + currentSlot)))) return;
+          D.deletePreset(current, currentSlot);
+          refresh();
+          rebuildPage();
+        });
+        remove.setAttribute("data-deco-preset-delete", String(currentSlot));
+        remove.disabled = !preset;
+        row.appendChild(remove);
+        section.appendChild(row);
+      })(slot);
+    }
+
+    var nameRow = el("div", "ml-deco-preset-new");
+    var add = button(t("newPreset"), "ml-btn ml-btn-sm", function () {
+      var current = vars();
+      if (!current) return;
+      var next = D.nextPresetSlot(current);
+      var name = askText(t("presetNamePrompt"), "预设 " + next);
+      if (name === null) return;
+      D.savePreset(current, next, name);
+      refresh();
+      rebuildPage();
     });
+    add.setAttribute("data-deco-preset-new", "1");
+    nameRow.appendChild(add);
+    section.appendChild(nameRow);
 
-    var host = doc.getElementById("ml-root") || doc.body;
-    host.appendChild(modal);
-    state.modal = modal;
-    return modal;
+    if (!slots.length) section.appendChild(text("p", t("noPresets"), "ml-hint"));
+    return section;
   }
 
-  function openWorkbench() {
-    var modal = ensureModal();
-    modal.hidden = false;
-    modal.setAttribute("data-open", "1");
-    modal.__picker.hidden = true;
+  function buildAuto() {
+    var v = vars() || {};
+    var info = D.locationInfo(v, setup());
+    var section = el("section", "ml-deco-section", { "data-deco-auto": "1" });
+    section.appendChild(text("h4", t("autoSection"), "ml-deco-section-title"));
+
+    var autoLabel = el("label", "ml-deco-check");
+    var auto = el("input", "", { type: "checkbox", "data-deco-auto-toggle": "1" });
+    auto.checked = v.decoAutoBgEnabled === true;
+    auto.addEventListener("change", function () {
+      var current = vars();
+      if (!current) return;
+      current.decoAutoBgEnabled = auto.checked;
+      if (auto.checked) D.applyAutoBackground(current, setup(), D.CATALOG, false);
+      else D.restoreAutoBackground(current);
+      refresh();
+      rebuildPage();
+    });
+    autoLabel.appendChild(auto);
+    autoLabel.appendChild(text("span", t("autoBg")));
+    section.appendChild(autoLabel);
+
+    var filterLabel = el("label", "ml-deco-check");
+    var filter = el("input", "", { type: "checkbox", "data-deco-filter-toggle": "1" });
+    filter.checked = v.decoAutoBgFilterEnabled === true;
+    filter.addEventListener("change", function () {
+      var current = vars();
+      if (!current) return;
+      current.decoAutoBgFilterEnabled = filter.checked;
+      refresh();
+      syncStatus();
+    });
+    filterLabel.appendChild(filter);
+    filterLabel.appendChild(text("span", t("autoFilter")));
+    section.appendChild(filterLabel);
+
+    section.appendChild(text("p", t("autoHint"), "ml-hint"));
+    var autoOn = v.decoAutoBgEnabled === true;
+    var stateNode = el("div", "ml-deco-auto-state" + (autoOn ? " is-on" : ""), { "data-deco-auto-state": "1" });
+    stateNode.textContent = autoOn ? t("autoEnabled") : t("disabled");
+    section.appendChild(stateNode);
+    var chips = el("div", "ml-deco-chips", { "data-deco-locations": "1" });
+    var list = readList(v, "decoAutoBgLocations");
+    var noImage = [];
+    if (!list.length) {
+      chips.appendChild(text("span", t("locationEmpty"), "ml-hint"));
+    } else {
+      list.forEach(function (name) {
+        var missing = !catalogHas(name);
+        if (missing) noImage.push(name);
+        var chip = el("span", "ml-deco-chip" + (missing ? " is-missing" : ""));
+        chip.appendChild(text("span", String(name)));
+        if (missing) chip.appendChild(text("span", " · " + t("noCatalogImage"), "ml-deco-chip-note"));
+        var x = button("×", "ml-deco-chip-x", function () { removeLocation(name); });
+        x.setAttribute("aria-label", t("remove") + " " + name);
+        x.setAttribute("data-deco-location-remove", name);
+        chip.appendChild(x);
+        chips.appendChild(chip);
+      });
+    }
+    section.appendChild(chips);
+    if (noImage.length) {
+      var noImageHint = text("p", t("autoNoImageHint") + " " + noImage.join("、"), "ml-hint is-warn");
+      noImageHint.setAttribute("data-deco-auto-no-image", "1");
+      section.appendChild(noImageHint);
+    }
+
+    var locRow = el("div", "ml-deco-location-row");
+    var loc = el("input", "ml-deco-input", { type: "text", placeholder: t("locationPlaceholder"), "data-deco-location-input": "1" });
+    locRow.appendChild(loc);
+    var addBtn = button(t("add"), "ml-btn ml-btn-sm", function () { addLocation(loc.value); });
+    addBtn.setAttribute("data-deco-location-add", "1");
+    locRow.appendChild(addBtn);
+    var currentBtn = button(t("addCurrent"), "ml-btn ml-btn-sm", function () {
+      addLocation(info.base || info.visual);
+    });
+    currentBtn.setAttribute("data-deco-location-current", "1");
+    locRow.appendChild(currentBtn);
+    section.appendChild(locRow);
+
+    var actionRow = el("div", "ml-deco-preset-new");
+    var matchBtn = button(t("match"), "ml-btn ml-btn-sm", function () {
+      var current = vars();
+      if (!current) return;
+      var here = D.normalizeName(info.base || info.visual);
+      if (here !== "none") {
+        var allowed = ensureList(current, "decoAutoBgLocations");
+        if (allowed.indexOf(here) < 0) allowed.push(here);
+      }
+      current.decoAutoBgEnabled = true;
+      D.applyAutoBackground(current, setup(), D.CATALOG, true);
+      refresh();
+      rebuildPage();
+    });
+    matchBtn.setAttribute("data-deco-pack-required", "1");
+    actionRow.appendChild(matchBtn);
+    var resetAuto = button(t("autoReset"), "ml-btn ml-btn-sm", function () {
+      var current = vars();
+      if (!current) return;
+      D.restoreAutoBackground(current);
+      current.decoAutoBgEnabled = false;
+      current.decoAutoBgLocations = [];
+      delete current.decoAutoBgDisabled;
+      refresh();
+      rebuildPage();
+    });
+    resetAuto.setAttribute("data-deco-location-reset", "1");
+    actionRow.appendChild(resetAuto);
+    section.appendChild(actionRow);
+    return section;
+  }
+
+  function buildFilter() {
+    var v = vars() || {};
+    var section = el("section", "ml-deco-section", { "data-deco-filter": "1" });
+    section.appendChild(text("h4", t("filter"), "ml-deco-section-title"));
+    section.appendChild(text("div", t("filterLayers"), "ml-deco-subhead"));
+    var chips = el("div", "ml-deco-chips");
+    var selected = Array.isArray(v.decoFilterLayers) ? v.decoFilterLayers : ["background1", "background2", "background3", "background4"];
+    var backgroundLayers = D.LAYERS.filter(function (layer) { return layer.kind === "background"; });
+    backgroundLayers.forEach(function (layer) {
+      var chip = el("label", "ml-deco-chip");
+      var cb = el("input", "", { type: "checkbox", "data-deco-filter-layer": layer.id });
+      cb.checked = selected.indexOf(layer.id) >= 0;
+      cb.addEventListener("change", function () {
+        var next = backgroundLayers.filter(function (l) {
+          return (l.id === layer.id ? cb.checked : (selected.indexOf(l.id) >= 0));
+        }).map(function (l) { return l.id; });
+        selected = next;
+        var current = vars();
+        if (current) current.decoFilterLayers = next;
+        refresh();
+      });
+      chip.appendChild(cb);
+      chip.appendChild(text("span", t("layerBg") + " " + layer.index));
+      chips.appendChild(chip);
+    });
+    section.appendChild(chips);
+    section.appendChild(text("p", t("filterHint"), "ml-hint"));
+    if (mode() === D.MODE.external) section.appendChild(text("p", t("filterNote"), "ml-hint is-warn"));
+    return section;
+  }
+
+  function buildReset() {
+    var section = el("section", "ml-deco-section", { "data-deco-reset": "1" });
+    var applyCurrent = button(t("applyCurrent"), "ml-btn ml-btn-wide", function () {
+      var v = vars();
+      if (!v) return;
+      var info = D.locationInfo(v, setup());
+      var here = D.normalizeName(info.base || info.visual);
+      if (here !== "none") {
+        var list = ensureList(v, "decoAutoBgLocations");
+        if (list.indexOf(here) < 0) list.push(here);
+      }
+      v.decoAutoBgEnabled = true;
+      D.applyAutoBackground(v, setup(), D.CATALOG, true);
+      refresh();
+      rebuildPage();
+    });
+    applyCurrent.setAttribute("data-deco-pack-required", "1");
+    section.appendChild(applyCurrent);
+    section.appendChild(button(t("restorePlayer"), "ml-btn ml-btn-wide", function () {
+      var v = vars();
+      if (!v) return;
+      D.restoreAutoBackground(v);
+      v.decoAutoBgEnabled = false;
+      delete v.decoAutoBgSource;
+      refresh();
+      rebuildPage();
+    }));
+    return section;
+  }
+
+  function renderPage(pane) {
+    if (!pane) return;
+    disconnectObservers();
+    state.pane = pane;
+    state.picker = null;
     state.pickerLayer = null;
-    renderAll();
-    var close = modal.querySelector(".ml-deco-close");
-    if (close) close.focus();
+    state.pickerSource = "background1";
+    pane.textContent = "";
+    var page = el("div", "ml-deco-page", { "data-deco-page": "1" });
+    state.page = page;
+    page.appendChild(buildStatus());
+    page.appendChild(buildPicker());
+    page.appendChild(buildLayers());
+    var options = el("div", "ml-deco-options");
+    options.appendChild(buildPresets());
+    options.appendChild(buildAuto());
+    page.appendChild(options);
+    page.appendChild(buildFilter());
+    page.appendChild(buildReset());
+    pane.appendChild(page);
+    refresh();
+    probeImagePack();
   }
 
-  function closeWorkbench() {
-    if (!state.modal) return;
-    state.modal.hidden = true;
-    state.modal.removeAttribute("data-open");
-    closePicker();
+  function rebuildPage() {
+    if (!state.pane) return;
+    var host = state.pane.parentNode;
+    var top = host ? host.scrollTop : 0;
+    renderPage(state.pane);
+    if (host) host.scrollTop = top;
+  }
+
+  function syncStatus() {
+    if (!state.page) return;
+    var old = state.page.querySelector("[data-ml-deco-status]");
+    var next = buildStatus();
+    if (old && old.parentNode) old.parentNode.replaceChild(next, old);
+  }
+
+  /* ------------------------------------------------------------------ 图库 */
+
+  function openPicker(layer) {
+    var picker = state.picker;
+    if (!picker || !state.page || !layer) return;
+    state.pickerLayer = layer;
+    state.pickerSource = "background1";
+    state.pickerQuery = "";
+    picker.__search.value = "";
+    picker.__customInput.value = "";
+    picker.hidden = false;
+    var card = state.page.querySelector('[data-layer="' + layer.id + '"]');
+    if (card) {
+      var group = card.parentNode;
+      while (group && group !== state.page && !(group.tagName && String(group.tagName).toLowerCase() === "details")) group = group.parentNode;
+      if (group && group !== state.page) group.open = true;
+      card.appendChild(picker);
+    }
+    renderPickerGrid();
+    try { picker.scrollIntoView({ block: "nearest" }); } catch (e) { /* 老 WebView 无参数支持 */ }
   }
 
   function closePicker() {
-    if (!state.modal || !state.modal.__picker) return;
-    state.modal.__picker.hidden = true;
+    var layer = state.pickerLayer;
+    if (state.picker) state.picker.hidden = true;
     state.pickerLayer = null;
-  }
-
-  function openPicker(layer) {
-    var modal = ensureModal();
-    state.pickerLayer = layer;
-    state.pickerSource = layer.folder === "background1" ? "background1" : "background1";
-    modal.__source.value = state.pickerSource;
-    modal.__search.value = "";
-    state.pickerQuery = "";
-    modal.__picker.hidden = false;
-    renderPickerGrid();
-    modal.__search.focus();
+    if (!layer || !state.page) return;
+    var card = state.page.querySelector('[data-layer="' + layer.id + '"]');
+    if (card && typeof card.scrollIntoView === "function") {
+      try { card.scrollIntoView({ block: "nearest" }); } catch (e) {
+        try { card.scrollIntoView(); } catch (e2) { /* 老 WebView 无参数支持 */ }
+      }
+    }
   }
 
   function renderPickerGrid() {
-    var modal = state.modal;
-    if (!modal || modal.__picker.hidden) return;
-    var grid = modal.__pickerGrid;
+    var picker = state.picker;
+    if (!picker || picker.hidden) return;
+    var grid = picker.__grid;
     grid.textContent = "";
-    var source = state.pickerSource;
+    var source = "background1";
     var q = state.pickerQuery;
 
     function addItem(name, label) {
       if (q && (String(name) + " " + String(label)).toLowerCase().indexOf(q) < 0) return;
       var item = el("button", "ml-deco-pick", { type: "button" });
+      item.setAttribute("data-deco-pick-name", name);
+      if (name !== "none" && state.packStatus === "missing") item.disabled = true;
       var thumb = el("img", "ml-deco-pick-thumb");
       thumb.alt = "";
       thumb.loading = "lazy";
       item.appendChild(thumb);
-      item.appendChild(text("span", label, "ml-deco-pick-label"));
+      var labelNode = text("span", label, "ml-deco-pick-label");
+      labelNode.setAttribute("data-label", label);
+      item.appendChild(labelNode);
       loadThumb(thumb, name, source, t("empty"));
       item.addEventListener("click", function () {
         var layer = state.pickerLayer;
@@ -568,215 +1118,36 @@
     D.CATALOG.forEach(function (name) { addItem(name, name); });
   }
 
-  function renderStatus() {
-    var modal = state.modal;
-    if (!modal) return;
-    var v = vars() || {};
-    var info = D.locationInfo(v, setup());
-    var status = modal.__status;
-    status.textContent = "";
-    var line1 = el("div", "ml-deco-status-line");
-    line1.appendChild(text("span", modeLabel(), "ml-deco-pill"));
-    var where = info.outside ? t("outside") : t("indoors");
-    line1.appendChild(text("span", t("current") + ": " + (info.visual || t("unknown")) + " · " + where, "ml-deco-muted"));
-    status.appendChild(line1);
-    status.appendChild(text("div", t("chain") + ": " + (info.chain.join(" → ") || t("unknown")), "ml-deco-chain"));
-    var auto = v.decoAutoBgSource || v.background_image1 || t("none");
-    status.appendChild(text("div", t("autoSource") + ": " + auto, "ml-deco-muted"));
-    if (D.mode() === D.MODE.external) status.appendChild(text("p", t("externalHint"), "ml-hint is-warn"));
-    if (D.mode() === D.MODE.unavailable) status.appendChild(text("p", t("unavailable"), "ml-hint is-warn"));
-  }
-
-  function renderLayers() {
-    var modal = state.modal;
-    if (!modal) return;
-    var v = vars() || {};
-    var grid = modal.__grid;
-    grid.textContent = "";
-    D.LAYERS.forEach(function (layer) {
-      var card = el("div", "ml-deco-card", { "data-layer": layer.id });
-      var head = el("div", "ml-deco-card-head");
-      head.appendChild(text("span", (layer.kind === "background" ? t("layerBg") : t("layerFg")) + " " + layer.index, "ml-deco-card-title"));
-      var name = text("code", D.normalizeName(v[layer.varKey]) || "none", "ml-deco-name");
-      head.appendChild(name);
-      card.appendChild(head);
-
-      var thumbWrap = el("div", "ml-deco-thumb");
-      var img = el("img", "ml-deco-thumb-img");
-      img.alt = "";
-      img.loading = "lazy";
-      thumbWrap.appendChild(img);
-      thumbWrap.appendChild(text("span", t("empty"), "ml-deco-thumb-empty"));
-      loadThumb(img, v[layer.varKey], layer.folder, t("empty"));
-      card.appendChild(thumbWrap);
-
-      var row = el("div", "ml-deco-card-row");
-      row.appendChild(button(t("select"), "ml-btn ml-btn-sm", function () { openPicker(layer); }));
-      row.appendChild(button(t("clear"), "ml-btn ml-btn-sm", function () { setImage(layer, "none", layer.folder); }));
-      card.appendChild(row);
-
-      var row2 = el("div", "ml-deco-card-row");
-      var vis = el("label", "ml-deco-check");
-      var checkbox = el("input", "", { type: "checkbox" });
-      checkbox.checked = D.layerVisible(layer, v);
-      checkbox.addEventListener("change", function () { setVisible(layer, checkbox.checked); });
-      vis.appendChild(checkbox);
-      vis.appendChild(text("span", t("visible")));
-      row2.appendChild(vis);
-      card.appendChild(row2);
-
-      var zrow = el("div", "ml-deco-z");
-      zrow.appendChild(text("span", t("z"), "ml-deco-z-label"));
-      var range = el("input", "ml-deco-range", { type: "range", min: "-50", max: "50", step: "1" });
-      range.value = String(v.decoImageZ && v.decoImageZ[layer.zKey] || 0);
-      var zval = text("span", (range.value > 0 ? "+" : "") + range.value, "ml-deco-zval");
-      range.addEventListener("input", function () { setZ(layer, range.value, zval); });
-      zrow.appendChild(range);
-      zrow.appendChild(zval);
-      card.appendChild(zrow);
-      grid.appendChild(card);
-    });
-  }
-
-  function renderFilter() {
-    var modal = state.modal;
-    if (!modal) return;
-    var v = vars() || {};
-    var box = modal.__filter;
-    box.textContent = "";
-    box.appendChild(text("h4", t("filter"), "ml-deco-section-title"));
-    var autoLabel = el("label", "ml-deco-check");
-    var auto = el("input", "", { type: "checkbox" });
-    auto.checked = v.decoAutoBgEnabled !== false;
-    auto.addEventListener("change", function () { v.decoAutoBgEnabled = auto.checked; refresh(); });
-    autoLabel.appendChild(auto);
-    autoLabel.appendChild(text("span", t("autoBg")));
-    box.appendChild(autoLabel);
-
-    var filterLabel = el("label", "ml-deco-check");
-    var filter = el("input", "", { type: "checkbox" });
-    filter.checked = v.decoAutoBgFilterEnabled !== false;
-    filter.addEventListener("change", function () { v.decoAutoBgFilterEnabled = filter.checked; refresh(); });
-    filterLabel.appendChild(filter);
-    filterLabel.appendChild(text("span", t("autoFilter")));
-    box.appendChild(filterLabel);
-
-    box.appendChild(text("div", t("filterLayers"), "ml-deco-subhead"));
-    var chips = el("div", "ml-deco-chips");
-    var selected = v.decoFilterLayers || ["background1", "background2", "background3", "background4"];
-    D.LAYERS.forEach(function (layer) {
-      var chip = el("label", "ml-deco-chip");
-      var cb = el("input", "", { type: "checkbox" });
-      cb.checked = selected.indexOf(layer.id) >= 0;
-      cb.addEventListener("change", function () {
-        var next = D.LAYERS.filter(function (l) {
-          return (l.id === layer.id ? cb.checked : (selected.indexOf(l.id) >= 0));
-        }).map(function (l) { return l.id; });
-        selected = next;
-        v.decoFilterLayers = next;
-        refresh();
-      });
-      chip.appendChild(cb);
-      chip.appendChild(text("span", layer.id));
-      chips.appendChild(chip);
-    });
-    box.appendChild(chips);
-    box.appendChild(text("p", t("filterHint"), "ml-hint"));
-    if (D.mode() === D.MODE.external) box.appendChild(text("p", t("filterNote"), "ml-hint is-warn"));
-    box.appendChild(button(t("reset"), "ml-btn ml-btn-sm", function () {
-      var info = D.locationInfo(v, setup());
-      var found = D.pickAutoLocation(info, D.CATALOG, v.decoAutoBgLocations);
-      if (found !== "none") {
-        v.background_image1 = found;
-        v.show_background1 = true;
-        v.decoAutoBgSource = found;
-        v.decoAutoBgEnabled = true;
-      }
-      refresh();
-    }));
-  }
-
-  function renderPresets() {
-    var modal = state.modal;
-    if (!modal) return;
-    var v = vars() || {};
-    var box = modal.__presets;
-    box.textContent = "";
-    box.appendChild(text("h4", t("presets"), "ml-deco-section-title"));
-    var presets = v.decoPresets || {};
-    var slots = Object.keys(presets).map(Number).filter(function (n) { return isFinite(n) && n > 0; }).sort(function (a, b) { return a - b; });
-    if (!slots.length) box.appendChild(text("p", t("noPresets"), "ml-hint"));
-    slots.forEach(function (slot) {
-      var preset = presets[slot] || {};
-      var row = el("div", "ml-deco-preset");
-      row.appendChild(text("span", String(preset.name || ("#" + slot)), "ml-deco-preset-name"));
-      row.appendChild(button(t("applyPreset"), "ml-btn ml-btn-sm", function () {
-        if (D.applyPreset(v, slot)) refresh();
-        renderAll();
-      }));
-      row.appendChild(button(t("overwrite"), "ml-btn ml-btn-sm", function () {
-        D.savePreset(v, slot, preset.name || ("#" + slot));
-        renderAll();
-      }));
-      row.appendChild(button(t("remove"), "ml-btn ml-btn-sm", function () {
-        D.deletePreset(v, slot);
-        renderAll();
-      }));
-      box.appendChild(row);
-    });
-    var saveRow = el("div", "ml-deco-preset-new");
-    var input = el("input", "ml-deco-input", { type: "text", placeholder: t("presetName") });
-    saveRow.appendChild(input);
-    saveRow.appendChild(button(t("savePreset"), "ml-btn ml-btn-sm", function () {
-      D.savePreset(v, D.nextPresetSlot(v), String(input.value || "").trim() || undefined);
-      renderAll();
-    }));
-    box.appendChild(saveRow);
-  }
-
-  function renderAll() {
-    if (!state.modal) return;
-    renderStatus();
-    renderLayers();
-    renderFilter();
-    renderPresets();
-    updateEntry();
-  }
-
-  function syncStatus() {
-    if (!state.modal || state.modal.hidden) return;
-    renderStatus();
-    updateEntry();
-  }
-
   /* ------------------------------------------------------------------ 宿主 */
 
   function bootHost() {
     try {
       var result = D.registerLayers();
       if (result.mode === D.MODE.native) D.ensureOverlayStep();
-      state.booted = true;
     } catch (e) {
-      state.booted = false;
+      /* 宿主未就绪：保持 unavailable，不向游戏抛 */
     }
-    updateEntry();
-    if (state.modal && !state.modal.hidden) syncStatus();
+    syncStatus();
   }
 
   function onPassage() {
     var token = ++state.token;
-    /* 原模组可能晚于灯台才把九层接到 main/pet；每个 passage 重查一次，
-       发现实际渲染层就撤回灯台自己的图层并让位。char.layers 的声明不算。 */
     try { bootHost(); } catch (e) { /* 不向游戏抛 */ }
     later(function () {
       if (token !== state.token) return;
-      try { D.refresh(); } catch (e) { /* 不向游戏抛 */ }
+      try { D.applyAutoOnPassage({ vars: vars(), setup: setup() }); } catch (e) { /* 不向游戏抛 */ }
+      refresh();
       syncStatus();
     }, 0);
   }
 
   function onStoryReady() {
-    later(bootHost, 600);
+    later(function () {
+      try { bootHost(); } catch (e) { /* 不向游戏抛 */ }
+      try { D.applyAutoOnPassage({ vars: vars(), setup: setup() }); } catch (e) { /* 不向游戏抛 */ }
+      refresh();
+      syncStatus();
+    }, 600);
   }
 
   function bindHost() {
@@ -793,21 +1164,9 @@
     }
   }
 
-  var onDocClick = function () { scheduleInject(); };
-  function bindObserver() {
-    if (state.observer) return;
-    state.observer = new MutationObserver(function () {
-      if (!doc.getElementById("ml-pane-host")) return;
-      scheduleInject();
-    });
-    state.observer.observe(doc.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["aria-selected"] });
-    doc.addEventListener("click", onDocClick, true);
-  }
-
   function destroy() {
-    if (state.observer) { state.observer.disconnect(); state.observer = null; }
     clearTimers();
-    doc.removeEventListener("click", onDocClick, true);
+    disconnectObservers();
     if (state.hostJq) {
       try { state.hostJq(doc).off(".mlDeco"); } catch (e) { /* jQuery 未就绪时无绑定 */ }
     } else {
@@ -816,38 +1175,36 @@
     }
     state.hostJq = null;
     state.bound = false;
-    if (state.modal && state.modal.parentNode) state.modal.parentNode.removeChild(state.modal);
-    state.modal = null;
-    var groups = doc.querySelectorAll("[" + MARK + "]");
-    for (var i = 0; i < groups.length; i++) if (groups[i].parentNode) groups[i].parentNode.removeChild(groups[i]);
-    state.ui = null;
+    if (state.page && state.page.parentNode) state.page.parentNode.removeChild(state.page);
+    state.page = null;
+    state.pane = null;
     state.picker = null;
     state.pickerLayer = null;
     state.queue = [];
     state.active = 0;
     state.imageCache = {};
+    state.packStatus = "unknown";
+    state.packPromise = null;
     root.MapleLanternDecoPanel = null;
   }
 
   root.MapleLanternDecoPanel = {
     __ready: true,
-    inject: injectEntry,
-    open: openWorkbench,
-    close: closeWorkbench,
-    refresh: refresh,
-    render: renderAll,
-    destroy: destroy,
+    renderPage: renderPage,
+    render: renderPage,
     setImage: setImage,
     mode: mode,
-    boot: bootHost
+    boot: bootHost,
+    destroy: destroy
   };
 
   function ready() {
-    bindObserver();
     bindHost();
     /* 让原「前景背景模组」的 :storyready 先注册图层；延迟自举只补无原模组的场景。 */
     later(bootHost, 1000);
-    scheduleInject();
+    var pane = doc.getElementById("ml-pane");
+    var tab = doc.getElementById("ml-tab-deco");
+    if (pane && tab && tab.getAttribute("aria-selected") === "true") renderPage(pane);
   }
 
   if (doc.readyState === "loading") {

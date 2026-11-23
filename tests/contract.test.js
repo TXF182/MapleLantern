@@ -31,7 +31,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.7");
+  assert.equal(boot.version, "1.5.8");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -123,6 +123,11 @@ test("样式作用域：所有 .ml-* 选择器都在 #ml-root 之下", () => {
   }
 });
 
+test("布景重试按钮：hidden 必须压过 .ml-btn 的 inline-flex", () => {
+  assert.match(decoCss, /#ml-root\s+\[data-deco-pack-retry\]\[hidden\]\s*\{\s*display:\s*none\s*;?\s*\}/,
+    "图库 ready/partial 由 hidden 属性控制，CSS 必须补 display:none，否则按钮仍可见");
+});
+
 test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
   for (const [name, sheet] of [["style.css", css], ["deco.css", decoCss]]) {
     for (const line of strip(sheet).split("\n")) {
@@ -198,7 +203,7 @@ test("三套主题动效：环境光、侧栏光带、页签淡入、环形呼�
   assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#ui-bar#ui-bar,[\s\S]*?animation:\s*none !important/s);
 });
 
-test("320/390 窄屏：6 个页签等分，不得把最后一页裁出面板", () => {
+test("320/390 窄屏：7 个页签等分，不得把最后一页裁出面板", () => {
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab\s*\{[^}]*flex:\s*1 1 0[^}]*min-width:\s*0/s);
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tabs\s*\{[^}]*gap:\s*0[^}]*padding:\s*0 6px/s);
   assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab-label\s*\{[^}]*font-size:\s*calc\(11px/s);

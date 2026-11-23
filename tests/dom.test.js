@@ -275,7 +275,7 @@ test("页签：点击与键盘左右键都能切换，内容随之重绘", () =>
   const { w } = createEnv();
   w.MapleLantern.open();
   const tabs = w.document.querySelectorAll("#ml-panel [role=tab]");
-  assert.equal(tabs.length, 6);
+  assert.equal(tabs.length, 7);
 
   w.document.querySelector('[data-tab="vitals"]').click();
   assert.equal(pane(w).getAttribute("aria-labelledby"), "ml-tab-vitals");
@@ -296,6 +296,11 @@ test("页签：点击与键盘左右键都能切换，内容随之重绘", () =>
 
   w.document.querySelector('[data-tab="settings"]').click();
   assert.equal(pane(w).getAttribute("aria-labelledby"), "ml-tab-settings");
+
+  const body = w.document.querySelector("#ml-panel .ml-body");
+  body.scrollTop = 120;
+  w.document.querySelector('[data-tab="deco"]').click();
+  assert.equal(body.scrollTop, 0, "切页签应从顶部开始，不继承上一页滚动位置");
 });
 
 test("焦点陷阱：面板内 Tab 循环，不会逃到游戏正文", () => {

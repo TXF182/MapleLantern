@@ -46,6 +46,7 @@
     system: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3.1"/><path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.4 5.4l1.7 1.7M16.9 16.9l1.7 1.7M18.6 5.4l-1.7 1.7M7.1 16.9L5.4 18.6"/></svg>',
     switches: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2.2"/><circle cx="15" cy="12" r="2.2"/><circle cx="9" cy="18" r="2.2"/></svg>',
     settings: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>',
+    deco: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3.4" y="4.4" width="17.2" height="15.2" rx="2"/><circle cx="8.1" cy="8.8" r="1.5"/><path d="M4.4 16.8l4.8-5.2 3.5 3.5 2.6-2.5 4.6 4.4"/></svg>',
     close: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
     copy: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="8.5" y="3.5" width="12" height="13" rx="2"/><path d="M15.5 20.5h-9a2 2 0 0 1-2-2v-10"/></svg>',
     reset: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.2 12a7.8 7.8 0 1 0 2.4-5.6"/><path d="M4.2 4.2v4.4h4.4"/></svg>'
@@ -572,6 +573,7 @@
       if (active && active.scrollIntoView) { active.scrollIntoView({ block: "nearest", inline: "nearest" }); }
     } catch (e) { /* 滚动失败不影响切换 */ }
     renderActive();
+    if (els.body) { els.body.scrollTop = 0; }
     if (els.sr) { els.sr.textContent = C.strings(state.lang)["tab." + key]; }
   }
 
@@ -598,6 +600,7 @@
     if (state.tab === "now") { renderNow(pane, modelSafe); }
     else if (state.tab === "vitals") { renderVitals(pane, modelSafe); }
     else if (state.tab === "worn") { renderWorn(pane, modelSafe); }
+    else if (state.tab === "deco") { renderDeco(pane); }
     else if (state.tab === "system") { renderSystem(pane); }
     else if (state.tab === "switches") { renderSwitches(pane); }
     else { renderSettings(pane); }
@@ -993,6 +996,19 @@
   }
 
   /* 原生模块开关：只控制原版 UI 的替换层，不控制灯台浮窗自己的页签/页脚。 */
+  function renderDeco(pane) {
+    var api = window.MapleLanternDecoPanel;
+    if (api && typeof api.renderPage === "function") {
+      api.renderPage(pane);
+      return;
+    }
+    var box = el("div", "ml-field");
+    var hint = el("p", "ml-note is-faint");
+    hint.textContent = C.strings(state.lang)["deco.loading"] || "布景模块尚未就绪";
+    box.appendChild(hint);
+    pane.appendChild(box);
+  }
+
   function renderSwitches(pane) {
     var s = C.strings(state.lang);
     var note = el("p", "ml-note");

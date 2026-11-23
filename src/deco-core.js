@@ -162,17 +162,28 @@
     return { visual: visual, base: base, chain: chain, outside: outside, meta: meta };
   }
 
-  function pickAutoLocation(info, catalog, known) {
+  /* 自动地点是严格白名单：只有 decoAutoBgLocations 里显式列出的地点才会
+     参与匹配。空名单 = 不自动切换，和原版 decoAutoBgLocations 语义一致。 */
+  function pickAutoLocation(info, catalog, known, disabled) {
     var list = catalog || CATALOG;
-    var names = {};
-    for (var i = 0; i < list.length; i++) names[normalizeName(list[i])] = true;
+    var images = {};
+    var allowed = {};
+    var blocked = {};
+    for (var i = 0; i < list.length; i++) images[normalizeName(list[i])] = true;
     if (known && typeof known === "object") {
       var keys = Array.isArray(known) ? known : Object.keys(known);
-      for (var k = 0; k < keys.length; k++) names[normalizeName(keys[k])] = true;
+      for (var k = 0; k < keys.length; k++) {
+        var key = normalizeName(keys[k]);
+        if (key !== "none") allowed[key] = true;
+      }
     }
+    if (Array.isArray(disabled)) {
+      for (var d = 0; d < disabled.length; d++) blocked[normalizeName(disabled[d])] = true;
+    }
+    if (!Object.keys(allowed).length) return "none";
     for (var c = 0; c < info.chain.length; c++) {
       var name = normalizeName(info.chain[c]);
-      if (name !== "none" && names[name]) return name;
+      if (name !== "none" && allowed[name] && images[name] && !blocked[name]) return name;
     }
     return "none";
   }
@@ -214,6 +225,10 @@
     if (!vars || !vars.decoPresets) return false;
     var preset = vars.decoPresets[slot];
     if (!preset) return false;
+    /* 预设是玩家显式选择，不能被自动地点在同一个 refresh 里立刻覆盖。 */
+    if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
+    else delete vars.decoAutoBgSource;
+    vars.decoAutoBgEnabled = false;
     for (var i = 0; i < LAYERS.length; i++) {
       var layer = LAYERS[i];
       vars[layer.varKey] = normalizeName(preset[layer.id]);
@@ -245,7 +260,7 @@
     var vars = getVars(env.vars) || {};
     var setup = getSetup(env.setup) || {};
     var weather = env.Weather || safe(function () { return root.Weather; }, null) || {};
-    if (vars.decoAutoBgEnabled === false || vars.decoAutoBgFilterEnabled === false) return {};
+    if (vars.decoAutoBgFilterEnabled !== true) return {};
     var info = locationInfo(vars, setup);
     if (!info.outside) return {};
     var layerIds = env.filterLayers || vars.decoFilterLayers || ["background1", "background2", "background3", "background4"];
@@ -287,19 +302,64 @@
     try { return JSON.stringify(value || {}); } catch (e) { return String(value); }
   }
 
+  /* 自动背景第一次接管前，把玩家原本的背景与显示状态存进存档变量；
+     之后重复匹配不再覆盖备份。关闭自动或地点不在白名单时按备份恢复。 */
+  function backupPlayerBackground(vars) {
+    vars = getVars(vars);
+    if (!vars || vars.decoAutoBgActive === true) return false;
+    vars.decoAutoBgBackup = has(vars, "background_image1") ? vars.background_image1 : "none";
+    vars.decoAutoBgBackupShow = has(vars, "show_background1") ? vars.show_background1 !== false : true;
+    vars.decoAutoBgActive = true;
+    return true;
+  }
+
+  function restoreAutoBackground(vars) {
+    vars = getVars(vars);
+    if (!vars) return false;
+    var active = vars.decoAutoBgActive === true;
+    if (active) {
+      vars.background_image1 = has(vars, "decoAutoBgBackup") ? vars.decoAutoBgBackup : "none";
+      vars.show_background1 = has(vars, "decoAutoBgBackupShow") ? vars.decoAutoBgBackupShow !== false : true;
+      delete vars.decoAutoBgBackup;
+      delete vars.decoAutoBgBackupShow;
+    }
+    vars.decoAutoBgActive = false;
+    delete vars.decoAutoBgSource;
+    return active;
+  }
+
   function applyAutoBackground(vars, setup, catalog, force) {
     vars = getVars(vars) || {};
     setup = getSetup(setup) || {};
-    if (vars.decoAutoBgEnabled === false && !force) return "none";
+    if (vars.decoAutoBgEnabled !== true && !force) {
+      if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
+      return "none";
+    }
     var info = locationInfo(vars, setup);
     var found = pickAutoLocation(info, catalog || CATALOG, vars.decoAutoBgLocations);
-    if (found === "none") return "none";
+    if (found === "none") {
+      if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
+      return "none";
+    }
+    backupPlayerBackground(vars);
     vars.background_image1 = found;
     vars.show_background1 = true;
     vars.decoAutoBgSource = found;
-    if (!Array.isArray(vars.decoAutoBgLocations)) vars.decoAutoBgLocations = [];
-    if (vars.decoAutoBgLocations.indexOf(found) < 0) vars.decoAutoBgLocations.push(found);
     return found;
+  }
+
+  /* 只在 passageend 或玩家显式“匹配当前地点”时调用；页面重绘、显示开关、
+     Z 序和滤镜操作不得触发这里。 */
+  function applyAutoOnPassage(env) {
+    env = env || {};
+    if (state.mode === MODE.external) return "external";
+    var vars = getVars(env.vars) || {};
+    if (vars.decoAutoBgEnabled !== true) {
+      if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
+      else delete vars.decoAutoBgSource;
+      return "none";
+    }
+    return applyAutoBackground(vars, env.setup, env.catalog || CATALOG, false);
   }
 
   function collectLayers(RendererArg) {
@@ -379,9 +439,6 @@
     env = env || {};
     var vars = getVars(env.vars) || {};
     var setup = getSetup(env.setup) || {};
-    if (state.mode !== MODE.external && vars.decoAutoBgEnabled !== false) {
-      applyAutoBackground(vars, setup, env.catalog || CATALOG);
-    }
     if (state.mode === MODE.native) {
       var overlay = computeOverlay({ vars: vars, setup: setup, Weather: env.Weather || safe(function () { return root.Weather; }, null), filterLayers: env.filterLayers || vars.decoFilterLayers });
       applyOverlay(collectLayers(), overlay);
@@ -659,6 +716,9 @@
     computeOverlay: computeOverlay,
     applyOverlay: applyOverlay,
     applyAutoBackground: applyAutoBackground,
+    applyAutoOnPassage: applyAutoOnPassage,
+    backupPlayerBackground: backupPlayerBackground,
+    restoreAutoBackground: restoreAutoBackground,
     collectLayers: collectLayers,
     redraw: redraw,
     refresh: refresh,

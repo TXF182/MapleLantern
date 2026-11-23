@@ -76,6 +76,7 @@ function createEnv(opts) {
       if (opts.Weather) w.Weather = opts.Weather;
       if (opts.renderer) w.Renderer = opts.renderer;
       if (opts.modUtils) w.modUtils = opts.modUtils;
+      if (opts.IntersectionObserver) w.IntersectionObserver = opts.IntersectionObserver;
       if (opts.mutable) w.__writes = () => 0;
       w.Time = { hour: 8, minute: 20, month: 3, monthDay: 14, weekDay: 1, dayState: "dawn" };
       w.Constants = { tiredness: { max: 2000 } };

@@ -89,7 +89,7 @@ test("地点链：视觉地点、基础地点、location 别名、父级逐层�
   assert.ok(castleInfo.chain.includes("tower"));
 });
 
-test("自动地点：当前地点有图优先，否则父级；castle 走 tower", () => {
+test("自动地点：严格白名单；当前地点有图优先，否则父级；castle 走 tower", () => {
   const setup = {
     Locations: { get: () => "tower" },
     locations: {
@@ -102,10 +102,41 @@ test("自动地点：当前地点有图优先，否则父级；castle 走 tower"
     }
   };
   const catalog = ["castle", "tower", "town", "beach"];
-  assert.equal(D.pickAutoLocation(D.locationInfo(vars({ location: "castle" }), setup), catalog), "tower");
-  assert.equal(D.pickAutoLocation(D.locationInfo(vars({ location: "changingroom" }), setup), ["town", "beach"]), "beach");
-  assert.equal(D.pickAutoLocation(D.locationInfo(vars({ location: "changingroom" }), setup), ["town"]), "town");
-  assert.equal(D.pickAutoLocation(D.locationInfo(vars({ location: "changingroom" }), setup), []), "none");
+  const castleInfo = D.locationInfo(vars({ location: "castle" }), setup);
+  const roomInfo = D.locationInfo(vars({ location: "changingroom" }), setup);
+  assert.equal(D.pickAutoLocation(castleInfo, catalog, ["castle", "tower", "town", "beach"]), "tower");
+  assert.equal(D.pickAutoLocation(roomInfo, ["town", "beach"], ["beach", "town", "changingroom"]), "beach");
+  assert.equal(D.pickAutoLocation(roomInfo, ["town"], ["town", "changingroom"]), "town");
+  assert.equal(D.pickAutoLocation(roomInfo, [], ["town", "changingroom"]), "none");
+  /* 白名单为空 = 不自动切换；不在名单里的地点即使图库有图也不匹配。 */
+  assert.equal(D.pickAutoLocation(castleInfo, catalog, [], []), "none");
+  assert.equal(D.pickAutoLocation(roomInfo, catalog, ["beach"], []), "beach");
+  assert.equal(D.pickAutoLocation(roomInfo, catalog, ["town"], []), "town");
+  assert.equal(D.pickAutoLocation(roomInfo, ["changingroom"], ["changingroom"], []), "changingroom");
+  assert.equal(D.pickAutoLocation(roomInfo, catalog, ["beach"], ["beach"]), "none");
+});
+
+test("自动地点：停用名单只作为白名单内的额外排除，不再自动写回名单", () => {
+  const setup = {
+    Locations: { get: () => "home" },
+    locations: {
+      world: { parent: undefined, outside: 1 },
+      town: { parent: "world", outside: 1 },
+      home: { parent: "town", outside: 0 }
+    }
+  };
+  const catalog = ["town", "home"];
+  const info = D.locationInfo(vars({ location: "home" }), setup);
+  assert.equal(D.pickAutoLocation(info, catalog, ["home"], []), "home");
+  assert.equal(D.pickAutoLocation(info, catalog, ["home", "town"], ["home"]), "town");
+  assert.equal(D.pickAutoLocation(info, catalog, ["home", "town"], ["home", "town"]), "none");
+  assert.equal(D.pickAutoLocation(info, catalog, [], []), "none");
+
+  const v = vars({ location: "home", decoAutoBgEnabled: true, decoAutoBgLocations: ["home", "town"], decoAutoBgDisabled: ["home"] });
+  assert.equal(D.applyAutoBackground(v, setup, catalog), "home", "旧档隐藏停用名单不得继续拦截已加入白名单的地点");
+  assert.equal(v.background_image1, "home");
+  assert.equal(v.decoAutoBgSource, "home");
+  assert.deepEqual(Array.from(v.decoAutoBgLocations), ["home", "town"], "匹配结果不得反写白名单");
 });
 
 test("预设：保存/套用包含九图、Z、路径与显示状态", () => {
@@ -140,7 +171,7 @@ test("滤镜：夜间/雨天输出颜色与亮度；关闭时清空；只作用�
   const env = {
     setup,
     Weather: { skyState: "night", name: "heavyPrecipitation", bloodMoon: false },
-    vars: vars({ background_image1: "beach", background_image2: "town" }),
+    vars: vars({ background_image1: "beach", background_image2: "town", decoAutoBgFilterEnabled: true }),
     filterLayers: ["background1", "background2"]
   };
   const overlay = D.computeOverlay(env);
@@ -151,9 +182,68 @@ test("滤镜：夜间/雨天输出颜色与亮度；关闭时清空；只作用�
 
   assert.deepEqual(D.computeOverlay(Object.assign({}, env, { filterLayers: ["foreground1"] })), {});
   const off = D.computeOverlay(Object.assign({}, env, {
-    vars: vars({ decoAutoBgEnabled: false, background_image1: "beach" })
+    vars: vars({ decoAutoBgFilterEnabled: false, background_image1: "beach" })
   }));
   assert.deepEqual(off, {});
+});
+
+test("默认关闭：未声明自动背景时 refresh 不换图、passage 不接管", () => {
+  const setup = { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } };
+  const v = vars({ location: "home", background_image1: "forest", show_background1: false, decoAutoBgLocations: ["home"] });
+  D.refresh({ vars: v, setup });
+  assert.equal(v.background_image1, "forest", "refresh 不得隐式应用自动背景");
+  assert.equal(v.show_background1, false);
+  assert.equal(D.applyAutoOnPassage({ vars: v, setup }), "none");
+  assert.equal(v.background_image1, "forest");
+});
+
+test("自动背景：备份玩家原图/显示，重复匹配不覆盖备份，关闭后完整恢复", () => {
+  const setup = { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } };
+  const v = vars({
+    location: "home", background_image1: "forest", show_background1: false,
+    decoAutoBgEnabled: true, decoAutoBgLocations: ["home"]
+  });
+  assert.equal(D.applyAutoBackground(v, setup, ["home"]), "home");
+  assert.equal(v.background_image1, "home");
+  assert.equal(v.show_background1, true);
+  assert.equal(v.decoAutoBgActive, true);
+  assert.equal(v.decoAutoBgBackup, "forest");
+  assert.equal(v.decoAutoBgBackupShow, false);
+
+  D.applyAutoBackground(v, setup, ["home"]);
+  assert.equal(v.decoAutoBgBackup, "forest", "第二次匹配不得把自动图当成玩家原图备份");
+
+  assert.equal(D.restoreAutoBackground(v), true);
+  assert.equal(v.background_image1, "forest");
+  assert.equal(v.show_background1, false);
+  assert.equal(v.decoAutoBgActive, false);
+  assert.equal(v.decoAutoBgSource, undefined);
+  assert.equal(v.decoAutoBgBackup, undefined);
+});
+
+test("自动关闭后 passage 立即恢复玩家原图，不把自动图留在背景上", () => {
+  const setup = { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } };
+  const v = vars({ location: "home", background_image1: "forest", show_background1: false, decoAutoBgEnabled: true, decoAutoBgLocations: ["home"] });
+  assert.equal(D.applyAutoOnPassage({ vars: v, setup }), "home");
+  assert.equal(v.background_image1, "home");
+  v.decoAutoBgEnabled = false;
+  assert.equal(D.applyAutoOnPassage({ vars: v, setup }), "none");
+  assert.equal(v.background_image1, "forest");
+  assert.equal(v.show_background1, false);
+  assert.equal(v.decoAutoBgActive, false);
+});
+
+test("预设：套用前先恢复玩家原背景并关闭自动，避免立即被地点覆盖", () => {
+  const setup = { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } };
+  const v = vars({ location: "home", background_image1: "forest", show_background1: false, decoAutoBgEnabled: true, decoAutoBgLocations: ["home"] });
+  assert.equal(D.savePreset(v, 1, "森林"), 1);
+  assert.equal(D.applyAutoBackground(v, setup, ["home"]), "home");
+  assert.equal(v.background_image1, "home");
+  assert.equal(D.applyPreset(v, 1), true);
+  assert.equal(v.background_image1, "forest");
+  assert.equal(v.show_background1, false);
+  assert.equal(v.decoAutoBgEnabled, false);
+  assert.equal(v.decoAutoBgActive, false);
 });
 
 test("叠色应用到图层：写 brightness / decoColorOverlay，并清缓存", () => {
