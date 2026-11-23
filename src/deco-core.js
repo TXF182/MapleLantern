@@ -162,13 +162,15 @@
     return { visual: visual, base: base, chain: chain, outside: outside, meta: meta };
   }
 
-  /* 自动地点是严格白名单：只有 decoAutoBgLocations 里显式列出的地点才会
-     参与匹配。空名单 = 不自动切换，和原版 decoAutoBgLocations 语义一致。 */
-  function pickAutoLocation(info, catalog, known, disabled) {
+  /* 自动地点是白名单，但开启自动背景后当前地点会被自动写入名单：
+     每个 passage 调 ensureAutoLocation，把链上第一个有图地点补进去。
+     玩家显式移除的地点写入 decoAutoBgExcluded，不再自动回流。 */
+  function pickAutoLocation(info, catalog, known, disabled, excluded) {
     var list = catalog || CATALOG;
     var images = {};
     var allowed = {};
     var blocked = {};
+    var hard = {};
     for (var i = 0; i < list.length; i++) images[normalizeName(list[i])] = true;
     if (known && typeof known === "object") {
       var keys = Array.isArray(known) ? known : Object.keys(known);
@@ -180,12 +182,57 @@
     if (Array.isArray(disabled)) {
       for (var d = 0; d < disabled.length; d++) blocked[normalizeName(disabled[d])] = true;
     }
+    if (Array.isArray(excluded)) {
+      for (var e = 0; e < excluded.length; e++) {
+        var ex = normalizeName(excluded[e]);
+        blocked[ex] = true;
+        hard[ex] = true;
+      }
+    }
     if (!Object.keys(allowed).length) return "none";
+    var firstImage = "none";
+    for (var f = 0; f < info.chain.length; f++) {
+      var first = normalizeName(info.chain[f]);
+      if (first !== "none" && images[first]) { firstImage = first; break; }
+    }
+    /* 当前地点/房间在玩家排除名单里时直接停用，不拿父级地点顶替；
+       否则在 home 里移除 home 会突然套上 town 的图。 */
+    if (firstImage !== "none" && hard[firstImage]) return "none";
     for (var c = 0; c < info.chain.length; c++) {
       var name = normalizeName(info.chain[c]);
       if (name !== "none" && allowed[name] && images[name] && !blocked[name]) return name;
     }
     return "none";
+  }
+
+  function autoCatalogName(info, catalog, excluded) {
+    var list = catalog || CATALOG;
+    var images = {};
+    var blocked = {};
+    for (var i = 0; i < list.length; i++) images[normalizeName(list[i])] = true;
+    if (Array.isArray(excluded)) {
+      for (var e = 0; e < excluded.length; e++) blocked[normalizeName(excluded[e])] = true;
+    }
+    for (var c = 0; c < info.chain.length; c++) {
+      var name = normalizeName(info.chain[c]);
+      if (name !== "none" && images[name] && !blocked[name]) return name;
+    }
+    return "none";
+  }
+
+  function ensureAutoLocation(vars, setup, catalog) {
+    vars = getVars(vars) || {};
+    if (vars.decoAutoBgEnabled !== true) return "none";
+    var info = locationInfo(vars, setup);
+    var found = autoCatalogName(info, catalog || CATALOG, vars.decoAutoBgExcluded);
+    if (found === "none") return "none";
+    if (!Array.isArray(vars.decoAutoBgLocations)) vars.decoAutoBgLocations = [];
+    var exists = false;
+    for (var i = 0; i < vars.decoAutoBgLocations.length; i++) {
+      if (normalizeName(vars.decoAutoBgLocations[i]) === found) { exists = true; break; }
+    }
+    if (!exists) vars.decoAutoBgLocations.push(found);
+    return found;
   }
 
   function capKey(id) {
@@ -336,7 +383,7 @@
       return "none";
     }
     var info = locationInfo(vars, setup);
-    var found = pickAutoLocation(info, catalog || CATALOG, vars.decoAutoBgLocations);
+    var found = pickAutoLocation(info, catalog || CATALOG, vars.decoAutoBgLocations, null, vars.decoAutoBgExcluded);
     if (found === "none") {
       if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
       return "none";
@@ -359,6 +406,7 @@
       else delete vars.decoAutoBgSource;
       return "none";
     }
+    ensureAutoLocation(vars, env.setup, env.catalog || CATALOG);
     return applyAutoBackground(vars, env.setup, env.catalog || CATALOG, false);
   }
 
@@ -696,7 +744,7 @@
   }
 
   return Object.freeze({
-    VERSION: "1.5.7",
+    VERSION: "1.5.9",
     LAYERS: LAYERS,
     CATALOG: CATALOG,
     LIBRARY_DIR: LIBRARY_DIR,
@@ -709,6 +757,7 @@
     layerZ: layerZ,
     locationInfo: locationInfo,
     pickAutoLocation: pickAutoLocation,
+    ensureAutoLocation: ensureAutoLocation,
     savePreset: savePreset,
     applyPreset: applyPreset,
     deletePreset: deletePreset,

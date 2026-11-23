@@ -197,6 +197,24 @@ test("默认关闭：未声明自动背景时 refresh 不换图、passage 不接
   assert.equal(v.background_image1, "forest");
 });
 
+test("自动背景：开启后 passage 自动收录当前有图地点，移除后不再回流", () => {
+  const setup = {
+    Locations: { get: () => "bathroom" },
+    locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 }, bathroom: { parent: "home", outside: 0 } }
+  };
+  const catalog = ["home", "town"];
+  const v = vars({ location: "home", background_image1: "forest", decoAutoBgEnabled: true });
+  assert.equal(D.ensureAutoLocation(v, setup, catalog), "home", "当前浴室无图时应落到有图的 home");
+  assert.deepEqual(Array.from(v.decoAutoBgLocations), ["home"], "开启后 passage 自动写入白名单");
+  assert.equal(D.applyAutoOnPassage({ vars: v, setup, catalog }), "home");
+  assert.equal(v.background_image1, "home");
+
+  const removed = vars({ location: "home", decoAutoBgEnabled: true, decoAutoBgLocations: ["home", "town"], decoAutoBgExcluded: ["home"] });
+  assert.equal(D.ensureAutoLocation(removed, setup, catalog), "none", "显式移除的地点不得被自动收录");
+  assert.deepEqual(Array.from(removed.decoAutoBgLocations), ["home", "town"], "自动收录不得清空玩家名单");
+  assert.equal(D.applyAutoBackground(removed, setup, catalog), "none", "当前地点被排除时不得拿父级 town 顶替");
+});
+
 test("自动背景：备份玩家原图/显示，重复匹配不覆盖备份，关闭后完整恢复", () => {
   const setup = { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } };
   const v = vars({

@@ -83,7 +83,8 @@
       autoNoImageHint: "名单内这些地点在图中没有对应图，自动背景会跳过：",
       currentBg: "当前背景1",
       lastAuto: "上次自动匹配",
-      autoHint: "只有名单内地点会触发自动背景；空名单不会切换。",
+      autoHint: "启用后自动收录当前地点；每到一个新地点也会自动收录。手动移除的地点不会自动回流。",
+      addAll: "一键添加所有地点",
       overwrite: "覆盖",
       overwriteConfirm: "覆盖这个预设？",
       deleteConfirm: "确定删除这个预设？",
@@ -162,7 +163,8 @@
       autoNoImageHint: "These whitelisted locations have no gallery image and will be skipped:",
       currentBg: "Current background 1",
       lastAuto: "Last auto match",
-      autoHint: "Only whitelisted locations trigger auto background; an empty list does not switch.",
+      autoHint: "When enabled, the current location is added automatically and new locations are added as you arrive. Locations you remove are not added back automatically.",
+      addAll: "Add all locations",
       overwrite: "Overwrite",
       overwriteConfirm: "Overwrite this preset?",
       deleteConfirm: "Delete this preset?",
@@ -480,6 +482,13 @@
     return false;
   }
 
+  function unexcludeLocation(v, name) {
+    var normalized = D.normalizeName(name);
+    if (normalized === "none" || !Array.isArray(v.decoAutoBgExcluded)) return;
+    var idx = v.decoAutoBgExcluded.indexOf(normalized);
+    if (idx >= 0) v.decoAutoBgExcluded.splice(idx, 1);
+  }
+
   function addLocation(name) {
     var v = vars();
     if (!v) return;
@@ -487,7 +496,29 @@
     if (normalized === "none") return;
     var list = ensureList(v, "decoAutoBgLocations");
     if (list.indexOf(normalized) < 0) list.push(normalized);
+    unexcludeLocation(v, normalized);
     delete v.decoAutoBgDisabled;
+    refresh();
+    rebuildPage();
+  }
+
+  function addAllLocations() {
+    var v = vars();
+    if (!v) return;
+    var list = ensureList(v, "decoAutoBgLocations");
+    var seen = {};
+    for (var i = 0; i < list.length; i++) seen[D.normalizeName(list[i])] = true;
+    var all = D.CATALOG || [];
+    for (var j = 0; j < all.length; j++) {
+      var normalized = D.normalizeName(all[j]);
+      if (normalized !== "none" && !seen[normalized]) {
+        seen[normalized] = true;
+        list.push(normalized);
+      }
+    }
+    delete v.decoAutoBgDisabled;
+    delete v.decoAutoBgExcluded;
+    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false);
     refresh();
     rebuildPage();
   }
@@ -499,7 +530,10 @@
     var list = readList(v, "decoAutoBgLocations");
     var idx = list.indexOf(normalized);
     if (idx >= 0) list.splice(idx, 1);
+    var excluded = ensureList(v, "decoAutoBgExcluded");
+    if (excluded.indexOf(normalized) < 0) excluded.push(normalized);
     delete v.decoAutoBgDisabled;
+    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false);
     refresh();
     rebuildPage();
   }
@@ -850,8 +884,10 @@
       var current = vars();
       if (!current) return;
       current.decoAutoBgEnabled = auto.checked;
-      if (auto.checked) D.applyAutoBackground(current, setup(), D.CATALOG, false);
-      else D.restoreAutoBackground(current);
+      if (auto.checked) {
+        D.ensureAutoLocation(current, setup(), D.CATALOG);
+        D.applyAutoBackground(current, setup(), D.CATALOG, false);
+      } else D.restoreAutoBackground(current);
       refresh();
       rebuildPage();
     });
@@ -918,6 +954,10 @@
     section.appendChild(locRow);
 
     var actionRow = el("div", "ml-deco-preset-new");
+    var addAllBtn = button(t("addAll"), "ml-btn ml-btn-sm", addAllLocations);
+    addAllBtn.setAttribute("data-deco-location-add-all", "1");
+    addAllBtn.setAttribute("data-deco-pack-required", "1");
+    actionRow.appendChild(addAllBtn);
     var matchBtn = button(t("match"), "ml-btn ml-btn-sm", function () {
       var current = vars();
       if (!current) return;
@@ -925,6 +965,7 @@
       if (here !== "none") {
         var allowed = ensureList(current, "decoAutoBgLocations");
         if (allowed.indexOf(here) < 0) allowed.push(here);
+        unexcludeLocation(current, here);
       }
       current.decoAutoBgEnabled = true;
       D.applyAutoBackground(current, setup(), D.CATALOG, true);
@@ -940,6 +981,7 @@
       current.decoAutoBgEnabled = false;
       current.decoAutoBgLocations = [];
       delete current.decoAutoBgDisabled;
+      delete current.decoAutoBgExcluded;
       refresh();
       rebuildPage();
     });

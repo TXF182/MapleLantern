@@ -3,7 +3,14 @@
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生界面替换层。只改呈现，不碰游戏数值与存档写入。
 QQ群:630879012
 
-当前版本：**1.5.8**
+当前版本：**1.5.9**
+
+## 1.5.9 重点
+
+- **自动背景真正自动**：开启后当前地点立即进入名单并套图；之后每到一个新地点自动收录，不再需要手动点「加入当前地点」。当前房间没有图时，自动落到最近有图的上级地点。
+- **移除不回流**：手动移除的地点会记住，不会在下一次换地点时被自动加回，也不会改套上级地点的图。
+- **一键添加所有地点**：图库内 83 个地点一次加入名单，并清空之前的排除记录。
+- **实测**：308/308 PASS；真实 `file://` 双包环境布景页开启即收录、一键添加与移除恢复走查通过。
 
 ## 1.5.8 重点
 
@@ -182,8 +189,8 @@ QQ群:630879012
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.8.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
-3. 再导入 `MapleLantern-ImagePack-1.5.8.mod.zip` 布景图库；只装本体也能运行布景功能，但没有图可显示。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.9.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
+3. 再导入 `MapleLantern-ImagePack-1.5.9.mod.zip` 布景图库；只装本体也能运行布景功能，但没有图可显示。
 4. 刷新页面。
 
 > 把 zip 复制进游戏目录不等于安装：模组由浏览器本地数据库加载。
@@ -206,4 +213,4 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 打包产物在 `dist\`，并写入 `dist\SHA256.txt`。
 
-1.5.8 产物（分开发布）：`dist\MapleLantern-1.5.8.mod.zip`（本体，不含图）与 `dist\MapleLantern-ImagePack-1.5.8.mod.zip`（83 张布景图库）。本体与图库包的体积、条目数、SHA256 以 `dist\SHA256.txt` 与 `dist\SHA256-decor.txt` 为准。1.5.6 发布产物保留在 `dist\MapleLantern-1.5.6.mod.zip`，197,477 B / 16 条目 / SHA256 `c9e95307e8541965752cdceec1472bdc5ef609c003940ac1869f457ef7127f7b`。
+1.5.9 产物（分开发布）：`dist\MapleLantern-1.5.9.mod.zip`（本体，不含图）与 `dist\MapleLantern-ImagePack-1.5.9.mod.zip`（83 张布景图库）。本体与图库包的体积、条目数、SHA256 以 `dist\SHA256.txt` 与 `dist\SHA256-decor.txt` 为准。1.5.6 发布产物保留在 `dist\MapleLantern-1.5.6.mod.zip`，197,477 B / 16 条目 / SHA256 `c9e95307e8541965752cdceec1472bdc5ef609c003940ac1869f457ef7127f7b`。

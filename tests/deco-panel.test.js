@@ -57,7 +57,7 @@ test("独立布景页：第 7 个页签，入口不再嵌在设置页，也不�
   assert.match(page.textContent, /已停用/);
   assert.match(page.textContent, /图库已接入/);
   assert.equal(Number(page.querySelector("[data-deco-pack-status]").textContent.match(/83/)[0]), 83);
-  ["套用", "储存", "删除", "+ 新增预设", "添加", "加入当前地点", "关闭自动并清空名单", "恢复玩家背景"].forEach((label) => {
+  ["套用", "储存", "删除", "+ 新增预设", "添加", "加入当前地点", "一键添加所有地点", "关闭自动并清空名单", "恢复玩家背景"].forEach((label) => {
     assert.match(page.textContent, new RegExp(label.replace("+", "\\+")));
   });
   assert.equal(page.querySelectorAll("details[data-deco-group]").length, 2, "背景/前景两个折叠组");
@@ -181,6 +181,9 @@ test("自动背景：默认关闭、严格名单增删与重置", async () => {
   auto.click();
   await wait(2);
   assert.equal(v.decoAutoBgEnabled, true);
+  assert.ok(v.decoAutoBgLocations.includes("home"), "开启自动背景必须自动收录当前地点");
+  assert.match(w.document.querySelector("[data-deco-locations]").textContent, /home/);
+  assert.equal(v.background_image1, "home");
   assert.match(w.document.querySelector("[data-deco-auto-state]").textContent, /已启用/);
   w.document.querySelector("[data-deco-auto-toggle]").click();
   await wait(2);
@@ -198,10 +201,12 @@ test("自动背景：默认关闭、严格名单增删与重置", async () => {
   await wait(2);
   assert.equal(v.decoAutoBgLocations.length, 0);
   assert.equal(v.decoAutoBgDisabled, undefined, "删除地点不再写入隐藏停用名单");
+  assert.ok(v.decoAutoBgExcluded.includes("home"), "删除地点必须记为手动排除，避免自动回流");
 
   w.document.querySelector("[data-deco-location-current]").click();
   await wait(2);
   assert.ok(v.decoAutoBgLocations.includes("home"));
+  assert.ok(!v.decoAutoBgExcluded.includes("home"), "手动加入当前地点必须解除排除");
 
   w.document.querySelector("[data-deco-location-reset]").click();
   await wait(2);
@@ -209,7 +214,25 @@ test("自动背景：默认关闭、严格名单增删与重置", async () => {
   assert.equal(v.decoAutoBgFilterEnabled, undefined, "重置自动背景不误关独立滤镜");
   assert.equal(v.decoAutoBgLocations.length, 0);
   assert.equal(v.decoAutoBgDisabled, undefined);
+  assert.equal(v.decoAutoBgExcluded, undefined, "重置自动背景必须清空排除名单");
   assert.match(w.document.querySelector("[data-deco-auto-state]").textContent, /已停用/);
+});
+
+test("自动背景：一键添加所有图库地点并解除排除", async () => {
+  const { w } = await openDeco({
+    mutable: true,
+    seed: { v: 1, lang: "zh", motion: false },
+    setup: setupTown(),
+    renderer: fakeRenderer()
+  });
+  const page = w.document.querySelector("[data-deco-page]");
+  const v = w.SugarCube.State.variables;
+  v.decoAutoBgExcluded = ["home"];
+  page.querySelector("[data-deco-location-add-all]").click();
+  await wait(2);
+  assert.equal(v.decoAutoBgLocations.length, w.MapleLanternDeco.CATALOG.length, "一键添加应覆盖全部图库地点");
+  assert.equal(v.decoAutoBgExcluded, undefined, "一键添加所有地点必须解除全部排除");
+  assert.equal(w.document.querySelectorAll("[data-deco-location-remove]").length, w.MapleLanternDeco.CATALOG.length);
 });
 
 test("缩略图：有 IntersectionObserver 时不预拉全部图库", async () => {
@@ -257,6 +280,7 @@ test("图库缺包：状态提示与图片缺失文案", async () => {
   assert.match(page.querySelector("[data-deco-pack-status]").textContent, /图库包未加载/);
   assert.ok(page.querySelector("[data-deco-pack-status]").classList.contains("is-missing"));
   assert.equal(page.querySelector("[data-deco-auto-toggle]").disabled, true, "缺包时不得开启自动背景");
+  assert.equal(page.querySelector("[data-deco-location-add-all]").disabled, true, "缺包时不得一键添加所有地点");
   assert.equal(page.querySelector("[data-deco-pack-retry]").hidden, false, "缺包时应给重新检测入口");
   assert.equal(w.MapleLanternDecoPanel.mode(), "native");
 
