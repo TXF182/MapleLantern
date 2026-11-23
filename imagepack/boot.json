@@ -1,6 +1,6 @@
 {
   "name": "MapleLantern-ImagePack",
-  "version": "1.5.9",
+  "version": "1.5.10",
   "nickName": "灯台 · 布景图库",
   "scriptFileList_inject_early": [],
   "scriptFileList": [],
@@ -113,7 +113,7 @@
     },
     {
       "modName": "MapleLantern",
-      "version": ">=1.5.9"
+      "version": ">=1.5.10"
     },
     {
       "modName": "ModLoader DoL ImageLoaderHook",

@@ -744,7 +744,7 @@
   }
 
   return Object.freeze({
-    VERSION: "1.5.9",
+    VERSION: "1.5.10",
     LAYERS: LAYERS,
     CATALOG: CATALOG,
     LIBRARY_DIR: LIBRARY_DIR,

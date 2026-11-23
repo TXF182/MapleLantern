@@ -3,7 +3,12 @@
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生界面替换层。只改呈现，不碰游戏数值与存档写入。
 QQ群:630879012
 
-当前版本：**1.5.9**
+当前版本：**1.5.10**
+
+## 1.5.10 重点
+
+- **桌面端页签收口**：桌面 380px 面板把 7 个页签等分排布，「开关」与「设置」不再被横向滚出可视区；移动端窄屏保持等分。
+- **实测**：308/308 PASS；1280×800 与 320×844 真实包探针 7/7 页签全部可见。
 
 ## 1.5.9 重点
 
@@ -189,8 +194,8 @@ QQ群:630879012
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.9.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
-3. 再导入 `MapleLantern-ImagePack-1.5.9.mod.zip` 布景图库；只装本体也能运行布景功能，但没有图可显示。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.10.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
+3. 再导入 `MapleLantern-ImagePack-1.5.10.mod.zip` 布景图库；只装本体也能运行布景功能，但没有图可显示。
 4. 刷新页面。
 
 > 把 zip 复制进游戏目录不等于安装：模组由浏览器本地数据库加载。
@@ -213,4 +218,4 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 打包产物在 `dist\`，并写入 `dist\SHA256.txt`。
 
-1.5.9 产物（分开发布）：`dist\MapleLantern-1.5.9.mod.zip`（本体，不含图）与 `dist\MapleLantern-ImagePack-1.5.9.mod.zip`（83 张布景图库）。本体与图库包的体积、条目数、SHA256 以 `dist\SHA256.txt` 与 `dist\SHA256-decor.txt` 为准。1.5.6 发布产物保留在 `dist\MapleLantern-1.5.6.mod.zip`，197,477 B / 16 条目 / SHA256 `c9e95307e8541965752cdceec1472bdc5ef609c003940ac1869f457ef7127f7b`。
+1.5.10 产物（分开发布）：`dist\MapleLantern-1.5.10.mod.zip`（本体，不含图，223,393 B / 19 条目 / SHA256 `c5203e6f66b039c37bdc26887f371522e8932ab33bd1e176d8fcdaed2483c77f`）与 `dist\MapleLantern-ImagePack-1.5.10.mod.zip`（83 张布景图库，8,809,489 B / 85 条目 / SHA256 `519d19e1652b8bc31a0607b0711d15ff10e8569c46b1a91cfe11d94200044341`）。1.5.6 发布产物保留在 `dist\MapleLantern-1.5.6.mod.zip`，197,477 B / 16 条目 / SHA256 `c9e95307e8541965752cdceec1472bdc5ef609c003940ac1869f457ef7127f7b`。
