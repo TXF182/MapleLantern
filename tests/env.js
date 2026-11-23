@@ -8,8 +8,10 @@ const JSDOM_PATH = "C:/Users/27352/Doubao/chats/2026-10-13/new-chat-2/MapleBirch
 const { JSDOM } = require(JSDOM_PATH);
 
 const CORE = fs.readFileSync(path.join(__dirname, "..", "src", "core.js"), "utf8");
+const DECO_CORE = fs.readFileSync(path.join(__dirname, "..", "src", "deco-core.js"), "utf8");
 const NATIVE = fs.readFileSync(path.join(__dirname, "..", "src", "maplelantern-native.js"), "utf8");
 const INDEX = fs.readFileSync(path.join(__dirname, "..", "src", "render.js"), "utf8");
+const DECO_PANEL = fs.readFileSync(path.join(__dirname, "..", "src", "deco-panel.js"), "utf8");
 
 const HTML = "<!doctype html><html><head><meta charset='utf-8'></head><body>" +
   "<div id='ui-bar'><a>状态</a></div><div id='story'><div id='passages'><div class='passage'>走廊尽头" +
@@ -69,7 +71,12 @@ function createEnv(opts) {
         defineProperty() { writes++; throw new Error("writes are forbidden"); },
         deleteProperty() { writes++; throw new Error("writes are forbidden"); }
       });
-      w.SugarCube = { State: { variables: proxied, passage: "School Hallway" }, Version: { major: 2, minor: 36, patch: 1 } };
+      w.SugarCube = { State: { variables: opts.mutable ? vars : proxied, passage: "School Hallway" }, Version: { major: 2, minor: 36, patch: 1 } };
+      if (opts.setup) w.setup = opts.setup;
+      if (opts.Weather) w.Weather = opts.Weather;
+      if (opts.renderer) w.Renderer = opts.renderer;
+      if (opts.modUtils) w.modUtils = opts.modUtils;
+      if (opts.mutable) w.__writes = () => 0;
       w.Time = { hour: 8, minute: 20, month: 3, monthDay: 14, weekDay: 1, dayState: "dawn" };
       w.Constants = { tiredness: { max: 2000 } };
       w.StartConfig = { version: "0.5.12.13" };
@@ -101,8 +108,10 @@ function createEnv(opts) {
 
   const w = dom.window;
   w.eval(CORE);
+  w.eval(DECO_CORE);
   w.eval(NATIVE);
   w.eval(INDEX);
+  w.eval(DECO_PANEL);
   if (!w.document.getElementById("ml-root") && w.document.readyState === "loading") {
     w.document.dispatchEvent(new w.Event("DOMContentLoaded"));
   }

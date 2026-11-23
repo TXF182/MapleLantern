@@ -20,6 +20,7 @@ const dossierPanel = fs.readFileSync(path.join(SRC, "dossier-panel.js"), "utf8")
 const dossierAssets = fs.readFileSync(path.join(SRC, "dossier-assets.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
 const ornamentsCss = fs.readFileSync(path.join(SRC, "ornaments.css"), "utf8");
+const decoCss = fs.readFileSync(path.join(SRC, "deco.css"), "utf8");
 
 const strip = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 /* 第三方 cheat overlay 的排除前导：CheatExtended 落在 #customOverlayContent 内，
@@ -28,7 +29,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.6");
+  assert.equal(boot.version, "1.5.7");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -36,12 +37,12 @@ test("boot.json：身份、版本、四个必填列表与文件存在性", () =>
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
   assert.deepEqual(boot.scriptFileList,
-    ["core.js", "maplelantern-native.js", "render.js",
-     "dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js", "custom.js"],
-    "core 必须先于 native/render；自定义按 core→assets→theme→panel→custom（启动装配）顺序跟在后面");
+    ["core.js", "deco-core.js", "maplelantern-native.js", "render.js",
+     "dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js", "custom.js", "deco-panel.js"],
+    "core 必须先于 native/render；布景核心只依赖 core，布景工作台收尾；自定义按 core→assets→theme→panel→custom 顺序跟在后面");
   assert.deepEqual(boot.scriptFileList_inject_early, ["compat-preload.js"],
     "MEE 兼容层必须在所有普通脚本之前注入");
-  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css", "ornaments.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾；ornaments.css 负责主题边饰，放最后");
+  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css", "deco.css", "ornaments.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾；ornaments.css 负责主题边饰，放最后；布景样式在它之前");
   for (const list of [boot.scriptFileList, boot.scriptFileList_inject_early, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");
@@ -57,6 +58,15 @@ test("boot.json：GameVersion 精确锁、Host 区间、不硬依赖 DoLGameUI",
   assert.equal(host, undefined, "独立界面不应硬依赖宿主");
   assert.equal(deps.find((d) => d.modName === "DoLGameUI"), undefined);
   assert.ok(deps.find((d) => d.modName === "ModLoader"));
+  /* 布景 83 张图必须经 ImageLoaderAddon 注册；只写 imgFileList 不会进 imgLookupTable，
+     实机表现就是 getImage 恒 undefined、缩略图 src 全空、正文一层不画。 */
+  const addon = (boot.addonPlugin || []).find((a) => a.modName === "ModLoader DoL ImageLoaderHook" && a.addonName === "ImageLoaderAddon");
+  assert.ok(addon, "缺少 ImageLoaderAddon 声明");
+  assert.equal(addon.modVersion, "^2.3.0");
+  assert.ok(Array.isArray(addon.params), "ImageLoaderAddon params 必须是数组");
+  const ilh = deps.find((d) => d.modName === "ModLoader DoL ImageLoaderHook");
+  assert.ok(ilh, "缺少 ImageLoaderHook 依赖声明");
+  assert.equal(ilh.version, "^2.3.0");
 });
 
 test("宿主反制：七类按钮逐条封回，且都是双 ID + 条件前导", () => {
@@ -88,23 +98,27 @@ test("触控：七类主要操作区都有 44px 下限", () => {
 });
 
 test("样式作用域：所有 .ml-* 选择器都在 #ml-root 之下", () => {
-  const selectors = strip(css).match(/[^{}]+(?=\{)/g) || [];
-  for (const raw of selectors) {
-    const sel = raw.trim();
-    if (!sel || sel.startsWith("@") || /^\d+%$/.test(sel) || /^(from|to)$/.test(sel)) { continue; }
-    /* 原生选项入口挂在 #customOverlayContent 内，天生不在 #ml-root 之下；
-       只允许这一组前缀例外。 */
-    if (sel.startsWith(".ml-native-entry")) { continue; }
-    if (sel.includes(".ml-") && !sel.includes("#ml-root")) {
-      assert.fail("未作用域的选择器: " + sel);
+  for (const [name, sheet] of [["style.css", css], ["deco.css", decoCss]]) {
+    const selectors = strip(sheet).match(/[^{}]+(?=\{)/g) || [];
+    for (const raw of selectors) {
+      const sel = raw.trim();
+      if (!sel || sel.startsWith("@") || /^\d+%$/.test(sel) || /^(from|to)$/.test(sel)) { continue; }
+      /* 原生选项入口挂在 #customOverlayContent 内，天生不在 #ml-root 之下；
+         只允许这一组前缀例外。 */
+      if (sel.startsWith(".ml-native-entry")) { continue; }
+      if (sel.includes(".ml-") && !sel.includes("#ml-root")) {
+        assert.fail(name + " 未作用域的选择器: " + sel);
+      }
     }
   }
 });
 
 test("字号全部走 calc(px * --dgu-font-scale * --ml-scale)", () => {
-  for (const line of strip(css).split("\n")) {
-    if (line.includes("font-size:") && !line.includes("var(--ml-scale")) {
-      assert.fail("未跟随字号的声明: " + line.trim());
+  for (const [name, sheet] of [["style.css", css], ["deco.css", decoCss]]) {
+    for (const line of strip(sheet).split("\n")) {
+      if (line.includes("font-size:") && !line.includes("var(--ml-scale")) {
+        assert.fail(name + " 未跟随字号的声明: " + line.trim());
+      }
     }
   }
 });
@@ -579,6 +593,7 @@ test("render.js：apiVersion 守卫、无定时轮询、销毁解绑齐全", () 
   }
   assert.ok(/removeEventListener/.test(index));
   assert.ok(/removeChild/.test(index));
+  assert.match(index, /window\.MapleLanternDecoPanel[\s\S]{0,200}destroy/);
   assert.equal((index.match(/window\.MapleLantern = \{/g) || []).length, 1);
 });
 

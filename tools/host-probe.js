@@ -7,6 +7,8 @@
   const custom = window.MapleLanternCustom;
   const theme = window.MapleLanternDossierTheme;
   const panel = window.MapleLanternDossierPanel;
+  const deco = window.MapleLanternDeco;
+  const decoPanel = window.MapleLanternDecoPanel;
   const s = custom && typeof custom.getSettings === "function" ? custom.getSettings() : null;
   const cardKeys = ["cardOn", "cardOpacity", "cardFit", "cardZoom", "cardX", "cardY"];
   return {
@@ -16,6 +18,9 @@
     custom: !!custom && custom.__ready === true,
     theme: !!theme,
     panel: !!panel,
+    deco: !!deco && deco.LAYERS.length === 9,
+    decoPanel: !!decoPanel && decoPanel.__ready === true,
+    decoCatalog: !!(deco && deco.CATALOG && deco.CATALOG.length === 83),
     version: core ? core.VERSION : null,
     cardKeys: !!(s && s.custom && cardKeys.every((k) => k in s.custom)),
     bgKeys: !!(s && s.custom && "bgOn" in s.custom),

@@ -1756,7 +1756,8 @@
     [
       window.MapleLanternNative,
       window.MapleLanternDossierTheme,
-      window.MapleLanternDossierPanel
+      window.MapleLanternDossierPanel,
+      window.MapleLanternDecoPanel
     ].forEach(function (api) {
       if (!api || typeof api.destroy !== "function") { return; }
       try { api.destroy(); } catch (e2) { /* 任一子层失败不得阻断其余层 */ }
