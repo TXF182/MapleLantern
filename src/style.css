@@ -695,7 +695,7 @@
 #ml-root .ml-tabs {
   position: relative;
   display: flex;
-  gap: 2px;
+  gap: 0;
   padding: 0 12px;
   border-bottom: 1px solid var(--ml-line);
   flex: 0 0 auto;
@@ -705,27 +705,25 @@
 #ml-root .ml-tabs::-webkit-scrollbar { display: none; }
 #ml-root .ml-tab {
   position: relative;
-  flex: 1 0 auto;
-  min-width: 54px;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 44px;
-  padding: 0 8px;
+  padding: 0 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 2px;
   color: var(--ml-faint);
   border-radius: 8px 8px 0 0;
   white-space: nowrap;
 }
-#ml-root .ml-tab .ml-ico { width: 15px; height: 15px; opacity: .9; }
-#ml-root .ml-tab-label { font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+#ml-root .ml-tab .ml-ico { width: 13px; height: 13px; opacity: .9; }
+#ml-root .ml-tab-label { font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
 
-/* 320/390：6 个页签等分容器，避免最后一页被横向裁掉；图标与字号同步收一档。 */
+/* 380px 面板固定能放下 7 个页签：桌面也等分收缩，避免“开关/设置”被横向滚出可视区。 */
 @media (max-width: 430px) {
-  #ml-root .ml-tabs { gap: 0; padding: 0 6px; }
-  #ml-root .ml-tab { flex: 1 1 0; min-width: 0; padding: 0 4px; gap: 4px; }
-  #ml-root .ml-tab .ml-ico { width: 13px; height: 13px; }
-  #ml-root .ml-tab-label { font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
+  #ml-root .ml-tabs { padding: 0 6px; }
+  #ml-root .ml-tab { padding: 0 2px; gap: 2px; }
 }
 #ml-root .ml-tab:hover { color: var(--ml-muted); background: rgba(255, 255, 255, .03); }
 #ml-root .ml-tab[aria-selected="true"] { color: var(--ml-accent); text-shadow: 0 0 10px var(--ml-accent-soft); }

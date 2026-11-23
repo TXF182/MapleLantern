@@ -203,10 +203,15 @@ test("三套主题动效：环境光、侧栏光带、页签淡入、环形呼�
   assert.match(nativeCss, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?#ui-bar#ui-bar,[\s\S]*?animation:\s*none !important/s);
 });
 
-test("320/390 窄屏：7 个页签等分，不得把最后一页裁出面板", () => {
-  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab\s*\{[^}]*flex:\s*1 1 0[^}]*min-width:\s*0/s);
-  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tabs\s*\{[^}]*gap:\s*0[^}]*padding:\s*0 6px/s);
-  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tab-label\s*\{[^}]*font-size:\s*calc\(11px/s);
+test("桌面 380 / 320 / 390：7 个页签等分，不得把最后一页裁出面板", () => {
+  const tabBase = strip(css).match(/#ml-root \.ml-tab \{[^}]*\}/)[0];
+  assert.match(tabBase, /flex:\s*1 1 0/);
+  assert.match(tabBase, /min-width:\s*0/);
+  assert.match(tabBase, /padding:\s*0 2px/);
+  assert.match(tabBase, /gap:\s*2px/);
+  assert.doesNotMatch(tabBase, /min-width:\s*54px/);
+  assert.match(css, /#ml-root \.ml-tab-label \{[^}]*font-size:\s*calc\(11px/s);
+  assert.match(css, /@media \(max-width:\s*430px\)[\s\S]*?\.ml-tabs\s*\{[^}]*padding:\s*0 6px/s);
   assert.match(css, /#ml-root \.ml-tab-glint\s*\{[^}]*position:\s*absolute[^}]*pointer-events:\s*none/s);
   assert.ok(!/#ml-root \.ml-tab\[aria-selected="true"\]::after/.test(css), "旧的分段下划线应已移除");
 });
