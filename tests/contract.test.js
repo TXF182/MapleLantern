@@ -6,6 +6,8 @@ const fs = require("fs");
 const path = require("path");
 
 const SRC = path.join(__dirname, "..", "src");
+const PACK = path.join(__dirname, "..", "imagepack");
+const packBoot = JSON.parse(fs.readFileSync(path.join(PACK, "boot.json"), "utf8"));
 const coreModule = require(path.join(SRC, "core.js"));
 const css = fs.readFileSync(path.join(SRC, "style.css"), "utf8");
 const fx = fs.readFileSync(path.join(SRC, "effects.css"), "utf8");
@@ -58,15 +60,23 @@ test("boot.json：GameVersion 精确锁、Host 区间、不硬依赖 DoLGameUI",
   assert.equal(host, undefined, "独立界面不应硬依赖宿主");
   assert.equal(deps.find((d) => d.modName === "DoLGameUI"), undefined);
   assert.ok(deps.find((d) => d.modName === "ModLoader"));
-  /* 布景 83 张图必须经 ImageLoaderAddon 注册；只写 imgFileList 不会进 imgLookupTable，
-     实机表现就是 getImage 恒 undefined、缩略图 src 全空、正文一层不画。 */
-  const addon = (boot.addonPlugin || []).find((a) => a.modName === "ModLoader DoL ImageLoaderHook" && a.addonName === "ImageLoaderAddon");
-  assert.ok(addon, "缺少 ImageLoaderAddon 声明");
+  /* 灯台本体不带图；83 张图由独立图库包经 ImageLoaderAddon 注册。
+     只写 imgFileList 不会进 imgLookupTable，实机表现就是 getImage 恒 undefined。
+     两个包分开安装、分开更新，本体不再替图库兜底。 */
+  assert.deepEqual(boot.imgFileList, [], "灯台本体不应打包布景图");
+  assert.equal(packBoot.name, "MapleLantern-ImagePack");
+  assert.equal(packBoot.version, boot.version, "图库包版本必须与本体一致");
+  const addon = (packBoot.addonPlugin || []).find((a) => a.modName === "ModLoader DoL ImageLoaderHook" && a.addonName === "ImageLoaderAddon");
+  assert.ok(addon, "图库包缺少 ImageLoaderAddon 声明");
   assert.equal(addon.modVersion, "^2.3.0");
   assert.ok(Array.isArray(addon.params), "ImageLoaderAddon params 必须是数组");
-  const ilh = deps.find((d) => d.modName === "ModLoader DoL ImageLoaderHook");
-  assert.ok(ilh, "缺少 ImageLoaderHook 依赖声明");
+  const ilh = packBoot.dependenceInfo.find((d) => d.modName === "ModLoader DoL ImageLoaderHook");
+  assert.ok(ilh, "图库包缺少 ImageLoaderHook 依赖声明");
   assert.equal(ilh.version, "^2.3.0");
+  assert.equal(packBoot.imgFileList.length, 83, "图库包应包含 83 张图");
+  for (const rel of packBoot.imgFileList) {
+    assert.ok(fs.existsSync(path.join(PACK, rel)), rel + " 不在图库包内");
+  }
 });
 
 test("宿主反制：七类按钮逐条封回，且都是双 ID + 条件前导", () => {
