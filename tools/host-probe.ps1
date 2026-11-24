@@ -54,7 +54,7 @@ try {
     foreach ($k in @("core", "custom", "theme", "panel", "deco", "decoPanel")) {
       if (-not $r.$k) { $fail += "全局未装配: $k" }
     }
-    if (-not $r.decoCatalog) { $fail += "布景图库不是 83 项" }
+    if (-not $r.decoCatalog) { $fail += "布景图库不是 105 项" }
     if ($r.version -ne $boot.version) { $fail += "VERSION=$($r.version) ≠ boot=$($boot.version)" }
     if (-not $r.cardKeys) { $fail += "CUSTOM_DEFAULTS 缺 card 六键" }
     if (-not $r.bgKeys) { $fail += "CUSTOM_DEFAULTS 缺 bg 键" }

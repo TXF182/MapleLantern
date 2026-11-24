@@ -31,7 +31,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.10");
+  assert.equal(boot.version, "1.5.11");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -60,7 +60,7 @@ test("boot.json：GameVersion 精确锁、Host 区间、不硬依赖 DoLGameUI",
   assert.equal(host, undefined, "独立界面不应硬依赖宿主");
   assert.equal(deps.find((d) => d.modName === "DoLGameUI"), undefined);
   assert.ok(deps.find((d) => d.modName === "ModLoader"));
-  /* 灯台本体不带图；83 张图由独立图库包经 ImageLoaderAddon 注册。
+  /* 灯台本体不带图；83 背景 + 83 前景由独立图库包经 ImageLoaderAddon 注册。
      只写 imgFileList 不会进 imgLookupTable，实机表现就是 getImage 恒 undefined。
      两个包分开安装、分开更新，本体不再替图库兜底。 */
   assert.deepEqual(boot.imgFileList, [], "灯台本体不应打包布景图");
@@ -73,8 +73,11 @@ test("boot.json：GameVersion 精确锁、Host 区间、不硬依赖 DoLGameUI",
   const ilh = packBoot.dependenceInfo.find((d) => d.modName === "ModLoader DoL ImageLoaderHook");
   assert.ok(ilh, "图库包缺少 ImageLoaderHook 依赖声明");
   assert.equal(ilh.version, "^2.3.0");
-  assert.equal(packBoot.imgFileList.length, 83, "图库包应包含 83 张图");
-  for (const rel of packBoot.imgFileList) {
+  const imgRels = packBoot.imgFileList;
+  assert.equal(imgRels.length, 210, "图库包应包含 105 张背景 + 105 张前景");
+  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/background1/")).length, 105, "背景应 105 张");
+  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/foreground1/")).length, 105, "前景应 105 张");
+  for (const rel of imgRels) {
     assert.ok(fs.existsSync(path.join(PACK, rel)), rel + " 不在图库包内");
   }
 });

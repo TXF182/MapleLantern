@@ -1,0 +1,68 @@
+MapleLantern foreground style verification
+version: 1.5.11
+time: 2026-11-23 23:23:12 +08:00
+python: 3.13.18 (main, Nov 11 2026, 00:19:14) [MSC v.1944 64 bit (AMD64)]
+pillow: 13.0.0
+numpy: 2.5.5
+
+== unit tests ==
+test_center_pixel_fails (test_validate_foreground.ValidateForegroundTests.test_center_pixel_fails) ... ok
+test_frames_must_match (test_validate_foreground.ValidateForegroundTests.test_frames_must_match) ... ok
+test_opaque_ratio_cap (test_validate_foreground.ValidateForegroundTests.test_opaque_ratio_cap) ... ok
+test_valid_sheet_passes (test_validate_foreground.ValidateForegroundTests.test_valid_sheet_passes) ... ok
+test_white_matte_fails (test_validate_foreground.ValidateForegroundTests.test_white_matte_fails) ... ok
+test_wrong_size_fails (test_validate_foreground.ValidateForegroundTests.test_wrong_size_fails) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.065s
+
+OK
+
+== uploaded foreground pack (83 files) ==
+command: python validate_foreground.py dist\foreground-upload\decorationsImg\decorations\img\decorations\foreground1\*.png
+safe zone: x=86-237 (SAFE_X0=86, SAFE_X1=238, exclusive)
+[PASS] wolf_cave.png
+       size=[512, 256] mode=RGBA alpha=0..255 opaque=0.0352
+
+SUMMARY: 83/83 PASS
+
+== sample validation ==
+[PASS] interior_sheet_512x256.png
+       size=[512, 256] mode=RGBA alpha=0..255 opaque=0.1863
+[PASS] forest_sheet_512x256.png
+       size=[512, 256] mode=RGBA alpha=0..255 opaque=0.1659
+[PASS] town_sheet_512x256.png
+       size=[512, 256] mode=RGBA alpha=0..255 opaque=0.2514
+
+SUMMARY: 3/3 PASS
+
+== background-conditioned demo ==
+[PASS] home_fg_sheet_512x256.png
+       size=[512, 256] mode=RGBA alpha=0..255 opaque=0.1478
+
+SUMMARY: 1/1 PASS
+
+COMBINED: 4/4 PASS
+
+== hashes ==
+foreground_samples.zip|335244|0a1bb1732495bdbc8f3cdab74ac0c372c4625cc3e8a1d040dd1f42e2aae90b5d
+foreground_style_board.png|96695|f56e3545ab9fd91c69a8e9aa5d305c61ec0465d39b3bd580714d895c5674a439
+home_cohesion/home_fg_checker_768.png|42738|746f7e9a5019a8cc6f9a99701a4c377c4a1941f305dec054e5e2bd23aae5e372
+home_cohesion/home_fg_compare_1034x512.png|174619|7e21ad472b3b0f744ba95a374b81fd752e7c09ff02c7365bea60ebaca18c3b63
+home_cohesion/home_fg_frame_256.png|28186|dd5ea7b05c4b2eb6dfb410dc0f7eefebd55c36f803b910d347f255f833d7f8d7
+home_cohesion/home_fg_sheet_512x256.png|31388|28093e6e030d9e5d7d571949e3285ade2b45f5198f541bdb85c0370bad98ab2b
+forest_checker_preview.png|42250|603a49de70319c3bde8d108de6c5d9fda9672352c6d7d336847398631a05e820
+forest_frame_256.png|30229|c56f3fdb2de2ee4db7ca3686cae2c20e62a8d0b00b6169aae3cb376113050ec3
+forest_sheet_512x256.png|32283|d6c14986424ebda29e13210b6a8267c3a281610a29130c0b33cef304048c1d31
+interior_checker_preview.png|37921|070e6c7530b5305411bc0a1b89f1db5b450a669140c59b1740276a06a3524870
+interior_frame_256.png|27967|c09527027ef9e633ae2a17d7a7a55d0c18b9aa921dfa5478b8679eeb587be833
+interior_sheet_512x256.png|30646|3c7e7db77c1f86f5384c58668b83c40ea31a374da126c60fae6350dce89464b6
+town_checker_preview.png|54757|18f4eadd29035d70065cb27b00152eab150d97c91d5932e1d3f2329aca535595
+town_frame_256.png|41110|05b676938548792de7b04aa1c49d8d34ab2605028e35c1c0906fe19e69d87e58
+town_sheet_512x256.png|43497|21fc47fceb34f991a3177acef51ab7f076c65e4d41aca14ecc550e02a1a5fe82
+
+== safe zone / frame equality ==
+interior_sheet_512x256.png safe0 0 0 frames_equal True
+forest_sheet_512x256.png safe0 0 0 frames_equal True
+town_sheet_512x256.png safe0 0 0 frames_equal True
+home_cohesion/home_fg_sheet_512x256.png safe0 0 0 frames_equal True

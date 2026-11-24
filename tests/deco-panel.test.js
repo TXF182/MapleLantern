@@ -53,10 +53,12 @@ test("独立布景页：第 7 个页签，入口不再嵌在设置页，也不�
   const page = doc.querySelector("[data-deco-page]");
   assert.match(page.textContent, /九层图层/);
   assert.match(page.textContent, /预设/);
-  assert.match(page.textContent, /自动背景/);
+  assert.match(page.textContent, /自动布景/);
+  assert.ok(page.querySelector("[data-deco-auto-toggle]"), "自动背景开关");
+  assert.ok(page.querySelector("[data-deco-auto-fg-toggle]"), "自动前景开关与背景并排");
   assert.match(page.textContent, /已停用/);
   assert.match(page.textContent, /图库已接入/);
-  assert.equal(Number(page.querySelector("[data-deco-pack-status]").textContent.match(/83/)[0]), 83);
+  assert.ok(page.querySelector("[data-deco-pack-status]").textContent.includes("背景 " + w.MapleLanternDeco.CATALOG.length + " / 前景 " + w.MapleLanternDeco.CATALOG.length), "图库状态数量应随 CATALOG 同步");
   ["套用", "储存", "删除", "+ 新增预设", "添加", "加入当前地点", "一键添加所有地点", "关闭自动并清空名单", "恢复玩家背景"].forEach((label) => {
     assert.match(page.textContent, new RegExp(label.replace("+", "\\+")));
   });
@@ -85,6 +87,8 @@ test("选图：页内图库直接选中，写入兼容变量并自动收起", as
   await wait(2);
   const picker = page.querySelector(".ml-deco-picker");
   assert.equal(picker.hidden, false, "图库应展开在页内");
+  assert.match(picker.querySelector("[data-deco-picker-source]").textContent, /背景 1 · background1/);
+  assert.equal(picker.querySelector(".ml-deco-pick").getAttribute("data-deco-pick-folder"), "background1");
   const beach = Array.from(picker.querySelectorAll(".ml-deco-pick")).find((item) => /beach/.test(item.textContent));
   assert.ok(beach);
   beach.click();
@@ -95,6 +99,36 @@ test("选图：页内图库直接选中，写入兼容变量并自动收起", as
   assert.equal(v.decoAutoBgEnabled, false, "手动选图应关闭自动覆盖");
   assert.equal(w.document.querySelector("[data-deco-page] .ml-deco-picker").hidden, true, "选完应自动收起");
 });
+
+test("前景选图：只读 foreground1，写入前景路径，不碰背景变量", async () => {
+  const { w } = await openDeco({
+    mutable: true,
+    seed: { v: 1, lang: "zh", motion: false },
+    setup: setupTown(),
+    renderer: fakeRenderer()
+  });
+  const page = w.document.querySelector("[data-deco-page]");
+  const fg1 = Array.from(page.querySelectorAll(".ml-deco-card")).find((card) => card.getAttribute("data-layer") === "foreground1");
+  assert.ok(fg1);
+  assert.equal(fg1.getAttribute("data-deco-folder"), "foreground1");
+  fg1.querySelector("[data-deco-select-image]").click();
+  await wait(2);
+  const picker = page.querySelector(".ml-deco-picker");
+  assert.match(picker.querySelector("[data-deco-picker-source]").textContent, /前景 1 · foreground1/);
+  assert.equal(picker.querySelector(".ml-deco-pick").getAttribute("data-deco-pick-folder"), "foreground1");
+  const beach = Array.from(picker.querySelectorAll(".ml-deco-pick")).find((item) => /beach/.test(item.textContent));
+  assert.ok(beach);
+  beach.click();
+  await wait(2);
+  const v = w.SugarCube.State.variables;
+  assert.equal(v.foreground_image1, "beach");
+  assert.equal(v.show_foreground1, true);
+  assert.equal(v.decoImagePath.foreground1, "img/decorations/ml/foreground1/beach.png");
+  assert.equal(v.background_image1, undefined, "前景选图不得写背景变量");
+  assert.equal(v.decoAutoFgEnabled, false, "手动选前景应关闭自动前景覆盖");
+  assert.equal(w.document.querySelector("[data-deco-page] .ml-deco-picker").hidden, true, "选完应自动收起");
+});
+
 
 test("关闭图库后回到发起选图的图层卡，不把页面留在下层", async () => {
   const { w } = await openDeco({
@@ -165,6 +199,36 @@ test("预设：新增 / 储存 / 套用 / 删除都在布景页内完成", async
   assert.equal(v.decoPresets[1], undefined);
 });
 
+test("室内借用页：加入当前地点与匹配按 passage 命中键收录", async () => {
+  const { w } = await openDeco({
+    mutable: true,
+    seed: { v: 1, lang: "zh", motion: false },
+    vars: { location: "town", outside: 0 },
+    setup: { Locations: { get: () => "town" }, locations: { world: { parent: undefined, outside: 1 }, town: { parent: "world", outside: 1 } } },
+    renderer: fakeRenderer()
+  });
+  const v = w.SugarCube.State.variables;
+  const btn = (re) => Array.from(w.document.querySelectorAll("[data-deco-page] button")).find((b) => re.test(b.textContent || ""));
+  w.SugarCube.State.passage = "Bus Station";
+  w.document.querySelector("[data-deco-location-current]").click();
+  await wait(2);
+  assert.ok(v.decoAutoBgLocations.includes("bus_station"), "车站页「加入当前地点」应收录 bus_station");
+  assert.ok(!v.decoAutoBgLocations.includes("town"), "不得再收录共用地点 town");
+
+  w.SugarCube.State.passage = "Soup Kitchen";
+  v.location = "temple";
+  btn(/匹配当前地点/).click();
+  await wait(2);
+  assert.ok(v.decoAutoBgLocations.includes("soup_kitchen"), "施粥所页「匹配当前地点」应收录 soup_kitchen");
+  assert.equal(v.background_image1, "soup_kitchen", "匹配后应立即套用施粥所图");
+
+  w.SugarCube.State.passage = "Police Back Office";
+  v.location = "police_station";
+  btn(/按当前地点套用/).click();
+  await wait(2);
+  assert.equal(v.background_image1, "police_back_office", "办公室页「按当前地点套用」应套 police_back_office");
+});
+
 test("自动背景：默认关闭、严格名单增删与重置", async () => {
   const { w } = await openDeco({
     mutable: true,
@@ -218,6 +282,34 @@ test("自动背景：默认关闭、严格名单增删与重置", async () => {
   assert.match(w.document.querySelector("[data-deco-auto-state]").textContent, /已停用/);
 });
 
+test("自动前景：与自动背景并排，共用地点名单，只写 foreground1", async () => {
+  const { w } = await openDeco({
+    mutable: true,
+    seed: { v: 1, lang: "zh", motion: false },
+    setup: { Locations: { get: () => "home" }, locations: { world: { parent: undefined, outside: 1 }, home: { parent: "world", outside: 0 } } },
+    renderer: fakeRenderer()
+  });
+  let page = w.document.querySelector("[data-deco-page]");
+  const v = w.SugarCube.State.variables;
+  const fgAuto = page.querySelector("[data-deco-auto-fg-toggle]");
+  assert.equal(fgAuto.checked, false, "自动前景默认必须关闭");
+  assert.match(page.querySelector("[data-deco-auto-state]").textContent, /前景：已停用/);
+  fgAuto.click();
+  await wait(2);
+  assert.equal(v.decoAutoFgEnabled, true);
+  assert.equal(v.decoAutoBgEnabled, undefined, "只开前景不得打开自动背景");
+  assert.ok(v.decoAutoBgLocations.includes("home"), "前景与背景共用当前地点收录");
+  assert.equal(v.foreground_image1, "home");
+  assert.equal(v.background_image1, undefined, "只开前景不得写背景变量");
+  assert.match(w.document.querySelector("[data-deco-auto-state]").textContent, /前景：已启用/);
+  page = w.document.querySelector("[data-deco-page]");
+  page.querySelector("[data-deco-auto-fg-toggle]").click();
+  await wait(2);
+  assert.equal(v.decoAutoFgEnabled, false);
+  assert.equal(v.decoAutoFgActive, false);
+  assert.match(w.document.querySelector("[data-deco-auto-state]").textContent, /前景：已停用/);
+});
+
 test("自动背景：一键添加所有图库地点并解除排除", async () => {
   const { w } = await openDeco({
     mutable: true,
@@ -254,17 +346,17 @@ test("缩略图：有 IntersectionObserver 时不预拉全部图库", async () =
     modUtils: { getImage: () => { loads++; return dataUrl; } }
   });
   await wait(15);
-  assert.equal(loads, 3, "进入页面只探测三个图库哨兵，不批量拉图");
+  assert.equal(loads, 6, "进入页面只探测背景/前景各三个图库哨兵，不批量拉图");
   const page = w.document.querySelector("[data-deco-page]");
   const bg1 = Array.from(page.querySelectorAll(".ml-deco-card")).find((card) => card.getAttribute("data-layer") === "background1");
   bg1.querySelector("[data-deco-select-image]").click();
   await wait(5);
-  assert.equal(loads, 3, "打开图库也只登记观察，不加载全部 83 张");
+  assert.equal(loads, 6, "打开图库也只登记观察，不加载全部 88 张");
   const pickerObserver = observers.filter((observer) => observer.nodes.some((node) => node.classList && node.classList.contains("ml-deco-pick-thumb"))).pop();
   assert.ok(pickerObserver);
   pickerObserver.trigger();
   await wait(5);
-  assert.equal(loads, 4, "进入视口的那一张才真正读取");
+  assert.equal(loads, 7, "进入视口的那一张才真正读取");
 });
 
 test("图库缺包：状态提示与图片缺失文案", async () => {

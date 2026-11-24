@@ -29,11 +29,19 @@ foreach ($rel in @($boot.imgFileList)) {
   if ($names -cnotcontains ([string]$rel)) { throw "boot.json 引用了不存在的图: $rel" }
 }
 $images = @($boot.imgFileList)
-if ($images.Count -ne 83) { throw "图库条目数 $($images.Count) != 83" }
+$bgImages = @($images | Where-Object { ([string]$_).StartsWith("img/decorations/ml/background1/") })
+$fgImages = @($images | Where-Object { ([string]$_).StartsWith("img/decorations/ml/foreground1/") })
+if ($bgImages.Count -ne 105) { throw "背景图条目数 $($bgImages.Count) != 105" }
+if ($fgImages.Count -ne 105) { throw "前景图条目数 $($fgImages.Count) != 105" }
+if (($bgImages.Count + $fgImages.Count) -ne $images.Count) { throw "imgFileList 含背景/前景之外的路径" }
+$bgNames = @($bgImages | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension([string]$_) })
+$fgNames = @($fgImages | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension([string]$_) })
+$nameDiff = Compare-Object -CaseSensitive -ReferenceObject $bgNames -DifferenceObject $fgNames
+if ($nameDiff) { throw "背景/前景文件名未一一对应" }
 foreach ($rel in $images) {
-  if (-not ([string]$rel).StartsWith("img/decorations/ml/background1/")) { throw "图库路径越界: $rel" }
+  if (-not (([string]$rel).StartsWith("img/decorations/ml/background1/") -or ([string]$rel).StartsWith("img/decorations/ml/foreground1/"))) { throw "图库路径越界: $rel" }
 }
-if ($names.Count -ne ($images.Count + 2)) { throw "imagepack 条目数 $($names.Count) != 图 83 + boot + README" }
+if ($names.Count -ne ($images.Count + 2)) { throw "imagepack 条目数 $($names.Count) != 图 $($images.Count) + boot + README" }
 
 if (Test-Path -LiteralPath $out) { Remove-Item -LiteralPath $out -Force }
 $fixed = [DateTimeOffset]::new(1980, 1, 1, 0, 0, 0, [TimeSpan]::Zero)

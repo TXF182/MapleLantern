@@ -72,6 +72,7 @@
 #ml-root [data-deco-pack-retry][hidden] { display: none; }
 #ml-root .ml-deco-check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; color: var(--ml-muted); }
 #ml-root .ml-deco-check input { accent-color: var(--ml-accent); }
+#ml-root .ml-deco-auto-toggles { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 4px; }
 #ml-root .ml-deco-z { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 6px; }
 #ml-root .ml-deco-z-label { color: var(--ml-faint); font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); }
 #ml-root .ml-deco-zval { min-width: 24px; text-align: right; color: var(--ml-muted); font-family: var(--ml-mono, monospace); }
@@ -117,6 +118,10 @@
   min-width: 0;
 }
 #ml-root .ml-deco-picker-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#ml-root .ml-deco-picker-source {
+  margin-left: auto; color: var(--ml-faint); white-space: nowrap;
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+}
 #ml-root .ml-deco-picker-tools { display: flex; gap: 8px; margin: 8px 0; }
 #ml-root .ml-deco-search {
   flex: 1; min-width: 0; min-height: 34px; padding: 5px 9px;

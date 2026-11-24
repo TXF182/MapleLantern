@@ -42,11 +42,16 @@
       blankPreset: "空白预设",
       noPresets: "还没有预设。",
       filter: "地点滤镜",
-      autoSection: "自动背景（按地点）",
-      autoBg: "启用自动背景切换",
+      autoSection: "自动布景（按地点）",
+      autoBg: "启用背景",
+      autoFg: "启用前景",
       autoFilter: "启用滤镜效果（实验性功能）",
       disabled: "已停用",
       autoEnabled: "已启用",
+      autoBgOn: "背景：已启用",
+      autoBgOff: "背景：已停用",
+      autoFgOn: "前景：已启用",
+      autoFgOff: "前景：已停用",
       locationEmpty: "（列表为空）",
       disabledEmpty: "还没有停用地点。",
       add: "添加",
@@ -73,17 +78,20 @@
       failed: "读取失败",
       missingImage: "图片缺失",
       packReady: "图库已接入",
-      packMissing: "图库包未加载：缩略图与自动背景无图可读",
+      packMissing: "图库包未加载：背景与前景都无图可读",
       packPartial: "图库不完整",
       packProbe: "图库检测中…",
       packHint: "请安装与本体同版本的 MapleLantern ImagePack，并确认 GameVersion 0.5.12.13 与 ImageLoaderHook 2.3+，再刷新游戏或点“重新检测”。",
-      packPartialHint: "图库包只读到部分图片：请重装与本体同版本的 ImagePack，再点“重新检测”。",
+      packPartialHint: "背景/前景只读到一侧或部分图片：请重装与本体同版本的 ImagePack，再点“重新检测”。",
+      packFolderMissing: "该图库文件夹未加载",
       packRetry: "重新检测",
       noCatalogImage: "图库无此图",
-      autoNoImageHint: "名单内这些地点在图中没有对应图，自动背景会跳过：",
+      autoNoImageHint: "名单内这些地点在图中没有对应图，自动背景/前景会跳过：",
       currentBg: "当前背景1",
-      lastAuto: "上次自动匹配",
-      autoHint: "启用后自动收录当前地点；每到一个新地点也会自动收录。手动移除的地点不会自动回流。",
+      currentFg: "当前前景1",
+      lastAutoBg: "上次自动背景",
+      lastAutoFg: "上次自动前景",
+      autoHint: "背景与前景共用同一份地点名单；开启后自动收录当前地点，每到一个新地点也会自动收录。手动移除的地点不会自动回流。",
       addAll: "一键添加所有地点",
       overwrite: "覆盖",
       overwriteConfirm: "覆盖这个预设？",
@@ -122,11 +130,16 @@
       blankPreset: "Blank preset",
       noPresets: "No presets yet.",
       filter: "Location filter",
-      autoSection: "Auto background (by location)",
-      autoBg: "Enable auto background switching",
+      autoSection: "Auto scenery (by location)",
+      autoBg: "Enable background",
+      autoFg: "Enable foreground",
       autoFilter: "Enable filter effect (experimental)",
       disabled: "Disabled",
       autoEnabled: "Enabled",
+      autoBgOn: "Background: on",
+      autoBgOff: "Background: off",
+      autoFgOn: "Foreground: on",
+      autoFgOff: "Foreground: off",
       locationEmpty: "(list is empty)",
       disabledEmpty: "No disabled locations yet.",
       add: "Add",
@@ -153,17 +166,20 @@
       failed: "Read failed",
       missingImage: "Image missing",
       packReady: "Gallery connected",
-      packMissing: "Image pack not loaded: thumbnails and auto backgrounds are unavailable",
+      packMissing: "Image pack not loaded: both background and foreground are unavailable",
       packPartial: "Gallery incomplete",
       packProbe: "Checking gallery…",
       packHint: "Install the MapleLantern ImagePack that matches this build, confirm GameVersion 0.5.12.13 and ImageLoaderHook 2.3+, then refresh the game or press Retry.",
-      packPartialHint: "Only part of the image pack could be read. Reinstall the matching ImagePack, then press Retry.",
+      packPartialHint: "Only one side or part of the image pack could be read. Reinstall the matching ImagePack, then press Retry.",
+      packFolderMissing: "This gallery folder is not loaded",
       packRetry: "Retry",
       noCatalogImage: "No image in gallery",
-      autoNoImageHint: "These whitelisted locations have no gallery image and will be skipped:",
+      autoNoImageHint: "These whitelisted locations have no gallery image and will be skipped by auto background/foreground:",
       currentBg: "Current background 1",
-      lastAuto: "Last auto match",
-      autoHint: "When enabled, the current location is added automatically and new locations are added as you arrive. Locations you remove are not added back automatically.",
+      currentFg: "Current foreground 1",
+      lastAutoBg: "Last auto background",
+      lastAutoFg: "Last auto foreground",
+      autoHint: "Background and foreground share one location list. When enabled, the current location is added automatically and new locations are added as you arrive. Locations you remove are not added back automatically.",
       addAll: "Add all locations",
       overwrite: "Overwrite",
       overwriteConfirm: "Overwrite this preset?",
@@ -200,6 +216,12 @@
     packPromise: null,
     packCount: 0,
     packTotal: 0,
+    bgStatus: "unknown",
+    fgStatus: "unknown",
+    bgCount: 0,
+    bgTotal: 0,
+    fgCount: 0,
+    fgTotal: 0,
     openGroups: { background: true, foreground: false }
   };
 
@@ -244,6 +266,14 @@
 
   function setup() {
     try { return root.setup; } catch (e) { return null; }
+  }
+
+  function passage() {
+    try {
+      if (root.SugarCube && root.SugarCube.State && root.SugarCube.State.passage) return root.SugarCube.State.passage;
+      if (root.State && root.State.passage) return root.State.passage;
+    } catch (e) { /* 宿主未就绪 */ }
+    return null;
   }
 
   function el(tag, cls, attrs) {
@@ -291,14 +321,32 @@
     return value;
   }
 
-  function imageKey(name) { return "library/" + D.normalizeName(name); }
+  function folderOf(layer) {
+    if (D && typeof D.layerFolder === "function") return D.layerFolder(layer);
+    return layer && layer.kind === "foreground" ? "foreground1" : "background1";
+  }
+
+  function isForegroundFolder(folder) {
+    return String(folder || "").toLowerCase().indexOf("foreground") === 0;
+  }
+
+  function folderReady(folder) {
+    return isForegroundFolder(folder) ? state.fgStatus === "ready" : state.bgStatus === "ready";
+  }
+
+  function folderStatus(folder) {
+    return isForegroundFolder(folder) ? state.fgStatus : state.bgStatus;
+  }
+
+  function imageKey(name, folder) { return "library/" + String(folder || "background1") + "/" + D.normalizeName(name); }
 
   function resolveImage(name, folder) {
     name = D.normalizeName(name);
+    folder = folder || "background1";
     if (name === "none") return Promise.resolve("");
-    var key = imageKey(name);
+    var key = imageKey(name, folder);
     if (state.imageCache[key]) return Promise.resolve(state.imageCache[key]);
-    var path = typeof D.libraryPath === "function" ? D.libraryPath(name) : "img/decorations/ml/background1/" + name + ".png";
+    var path = typeof D.libraryPath === "function" ? D.libraryPath(name, folder) : "img/decorations/ml/" + String(folder) + "/" + name + ".png";
     var modUtils = root.modUtils;
     if (modUtils && typeof modUtils.getImage === "function") {
       return Promise.resolve()
@@ -377,7 +425,7 @@
       return;
     }
     function load() {
-      if (state.packStatus === "missing") {
+      if (folderStatus(folder) === "missing") {
         setThumbState(imgNode, "missing", fallbackText);
         return;
       }
@@ -427,18 +475,24 @@
   function setImage(layer, name, folder) {
     var v = vars();
     if (!v || !layer) return;
+    folder = folder || folderOf(layer);
     var normalized = D.normalizeName(name);
     if (layer.id === "background1") {
       D.restoreAutoBackground(v);
       v.decoAutoBgEnabled = false;
     }
+    if (layer.id === "foreground1") {
+      D.restoreAutoForeground(v);
+      v.decoAutoFgEnabled = false;
+    }
     v[layer.varKey] = normalized;
     v[layer.showKey] = true;
     if (layer.id === "background1") delete v.decoAutoBgSource;
+    if (layer.id === "foreground1") delete v.decoAutoFgSource;
     if (!v.decoImagePath || typeof v.decoImagePath !== "object") v.decoImagePath = {};
     if (normalized !== "none") {
       if (layer.id === "background1") delete v.decoImagePath[layer.id];
-      else v.decoImagePath[layer.id] = D.libraryPath(normalized);
+      else v.decoImagePath[layer.id] = D.libraryPath(normalized, folder);
     } else {
       delete v.decoImagePath[layer.id];
     }
@@ -489,8 +543,14 @@
     if (idx >= 0) v.decoAutoBgExcluded.splice(idx, 1);
   }
 
-  function addLocation(name) {
-    var v = vars();
+  /* 当前地点首选键：passage 命中（车站/施粥所/办公室）或街道总线命中的链首，
+     否则退回 base/visual。保证「加入当前地点」等按钮收录的是真实生效的那张图。 */
+  function hereOf(info) {
+    var first = info && info.chain && info.chain[0];
+    return D.normalizeName(first ? first : (info && (info.base || info.visual)));
+  }
+
+  function addLocation(name) {    var v = vars();
     if (!v) return;
     var normalized = D.normalizeName(name);
     if (normalized === "none") return;
@@ -518,7 +578,8 @@
     }
     delete v.decoAutoBgDisabled;
     delete v.decoAutoBgExcluded;
-    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false);
+    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false, passage());
+    if (v.decoAutoFgEnabled === true) D.applyAutoForeground(v, setup(), D.CATALOG, false, passage());
     refresh();
     rebuildPage();
   }
@@ -533,7 +594,8 @@
     var excluded = ensureList(v, "decoAutoBgExcluded");
     if (excluded.indexOf(normalized) < 0) excluded.push(normalized);
     delete v.decoAutoBgDisabled;
-    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false);
+    if (v.decoAutoBgEnabled === true) D.applyAutoBackground(v, setup(), D.CATALOG, false, passage());
+    if (v.decoAutoFgEnabled === true) D.applyAutoForeground(v, setup(), D.CATALOG, false, passage());
     refresh();
     rebuildPage();
   }
@@ -541,14 +603,15 @@
   /* ------------------------------------------------------------------ 页骨架 */
 
   function packText() {
-    if (state.packStatus === "ready") return t("packReady") + " · " + D.CATALOG.length;
-    if (state.packStatus === "partial") return t("packPartial") + " · " + state.packCount + "/" + state.packTotal;
+    if (state.packStatus === "ready") return t("packReady") + " · " + t("layerBg") + " " + D.CATALOG.length + " / " + t("layerFg") + " " + D.CATALOG.length;
+    if (state.packStatus === "partial") return t("packPartial") + " · " + t("layerBg") + " " + state.bgCount + "/" + state.bgTotal + " · " + t("layerFg") + " " + state.fgCount + "/" + state.fgTotal;
     if (state.packStatus === "missing") return t("packMissing");
     return t("packProbe");
   }
 
-  /* 只抽查首/中/末三张，避免为了判断图库是否完整而把 83 张图全部读进内存。
-     三张全中 = ready；全空 = missing；部分命中 = partial，界面会提示重装图库。 */
+  /* 只抽查首/中/末三张背景 + 同一组三张前景，避免为了判断图库是否完整
+     而把 166 张图全部读进内存。两侧各自统计：背景命中 3/3、前景命中 3/3
+     才算 ready；单侧全空算该侧 missing，整体至少一侧可用为 partial。 */
   function probeSamples() {
     var list = D.CATALOG || [];
     if (!list.length) return ["home"];
@@ -565,30 +628,52 @@
     if (state.packPromise && !force) return state.packPromise;
     var modUtils = root.modUtils;
     var names = probeSamples();
-    state.packTotal = names.length;
+    state.bgTotal = names.length;
+    state.fgTotal = names.length;
     if (!modUtils || typeof modUtils.getImage !== "function") {
       state.packStatus = "missing";
+      state.bgStatus = "missing";
+      state.fgStatus = "missing";
       state.packCount = 0;
+      state.bgCount = 0;
+      state.fgCount = 0;
       state.packPromise = Promise.resolve("missing");
       syncPackStatus();
       return state.packPromise;
     }
-    state.packPromise = Promise.all(names.map(function (name) {
-      var path = typeof D.libraryPath === "function" ? D.libraryPath(name) : "img/decorations/ml/background1/" + name + ".png";
-      return Promise.resolve()
-        .then(function () { return Promise.resolve(modUtils.getImage(path)); })
-        .then(function (value) { return normalizeImageUrl(value) ? 1 : 0; })
-        .catch(function () { return 0; });
-    })).then(function (hits) {
-      var ok = 0;
-      for (var i = 0; i < hits.length; i++) ok += hits[i];
-      state.packCount = ok;
-      state.packStatus = ok === names.length ? "ready" : (ok === 0 ? "missing" : "partial");
+    function probe(folder) {
+      return names.map(function (name) {
+        var path = typeof D.libraryPath === "function" ? D.libraryPath(name, folder) : "img/decorations/ml/" + folder + "/" + name + ".png";
+        return Promise.resolve()
+          .then(function () { return Promise.resolve(modUtils.getImage(path)); })
+          .then(function (value) { return normalizeImageUrl(value) ? 1 : 0; })
+          .catch(function () { return 0; });
+      });
+    }
+    state.packPromise = Promise.all(probe("background1").concat(probe("foreground1"))).then(function (hits) {
+      var bgOk = 0;
+      var fgOk = 0;
+      for (var i = 0; i < names.length; i++) {
+        bgOk += hits[i];
+        fgOk += hits[names.length + i];
+      }
+      state.bgCount = bgOk;
+      state.fgCount = fgOk;
+      state.packCount = bgOk + fgOk;
+      state.packTotal = names.length * 2;
+      state.bgStatus = bgOk === names.length ? "ready" : (bgOk === 0 ? "missing" : "partial");
+      state.fgStatus = fgOk === names.length ? "ready" : (fgOk === 0 ? "missing" : "partial");
+      state.packStatus = state.bgStatus === "ready" && state.fgStatus === "ready" ? "ready"
+        : (state.bgStatus === "missing" && state.fgStatus === "missing" ? "missing" : "partial");
       syncPackStatus();
       return state.packStatus;
     }).catch(function () {
       state.packStatus = "missing";
+      state.bgStatus = "missing";
+      state.fgStatus = "missing";
       state.packCount = 0;
+      state.bgCount = 0;
+      state.fgCount = 0;
       syncPackStatus();
       return "missing";
     });
@@ -600,6 +685,12 @@
     state.packStatus = "unknown";
     state.packCount = 0;
     state.packTotal = 0;
+    state.bgStatus = "unknown";
+    state.fgStatus = "unknown";
+    state.bgCount = 0;
+    state.bgTotal = 0;
+    state.fgCount = 0;
+    state.fgTotal = 0;
     state.imageCache = {};
     syncPackStatus();
     probeImagePack(true).then(function () {
@@ -624,10 +715,16 @@
     var retry = state.page.querySelector("[data-deco-pack-retry]");
     if (retry) retry.hidden = !showHint;
     var missing = state.packStatus === "missing";
-    var auto = state.page.querySelector("[data-deco-auto-toggle]");
-    if (auto) auto.disabled = missing;
+    var autoBg = state.page.querySelector("[data-deco-auto-toggle]");
+    if (autoBg) autoBg.disabled = state.bgStatus !== "ready";
+    var autoFg = state.page.querySelector("[data-deco-auto-fg-toggle]");
+    if (autoFg) autoFg.disabled = state.fgStatus !== "ready";
     var required = state.page.querySelectorAll("[data-deco-pack-required]");
     for (var j = 0; j < required.length; j++) required[j].disabled = missing;
+    var bgRequired = state.page.querySelectorAll("[data-deco-pack-bg-required]");
+    for (var b = 0; b < bgRequired.length; b++) bgRequired[b].disabled = state.bgStatus !== "ready";
+    var fgRequired = state.page.querySelectorAll("[data-deco-pack-fg-required]");
+    for (var f = 0; f < fgRequired.length; f++) fgRequired[f].disabled = state.fgStatus !== "ready";
     if (missing) {
       var picks = state.page.querySelectorAll(".ml-deco-pick");
       for (var k = 0; k < picks.length; k++) {
@@ -638,7 +735,7 @@
 
   function buildStatus() {
     var v = vars() || {};
-    var info = D.locationInfo(v, setup());
+    var info = D.locationInfo(v, setup(), passage());
     var section = el("section", "ml-deco-status", { "data-ml-deco-status": "1" });
     var line1 = el("div", "ml-deco-status-line");
     line1.appendChild(text("span", modeLabel(), "ml-deco-pill"));
@@ -659,9 +756,15 @@
     section.appendChild(retry);
     var bgName = D.normalizeName(v.background_image1);
     section.appendChild(text("div", t("currentBg") + ": " + (bgName === "none" ? t("none") : bgName), "ml-deco-muted"));
+    var fgName = D.normalizeName(v.foreground_image1);
+    section.appendChild(text("div", t("currentFg") + ": " + (fgName === "none" ? t("none") : fgName), "ml-deco-muted"));
     if (v.decoAutoBgEnabled === true && v.decoAutoBgSource) {
       var sourceName = D.normalizeName(v.decoAutoBgSource);
-      section.appendChild(text("div", t("lastAuto") + ": " + (sourceName === "none" ? t("none") : sourceName), "ml-deco-muted"));
+      section.appendChild(text("div", t("lastAutoBg") + ": " + (sourceName === "none" ? t("none") : sourceName), "ml-deco-muted"));
+    }
+    if (v.decoAutoFgEnabled === true && v.decoAutoFgSource) {
+      var fgSourceName = D.normalizeName(v.decoAutoFgSource);
+      section.appendChild(text("div", t("lastAutoFg") + ": " + (fgSourceName === "none" ? t("none") : fgSourceName), "ml-deco-muted"));
     }
     if (mode() === D.MODE.external) section.appendChild(text("p", t("externalHint"), "ml-hint is-warn"));
     if (mode() === D.MODE.unavailable) section.appendChild(text("p", t("unavailable"), "ml-hint is-warn"));
@@ -672,6 +775,9 @@
     var picker = el("div", "ml-deco-picker", { hidden: "", "data-deco-picker": "1" });
     var head = el("div", "ml-deco-picker-head");
     head.appendChild(text("h4", t("picker"), "ml-deco-section-title"));
+    var sourceNode = text("span", "", "ml-deco-picker-source");
+    sourceNode.setAttribute("data-deco-picker-source", "1");
+    head.appendChild(sourceNode);
     head.appendChild(button("×", "ml-deco-close", closePicker));
     picker.appendChild(head);
 
@@ -699,6 +805,7 @@
     picker.__grid = grid;
     picker.__search = search;
     picker.__customInput = customInput;
+    picker.__source = sourceNode;
     state.picker = picker;
 
     search.addEventListener("input", function () {
@@ -709,7 +816,7 @@
   }
 
   function layerCard(layer, v) {
-    var card = el("div", "ml-deco-card", { "data-layer": layer.id });
+    var card = el("div", "ml-deco-card", { "data-layer": layer.id, "data-deco-folder": folderOf(layer) });
     var head = el("div", "ml-deco-card-head");
     head.appendChild(text("span", (layer.kind === "background" ? t("layerBg") : t("layerFg")) + " " + layer.index, "ml-deco-card-title"));
     head.appendChild(text("code", D.normalizeName(v[layer.varKey]) || "none", "ml-deco-name"));
@@ -721,14 +828,14 @@
     img.loading = "lazy";
     thumbWrap.appendChild(img);
     thumbWrap.appendChild(text("span", t("empty"), "ml-deco-thumb-empty"));
-    loadThumb(img, v[layer.varKey], "background1", t("empty"));
+    loadThumb(img, v[layer.varKey], folderOf(layer), t("empty"));
     card.appendChild(thumbWrap);
 
     var row = el("div", "ml-deco-card-row");
     var choose = button(t("select"), "ml-btn ml-btn-sm", function () { openPicker(layer); });
     choose.setAttribute("data-deco-select-image", layer.id);
     row.appendChild(choose);
-    row.appendChild(button(t("clear"), "ml-btn ml-btn-sm", function () { setImage(layer, "none", "background1"); }));
+    row.appendChild(button(t("clear"), "ml-btn ml-btn-sm", function () { setImage(layer, "none", folderOf(layer)); }));
     card.appendChild(row);
 
     var row2 = el("div", "ml-deco-card-row");
@@ -873,10 +980,11 @@
 
   function buildAuto() {
     var v = vars() || {};
-    var info = D.locationInfo(v, setup());
+    var info = D.locationInfo(v, setup(), passage());
     var section = el("section", "ml-deco-section", { "data-deco-auto": "1" });
     section.appendChild(text("h4", t("autoSection"), "ml-deco-section-title"));
 
+    var toggles = el("div", "ml-deco-auto-toggles");
     var autoLabel = el("label", "ml-deco-check");
     var auto = el("input", "", { type: "checkbox", "data-deco-auto-toggle": "1" });
     auto.checked = v.decoAutoBgEnabled === true;
@@ -885,15 +993,34 @@
       if (!current) return;
       current.decoAutoBgEnabled = auto.checked;
       if (auto.checked) {
-        D.ensureAutoLocation(current, setup(), D.CATALOG);
-        D.applyAutoBackground(current, setup(), D.CATALOG, false);
+        D.ensureAutoLocation(current, setup(), D.CATALOG, passage());
+        D.applyAutoBackground(current, setup(), D.CATALOG, false, passage());
       } else D.restoreAutoBackground(current);
       refresh();
       rebuildPage();
     });
     autoLabel.appendChild(auto);
     autoLabel.appendChild(text("span", t("autoBg")));
-    section.appendChild(autoLabel);
+    toggles.appendChild(autoLabel);
+
+    var fgAutoLabel = el("label", "ml-deco-check");
+    var fgAuto = el("input", "", { type: "checkbox", "data-deco-auto-fg-toggle": "1" });
+    fgAuto.checked = v.decoAutoFgEnabled === true;
+    fgAuto.addEventListener("change", function () {
+      var current = vars();
+      if (!current) return;
+      current.decoAutoFgEnabled = fgAuto.checked;
+      if (fgAuto.checked) {
+        D.ensureAutoLocation(current, setup(), D.CATALOG, passage());
+        D.applyAutoForeground(current, setup(), D.CATALOG, false, passage());
+      } else D.restoreAutoForeground(current);
+      refresh();
+      rebuildPage();
+    });
+    fgAutoLabel.appendChild(fgAuto);
+    fgAutoLabel.appendChild(text("span", t("autoFg")));
+    toggles.appendChild(fgAutoLabel);
+    section.appendChild(toggles);
 
     var filterLabel = el("label", "ml-deco-check");
     var filter = el("input", "", { type: "checkbox", "data-deco-filter-toggle": "1" });
@@ -910,9 +1037,10 @@
     section.appendChild(filterLabel);
 
     section.appendChild(text("p", t("autoHint"), "ml-hint"));
-    var autoOn = v.decoAutoBgEnabled === true;
-    var stateNode = el("div", "ml-deco-auto-state" + (autoOn ? " is-on" : ""), { "data-deco-auto-state": "1" });
-    stateNode.textContent = autoOn ? t("autoEnabled") : t("disabled");
+    var bgOn = v.decoAutoBgEnabled === true;
+    var fgOn = v.decoAutoFgEnabled === true;
+    var stateNode = el("div", "ml-deco-auto-state" + ((bgOn || fgOn) ? " is-on" : ""), { "data-deco-auto-state": "1" });
+    stateNode.textContent = (bgOn ? t("autoBgOn") : t("autoBgOff")) + " · " + (fgOn ? t("autoFgOn") : t("autoFgOff"));
     section.appendChild(stateNode);
     var chips = el("div", "ml-deco-chips", { "data-deco-locations": "1" });
     var list = readList(v, "decoAutoBgLocations");
@@ -947,7 +1075,7 @@
     addBtn.setAttribute("data-deco-location-add", "1");
     locRow.appendChild(addBtn);
     var currentBtn = button(t("addCurrent"), "ml-btn ml-btn-sm", function () {
-      addLocation(info.base || info.visual);
+      addLocation(hereOf(D.locationInfo(vars(), setup(), passage())));
     });
     currentBtn.setAttribute("data-deco-location-current", "1");
     locRow.appendChild(currentBtn);
@@ -961,14 +1089,20 @@
     var matchBtn = button(t("match"), "ml-btn ml-btn-sm", function () {
       var current = vars();
       if (!current) return;
-      var here = D.normalizeName(info.base || info.visual);
+      var here = hereOf(D.locationInfo(current, setup(), passage()));
       if (here !== "none") {
         var allowed = ensureList(current, "decoAutoBgLocations");
         if (allowed.indexOf(here) < 0) allowed.push(here);
         unexcludeLocation(current, here);
       }
-      current.decoAutoBgEnabled = true;
-      D.applyAutoBackground(current, setup(), D.CATALOG, true);
+      var bgOn = current.decoAutoBgEnabled === true;
+      var fgOn = current.decoAutoFgEnabled === true;
+      if (!bgOn && !fgOn) {
+        current.decoAutoBgEnabled = true;
+        bgOn = true;
+      }
+      if (bgOn) D.applyAutoBackground(current, setup(), D.CATALOG, true, passage());
+      if (fgOn) D.applyAutoForeground(current, setup(), D.CATALOG, true, passage());
       refresh();
       rebuildPage();
     });
@@ -978,7 +1112,9 @@
       var current = vars();
       if (!current) return;
       D.restoreAutoBackground(current);
+      D.restoreAutoForeground(current);
       current.decoAutoBgEnabled = false;
+      current.decoAutoFgEnabled = false;
       current.decoAutoBgLocations = [];
       delete current.decoAutoBgDisabled;
       delete current.decoAutoBgExcluded;
@@ -1027,14 +1163,15 @@
     var applyCurrent = button(t("applyCurrent"), "ml-btn ml-btn-wide", function () {
       var v = vars();
       if (!v) return;
-      var info = D.locationInfo(v, setup());
-      var here = D.normalizeName(info.base || info.visual);
+      var info = D.locationInfo(v, setup(), passage());
+      var here = hereOf(info);
       if (here !== "none") {
         var list = ensureList(v, "decoAutoBgLocations");
         if (list.indexOf(here) < 0) list.push(here);
       }
       v.decoAutoBgEnabled = true;
-      D.applyAutoBackground(v, setup(), D.CATALOG, true);
+      D.applyAutoBackground(v, setup(), D.CATALOG, true, passage());
+      if (v.decoAutoFgEnabled === true) D.applyAutoForeground(v, setup(), D.CATALOG, true, passage());
       refresh();
       rebuildPage();
     });
@@ -1044,8 +1181,11 @@
       var v = vars();
       if (!v) return;
       D.restoreAutoBackground(v);
+      D.restoreAutoForeground(v);
       v.decoAutoBgEnabled = false;
+      v.decoAutoFgEnabled = false;
       delete v.decoAutoBgSource;
+      delete v.decoAutoFgSource;
       refresh();
       rebuildPage();
     }));
@@ -1097,10 +1237,14 @@
     var picker = state.picker;
     if (!picker || !state.page || !layer) return;
     state.pickerLayer = layer;
-    state.pickerSource = "background1";
+    state.pickerSource = folderOf(layer);
     state.pickerQuery = "";
     picker.__search.value = "";
     picker.__customInput.value = "";
+    picker.__customInput.placeholder = t("custom") + " · " + state.pickerSource;
+    if (picker.__source) {
+      picker.__source.textContent = (layer.kind === "foreground" ? t("layerFg") : t("layerBg")) + " " + layer.index + " · " + state.pickerSource;
+    }
     picker.hidden = false;
     var card = state.page.querySelector('[data-layer="' + layer.id + '"]');
     if (card) {
@@ -1131,14 +1275,22 @@
     if (!picker || picker.hidden) return;
     var grid = picker.__grid;
     grid.textContent = "";
-    var source = "background1";
+    var source = state.pickerSource;
+    var sourceStatus = folderStatus(source);
     var q = state.pickerQuery;
+    var hint = picker.querySelector("[data-deco-pack-hint]");
+    if (hint) {
+      hint.hidden = sourceStatus === "ready";
+      hint.textContent = sourceStatus === "missing" ? (t("packFolderMissing") + " · " + source)
+        : (sourceStatus === "partial" ? t("packPartialHint") : t("packHint"));
+    }
 
     function addItem(name, label) {
       if (q && (String(name) + " " + String(label)).toLowerCase().indexOf(q) < 0) return;
       var item = el("button", "ml-deco-pick", { type: "button" });
       item.setAttribute("data-deco-pick-name", name);
-      if (name !== "none" && state.packStatus === "missing") item.disabled = true;
+      item.setAttribute("data-deco-pick-folder", source);
+      if (name !== "none" && sourceStatus === "missing") item.disabled = true;
       var thumb = el("img", "ml-deco-pick-thumb");
       thumb.alt = "";
       thumb.loading = "lazy";
@@ -1177,7 +1329,7 @@
     try { bootHost(); } catch (e) { /* 不向游戏抛 */ }
     later(function () {
       if (token !== state.token) return;
-      try { D.applyAutoOnPassage({ vars: vars(), setup: setup() }); } catch (e) { /* 不向游戏抛 */ }
+      try { D.applyAutoOnPassage({ vars: vars(), setup: setup(), passage: passage() }); } catch (e) { /* 不向游戏抛 */ }
       refresh();
       syncStatus();
     }, 0);
@@ -1186,7 +1338,7 @@
   function onStoryReady() {
     later(function () {
       try { bootHost(); } catch (e) { /* 不向游戏抛 */ }
-      try { D.applyAutoOnPassage({ vars: vars(), setup: setup() }); } catch (e) { /* 不向游戏抛 */ }
+      try { D.applyAutoOnPassage({ vars: vars(), setup: setup(), passage: passage() }); } catch (e) { /* 不向游戏抛 */ }
       refresh();
       syncStatus();
     }, 600);

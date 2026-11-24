@@ -1,7 +1,7 @@
 /* 灯台 MapleLantern — 布景页真实 file:// 双包探针
  *
  * 用法：
- *   node tools\deco-pack-probe.js             # 主包 + 图库包：发现 83 张图、状态“图库已接入”
+ *   node tools\deco-pack-probe.js             # 主包 + 图库包：发现 105 张图、状态“图库已接入”
  *   ML_MODE=missing node tools\deco-pack-probe.js  # 只装主包：状态“未加载”、缩略图提示缺图
  *
  * 产物：%TEMP%\ml_deco_<mode>_*.png + stdout JSON 摘要；失败 exit 1。
@@ -19,8 +19,8 @@ const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
 const MODE = process.env.ML_MODE === "missing" ? "missing" : "both";
-const MAIN_ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.5.10.mod.zip");
-const IMAGE_ZIP = process.env.ML_IMAGE_ZIP || path.join(ROOT, "dist", "MapleLantern-ImagePack-1.5.10.mod.zip");
+const MAIN_ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.5.11.mod.zip");
+const IMAGE_ZIP = process.env.ML_IMAGE_ZIP || path.join(ROOT, "dist", "MapleLantern-ImagePack-1.5.11.mod.zip");
 const PACKS = MODE === "missing" ? [MAIN_ZIP] : [MAIN_ZIP, IMAGE_ZIP];
 const PROFILE = path.join(os.tmpdir(), "lantern-deco-" + MODE + "-" + Date.now());
 const TAG = "ml_deco_" + MODE;
@@ -176,8 +176,11 @@ async function openLantern(page) {
         emptyText: n.querySelector(".ml-deco-thumb-empty") ? n.querySelector(".ml-deco-thumb-empty").textContent.trim() : null
       }));
       const path = core && core.libraryPath ? core.libraryPath("home") : "img/decorations/ml/background1/home.png";
+      const fgPath = core && core.libraryPath ? core.libraryPath("home", "foreground1") : "img/decorations/ml/foreground1/home.png";
       let image = null;
+      let fgImage = null;
       try { image = window.modUtils && window.modUtils.getImage ? await Promise.resolve(window.modUtils.getImage(path)) : null; } catch (e) { image = "ERR:" + e.message; }
+      try { fgImage = window.modUtils && window.modUtils.getImage ? await Promise.resolve(window.modUtils.getImage(fgPath)) : null; } catch (e) { fgImage = "ERR:" + e.message; }
       const sampleNames = core && core.CATALOG ? [core.CATALOG[0], core.CATALOG[41], core.CATALOG[82]] : [];
       const samples = await Promise.all(sampleNames.map(async (name) => {
         let value = null;
@@ -189,6 +192,7 @@ async function openLantern(page) {
         statusText: status ? (status.textContent || "").trim() : null,
         retryHidden: document.querySelector("#ml-pane [data-deco-pack-retry]") ? !!document.querySelector("#ml-pane [data-deco-pack-retry]").hidden : null,
         autoDisabled: document.querySelector("#ml-pane [data-deco-auto-toggle]") ? !!document.querySelector("#ml-pane [data-deco-auto-toggle]").disabled : null,
+        fgAutoDisabled: document.querySelector("#ml-pane [data-deco-auto-fg-toggle]") ? !!document.querySelector("#ml-pane [data-deco-auto-fg-toggle]").disabled : null,
         hints,
         layers,
         groups,
@@ -196,20 +200,23 @@ async function openLantern(page) {
         currentLocation: v ? v.location : null,
         catalog: core && core.CATALOG ? core.CATALOG.length : null,
         image: typeof image === "string" ? { kind: image.slice(0, 22), length: image.length } : image,
+        fgImage: typeof fgImage === "string" ? { kind: fgImage.slice(0, 22), length: fgImage.length } : fgImage,
         samples,
         tabs: document.querySelectorAll("#ml-root .ml-tab").length
       };
     });
     const ready = MODE === "both";
     check("图库状态与期望一致", ready ? state.statusClass.indexOf("is-ready") >= 0 : state.statusClass.indexOf("is-missing") >= 0, state.statusClass);
-    check("图库状态文案", ready ? /图库已接入|Image pack ready/i.test(state.statusText) && /83/.test(state.statusText) : /未加载|not loaded|missing/i.test(state.statusText), state.statusText);
+    check("图库状态文案", ready ? /图库已接入|Image pack ready/i.test(state.statusText) && /105/.test(state.statusText) : /未加载|not loaded|missing/i.test(state.statusText), state.statusText);
     check("图库重新检测入口", ready ? state.retryHidden === true : state.retryHidden === false, state.retryHidden);
     check("缺包时自动背景开关禁用", ready ? state.autoDisabled === false : state.autoDisabled === true, state.autoDisabled);
+    check("缺包时自动前景开关禁用", ready ? state.fgAutoDisabled === false : state.fgAutoDisabled === true, state.fgAutoDisabled);
     check("九层全部渲染", state.layers === 9, state.layers);
     check("背景/前景两个折叠组", state.groups.length === 2 && state.groups[0].open === true && state.groups[1].open === false, state.groups);
     check("缺包提示可见性符合期望", ready ? state.hints.every((h) => h.hidden === true) : state.hints.some((h) => h.hidden === false), state.hints);
-    check("图库目录 83 项", state.catalog === 83, state.catalog);
+    check("图库目录 105 项", state.catalog === 105, state.catalog);
     check("真实 getImage 可读", ready ? (state.image && state.image.kind.indexOf("data:image") === 0 && state.image.length > 10000) : (!state.image || state.image === "null"), state.image);
+    check("真实前景 getImage 可读", ready ? (state.fgImage && state.fgImage.kind.indexOf("data:image") === 0 && state.fgImage.length > 10000) : (!state.fgImage || state.fgImage === "null"), state.fgImage);
     check("首/中/末三张图都可读（或缺包时都不可读）", ready ? state.samples.every((s) => s.kind.indexOf("data:image") === 0 && s.length > 10000) : state.samples.every((s) => !s.kind), state.samples);
     check("背景槽与当前存档一致", state.thumbs[0].state === null || ["empty", "none", "ready", "missing"].indexOf(state.thumbs[0].state) >= 0, state.thumbs[0]);
 
@@ -228,18 +235,22 @@ async function openLantern(page) {
       const loaded = Array.from(p.querySelectorAll(".ml-deco-pick img")).filter((n) => n.getAttribute("src") && n.getAttribute("src").indexOf("data:image") === 0);
       return {
         count: picks.length,
+        folders: Array.from(new Set(picks.map((n) => n.getAttribute("data-deco-pick-folder")))),
         missing: picks.filter((n) => n.classList.contains("is-missing")).length,
         loaded: loaded.length,
         firstLabel: picks[0] ? (picks[0].querySelector(".ml-deco-pick-label") || {}).textContent : null,
         firstImage: loaded[0] ? loaded[0].getAttribute("src").slice(0, 22) : null,
-        labelsWithMissing: picks.slice(0, 5).filter((n) => /图片缺失|Image missing/i.test((n.textContent || ""))).length
+        labelsWithMissing: picks.slice(0, 5).filter((n) => /图片缺失|Image missing/i.test((n.textContent || ""))).length,
+        sourceText: p.querySelector(".ml-deco-picker-source") ? p.querySelector(".ml-deco-picker-source").textContent.trim() : null
       };
     });
     check("图库选择器可打开", picker.opened === true, picker);
-    check("图库缩略图 84 项（83 图 + 无）", pickerState && pickerState.count === 84, pickerState && pickerState.count);
+    check("图库缩略图 106 项（105 图 + 无）", pickerState && pickerState.count === 106, pickerState && pickerState.count);
     check("缺包时可见缩略图全部缺图", ready || (pickerState && pickerState.missing > 0 && pickerState.loaded === 0), pickerState && { missing: pickerState.missing, loaded: pickerState.loaded });
     check("装包后首屏缩略图真实加载", !ready || (pickerState && pickerState.loaded > 0 && pickerState.firstImage && pickerState.firstImage.indexOf("data:image") === 0), pickerState);
     check("装包后图库项不再误报缺图", !ready || (pickerState && pickerState.labelsWithMissing === 0 && !/图片缺失|Image missing/i.test(pickerState.firstLabel || "")), pickerState);
+    check("背景选择器只列 background1", pickerState && pickerState.folders.length === 1 && pickerState.folders[0] === "background1", pickerState && pickerState.folders);
+    check("背景选择器头部标明来源", pickerState && /background1/.test(pickerState.sourceText || ""), pickerState && pickerState.sourceText);
 
     await page.evaluate(() => {
       const p = document.querySelector("#ml-pane [data-deco-picker]");
@@ -251,6 +262,134 @@ async function openLantern(page) {
       if (pane) pane.scrollTop = 0;
     });
     await page.waitForTimeout(200);
+
+    const fgPicker = await page.evaluate(() => {
+      const b = document.querySelector('#ml-pane [data-deco-select-image="foreground1"]');
+      if (!b) return { opened: false, count: 0 };
+      b.click();
+      const p = document.querySelector("#ml-pane [data-deco-picker]");
+      return { opened: !!p && !p.hidden, count: p ? p.querySelectorAll(".ml-deco-pick").length : 0 };
+    });
+    await page.waitForTimeout(700);
+    const fgPickerState = await page.evaluate(() => {
+      const p = document.querySelector("#ml-pane [data-deco-picker]");
+      if (!p) return null;
+      const picks = Array.from(p.querySelectorAll(".ml-deco-pick"));
+      const loaded = Array.from(p.querySelectorAll(".ml-deco-pick img")).filter((n) => n.getAttribute("src") && n.getAttribute("src").indexOf("data:image") === 0);
+      return {
+        count: picks.length,
+        folders: Array.from(new Set(picks.map((n) => n.getAttribute("data-deco-pick-folder")))),
+        loaded: loaded.length,
+        firstImage: loaded[0] ? loaded[0].getAttribute("src").slice(0, 22) : null,
+        sourceText: p.querySelector(".ml-deco-picker-source") ? p.querySelector(".ml-deco-picker-source").textContent.trim() : null
+      };
+    });
+    check("前景图库选择器可打开", fgPicker.opened === true, fgPicker);
+    check("前景图库缩略图 106 项（105 图 + 无）", fgPickerState && fgPickerState.count === 106, fgPickerState && fgPickerState.count);
+    check("前景选择器只列 foreground1", fgPickerState && fgPickerState.folders.length === 1 && fgPickerState.folders[0] === "foreground1", fgPickerState && fgPickerState.folders);
+    check("前景选择器头部标明来源", fgPickerState && /foreground1/.test(fgPickerState.sourceText || ""), fgPickerState && fgPickerState.sourceText);
+    check("前景缩略图真实加载", !ready || (fgPickerState && fgPickerState.loaded > 0 && fgPickerState.firstImage && fgPickerState.firstImage.indexOf("data:image") === 0), fgPickerState);
+
+    await page.evaluate(() => {
+      const p = document.querySelector("#ml-pane [data-deco-picker]");
+      const b = p && p.querySelector(".ml-deco-close");
+      if (b) b.click();
+    });
+    await page.waitForTimeout(200);
+
+    const autoFg = await page.evaluate(async () => {
+      const t = document.querySelector("#ml-pane [data-deco-auto-fg-toggle]");
+      if (!t) return null;
+      t.click();
+      await new Promise((r) => setTimeout(r, 350));
+      const v = window.SugarCube.State.variables;
+      const core = window.MapleLanternDeco;
+      const layer = core.LAYERS.find((l) => l.id === "foreground1");
+      return { enabled: v.decoAutoFgEnabled, active: v.decoAutoFgActive, name: v.foreground_image1, path: core.imagePath(layer, v), source: v.decoAutoFgSource };
+    });
+    check("真实自动前景按地点命中", !ready || (autoFg && autoFg.enabled === true && autoFg.active === true && autoFg.name === "home" && /foreground1\/home\.png$/.test(autoFg.path || "") && autoFg.source === "home"), autoFg);
+
+    const autoFgOff = await page.evaluate(async () => {
+      const t = document.querySelector("#ml-pane [data-deco-auto-fg-toggle]");
+      if (!t) return null;
+      t.click();
+      await new Promise((r) => setTimeout(r, 350));
+      const v = window.SugarCube.State.variables;
+      return { enabled: v.decoAutoFgEnabled, active: v.decoAutoFgActive, name: v.foreground_image1, path: v.decoImagePath && v.decoImagePath.foreground1 };
+    });
+    check("真实关闭自动前景后恢复玩家原图", !ready || (autoFgOff && autoFgOff.enabled === false && autoFgOff.active !== true && autoFgOff.name === "none"), autoFgOff);
+
+    const coreLocations = await page.evaluate(() => {
+      const D = window.MapleLanternDeco;
+      const setup = window.setup;
+      const baseVars = window.SugarCube.State.variables;
+      const catalog = D.CATALOG;
+      return ["landfill", "orphanage", "cliff_dock", "mer_pier", "lake_rock"].map((loc) => {
+        const vars = Object.assign({}, baseVars, { location: loc, outside: 1 });
+        const info = D.locationInfo(vars, setup);
+        return {
+          loc: loc,
+          visual: info.visual,
+          base: info.base,
+          chain: info.chain,
+          picked: D.pickAutoLocation(info, catalog, catalog, [])
+        };
+      });
+    });
+    check("真实地点链匹配 Core4", coreLocations.every((x) => x.picked === x.loc), coreLocations);
+
+    /* 街道总线：原版街道页 $location="town" + $outside=1，仅 $bus 区分。
+       这里直接在真机 State.variables 上模拟街道页状态，验证 bus 优先命中、室内不误插。 */
+    const streetBus = await page.evaluate(() => {
+      const D = window.MapleLanternDeco;
+      const setup = window.setup;
+      const baseVars = window.SugarCube.State.variables;
+      const catalog = D.CATALOG;
+      const mk = (bus, outside) => Object.assign({}, baseVars, { location: "town", outside: outside, bus: bus });
+      const wolf = D.locationInfo(mk("wolf", 1), setup);
+      const indoor = D.locationInfo(mk("bus", 0), setup);
+      const noBus = D.locationInfo(mk(undefined, 1), setup);
+      return {
+        wolfChain: wolf.chain,
+        wolfPicked: D.pickAutoLocation(wolf, catalog, catalog, []),
+        indoorChain: indoor.chain,
+        indoorPicked: D.pickAutoLocation(indoor, catalog, catalog, []),
+        noBusChain: noBus.chain,
+        catalogCount: catalog.length
+      };
+    });
+    check("街道总线：wolf 链首命中且室内不插 bus", streetBus && streetBus.wolfChain[0] === "wolf" && streetBus.wolfPicked === "wolf" && streetBus.indoorChain.indexOf("bus") < 0 && streetBus.indoorPicked === "town" && streetBus.noBusChain[0] === "town", streetBus);
+    check("街道总线：CATALOG 已含 105 项", streetBus && streetBus.catalogCount === 105, streetBus && streetBus.catalogCount);
+
+    /* 室内借用页：原版三页没有 $bus，只能按 passage 名命中；缺图回退各自共用图。
+       真机 State.variables 模拟各页状态，传真实 passage 名验证链首与自动选中。 */
+    const indoor3 = await page.evaluate(() => {
+      const D = window.MapleLanternDeco;
+      const setup = window.setup;
+      const baseVars = window.SugarCube.State.variables;
+      const catalog = D.CATALOG;
+      const mk = (location, outside, bus) => Object.assign({}, baseVars, { location: location, outside: outside, bus: bus });
+      const info = (vars, passage) => { const i = D.locationInfo(vars, setup, passage); return { chain: i.chain, picked: D.pickAutoLocation(i, catalog, catalog, []) }; };
+      return {
+        busStation: info(mk("town", 0), "Bus Station"),
+        soupKitchen: info(mk("temple", 0), "Soup Kitchen"),
+        soupKitchenClosed: info(mk("temple", 0), "Soup Kitchen Closed"),
+        policeBackOffice: info(mk("police_station", 0), "Police Back Office"),
+        unrelatedIndoor: info(mk("town", 0), "Domus Street"),
+        noPassage: info(mk("town", 0), undefined),
+        catalogCount: catalog.length
+      };
+    });
+    check("室内借用页：四个 passage 名都命中各自新图",
+      indoor3 && indoor3.busStation.chain[0] === "bus_station" && indoor3.busStation.picked === "bus_station" &&
+      indoor3.soupKitchen.chain[0] === "soup_kitchen" && indoor3.soupKitchen.picked === "soup_kitchen" &&
+      indoor3.soupKitchenClosed.chain[0] === "soup_kitchen" && indoor3.soupKitchenClosed.picked === "soup_kitchen" &&
+      indoor3.policeBackOffice.chain[0] === "police_back_office" && indoor3.policeBackOffice.picked === "police_back_office", indoor3);
+    check("室内借用页：无关室内页不插新图、无 passage 现状一致",
+      indoor3 && indoor3.unrelatedIndoor.chain.indexOf("bus_station") < 0 && indoor3.unrelatedIndoor.chain.indexOf("soup_kitchen") < 0 &&
+      indoor3.unrelatedIndoor.chain.indexOf("police_back_office") < 0 && indoor3.unrelatedIndoor.picked === "town" &&
+      indoor3.noPassage.chain[0] === "town", indoor3 && { unrelatedIndoor: indoor3.unrelatedIndoor, noPassage: indoor3.noPassage });
+
     await page.screenshot({ path: path.join(SHOT_DIR, "390-top.png") });
 
     await page.evaluate(() => {
