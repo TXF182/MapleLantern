@@ -226,6 +226,6 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 打包产物在 `dist\`，并写入 `dist\SHA256.txt`。
 
-1.5.11 产物（本轮打包，未发布）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
+1.5.11 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.11>）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
 
 1.5.10 产物（已发布）：`dist\MapleLantern-1.5.10.mod.zip`（本体，223,393 B / 19 条目 / SHA256 `c5203e6f66b039c37bdc26887f371522e8932ab33bd1e176d8fcdaed2483c77f`）与 `dist\MapleLantern-ImagePack-1.5.10.mod.zip`（83 张布景图库，8,809,489 B / 85 条目 / SHA256 `519d19e1652b8bc31a0607b0711d15ff10e8569c46b1a91cfe11d94200044341`）。1.5.6 发布产物保留在 `dist\MapleLantern-1.5.6.mod.zip`，197,477 B / 16 条目 / SHA256 `c9e95307e8541965752cdceec1472bdc5ef609c003940ac1869f457ef7127f7b`。
