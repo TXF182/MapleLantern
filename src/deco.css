@@ -150,6 +150,26 @@
   font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-muted);
 }
 #ml-root .ml-deco-custom { display: flex; gap: 6px; padding-top: 8px; border-top: 1px solid var(--ml-line); }
+#ml-root .ml-deco-only-local { white-space: nowrap; }
+#ml-root .ml-deco-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin: 0 0 6px; }
+#ml-root .ml-deco-recent-label {
+  font-size: calc(10px * var(--dgu-font-scale, 1) * var(--ml-scale, 1)); color: var(--ml-muted);
+}
+#ml-root .ml-deco-chip {
+  min-height: 26px; padding: 2px 9px; border: 1px solid var(--ml-line-strong); border-radius: 999px;
+  background: var(--ml-bg-soft); color: var(--ml-text); cursor: pointer;
+  font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+}
+#ml-root .ml-deco-chip:hover { border-color: var(--ml-accent); }
+#ml-root .ml-deco-chip-clear { border-style: dashed; color: var(--ml-muted); }
+#ml-root .ml-deco-exchange {
+  width: 100%; box-sizing: border-box; padding: 7px 9px; resize: vertical;
+  border: 1px solid var(--ml-line-strong); border-radius: 8px;
+  background: var(--ml-bg); color: var(--ml-text);
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: calc(11px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
+}
+#ml-root .ml-deco-exchange-actions { display: flex; gap: 6px; margin-top: 6px; }
 #ml-root .ml-deco-close {
   width: 32px; height: 32px; min-width: 32px; min-height: 32px; padding: 0; border-radius: 50%;
   border: 1px solid var(--ml-line-strong); background: var(--ml-bg-raise); color: var(--ml-text);

@@ -208,8 +208,37 @@ test("街道总线：town+outside 时 $bus 插到图链首位，室内/无 bus �
   assert.equal(sameAsBase.chain[0], "town", "$bus 与地点同名不重复插入");
 });
 
-test("CATALOG 105 项：含 14 个街道总线键与 3 个室内借用页键", () => {
-  assert.equal(D.CATALOG.length, 105, "102 张现有地点 + 车站/施粥所/警察局办公室");
+test("街道档位：commercial/industrial/residential 映射到 com_alley/ind_alley/res_alley，alley/industrial 场景同样命中", () => {
+  const setup = {
+    Locations: { get: () => "town" },
+    locations: {
+      world: { parent: undefined, outside: 1 },
+      town: { parent: "world", outside: 1 },
+      alley: { parent: "town", outside: 1 },
+      industrial: { parent: "town", outside: 1 }
+    }
+  };
+  const com = D.locationInfo(vars({ location: "town", outside: 1, bus: "commercial" }), setup);
+  assert.equal(com.chain[0], "com_alley", "商业街档位必须映射到 com_alley（图库无 commercial 键）");
+
+  const alleyCom = D.locationInfo(vars({ location: "alley", outside: 1, bus: "commercial" }), setup);
+  assert.equal(alleyCom.chain[0], "com_alley", "alley 场景 + 商业档位应接商业暗巷图");
+
+  const alleyInd = D.locationInfo(vars({ location: "alley", outside: 1, bus: "industrial" }), setup);
+  assert.equal(alleyInd.chain[0], "ind_alley", "alley 场景 + 工业档位应接工业暗巷图");
+
+  const alleyRes = D.locationInfo(vars({ location: "alley", outside: 1, bus: "residential" }), setup);
+  assert.equal(alleyRes.chain[0], "res_alley", "alley 场景 + 住宅档位应接住宅暗巷图");
+
+  const ind = D.locationInfo(vars({ location: "industrial", outside: 1, bus: "industrial" }), setup);
+  assert.equal(ind.chain[0], "ind_alley", "industrial 场景应接工业暗巷图");
+
+  const indoor = D.locationInfo(vars({ location: "alley", outside: 0, bus: "commercial" }), setup);
+  assert.notEqual(indoor.chain[0], "com_alley", "室内不得插街区图");
+});
+
+test("CATALOG 106 项：含 14 个街道总线键、3 个室内借用页键与 hotel", () => {
+  assert.equal(D.CATALOG.length, 106, "106 项（原 105 + hotel，Avery Hotel 专属页）");
   const streets = ["barb", "cliff", "connudatus", "danube", "domus", "elk", "farmroad1",
     "harvest", "high", "mer", "nightingale", "oxford", "starfish", "wolf"];
   for (const key of streets) {
@@ -276,6 +305,159 @@ test("街道自动匹配：bus 图优先，白名单没有时回退 town", () =>
   assert.equal(D.pickAutoLocation(info, D.CATALOG, ["town", "wolf"], []), "wolf");
   assert.equal(D.pickAutoLocation(info, D.CATALOG, ["town"], []), "town");
   assert.equal(D.pickAutoLocation(info, D.CATALOG, [], []), "none");
+});
+
+/* 2026-11-25 取证：原版大量地点由 `<<location "x">>` 宏或 setup.Locations.get() 的
+   visual 函数给出（不是 `<<set $location to "x">>` 字面量），父级还会回退到父地点。
+   这一组用例锁住「同键名 / visual 派生 / 父链继承」三条路径都能命中图库，
+   防止覆盖清单再把它们误判成缺口。 */
+test("派生地点：同名、visual 派生与父链继承都命中图库", () => {
+  const TABLE = {
+    world: { parent: undefined },
+    town: { parent: "world", outside: 1 },
+    forest: { parent: "world" },
+    sea: { parent: "world", outside: 1 },
+    flats: { parent: "town", outside: 0 },
+    starfish: { parent: "sea", outside: 0 },
+    lake: { parent: "forest" },
+    cliff: { parent: "town", outside: 1 },
+    churchyard: { parent: "forest", outside: 1 },
+    sepulchre: { parent: "churchyard", outside: 0 },
+    danube: { parent: "town", outside: 1 },
+    kylarmanor: { parent: "danube", outside: 0 },
+    kylarmanor_outside: { parent: "kylarmanor", outside: 1 },
+    kylarmanor_grounds: { parent: "kylarmanor_outside", outside: 1 },
+    canal: { parent: "town", outside: 1 },
+    mines: { parent: "flats", outside: 0 },
+    pound: { parent: "starfish", outside: 0 },
+    lake_office: { parent: "lake", outside: 0 },
+    townhall: { parent: "cliff", outside: 0 },
+    coastpath: { parent: "sea", outside: 1 },
+    cafe: { parent: "town", outside: 0 },
+    farm: { parent: "world" },
+    alex_farm: { parent: "world" },
+    home: { parent: "world", outside: 0 },
+    beach: { parent: "town", outside: 1 },
+    backyard: { parent: "home", outside: 1 },
+    changingroom: { parent: "beach", outside: 0 },
+    farmroad3: { parent: "forest", outside: 1 }
+  };
+  const cases = [
+    { loc: "canal", visual: "canal", expect: "canal" },
+    { loc: "churchyard", visual: "churchyard", expect: "churchyard" },
+    { loc: "sepulchre", visual: "sepulchre", outside: 0, expect: "sepulchre" },
+    { loc: "mines", visual: "mines", outside: 0, expect: "mines" },
+    { loc: "pound", visual: "pound", outside: 0, expect: "pound" },
+    { loc: "lake_office", visual: "lake_office", outside: 0, expect: "lake_office" },
+    { loc: "townhall", visual: "townhall", outside: 0, expect: "townhall" },
+    { loc: "coastpath", visual: "coastpath", expect: "coastpath" },
+    { loc: "kylarmanor_grounds", visual: "kylarmanor_grounds", expect: "kylarmanor_grounds" },
+    { loc: "cafe", visual: "cafe_construction", outside: 0, expect: "cafe_construction" },
+    { loc: "cafe", visual: "cafe_renovated", outside: 0, expect: "cafe_renovated" },
+    { loc: "farm", visual: "underground_farm", expect: "underground_farm" },
+    { loc: "coastpath", visual: "cliff-dock", expect: "cliff_dock" },
+    { loc: "backyard", visual: "home", expect: "home" },
+    { loc: "changingroom", visual: "home", outside: 0, expect: "beach" },
+    { loc: "farmroad3", visual: "home", expect: "forest" }
+  ];
+  for (const c of cases) {
+    const setup = { Locations: { get: () => c.visual }, locations: TABLE };
+    const outside = c.outside === undefined ? 1 : c.outside;
+    const info = D.locationInfo(vars({ location: c.loc, outside: outside }), setup);
+    assert.equal(D.pickAutoLocation(info, D.CATALOG, D.CATALOG, []), c.expect, c.loc + " → " + c.expect);
+  }
+});
+
+test("舞蹈场：passage 名精确命中 underground_dance", () => {
+  const setup = {
+    Locations: { get: () => "underground" },
+    locations: { world: { parent: undefined }, underground: { parent: "world", outside: 0 } }
+  };
+  for (const passage of ["Underground Dance", "Underground Dance Intro"]) {
+    const info = D.locationInfo(vars({ location: "underground", outside: 0 }), setup, passage);
+    assert.equal(D.pickAutoLocation(info, D.CATALOG, D.CATALOG, []), "underground_dance", passage);
+  }
+  const other = D.locationInfo(vars({ location: "underground", outside: 0 }), setup, "Underground");
+  assert.equal(D.pickAutoLocation(other, D.CATALOG, D.CATALOG, []), "underground");
+});
+
+test("最近使用：去重、置顶、上限 8、none 不入表", () => {
+  const v = vars();
+  assert.deepEqual(Array.from(D.decoRecent(v)), []);
+  D.decoRemember(v, "town");
+  D.decoRemember(v, "home");
+  D.decoRemember(v, "town");
+  assert.deepEqual(Array.from(D.decoRecent(v)), ["town", "home"]);
+  D.decoRemember(v, "none");
+  assert.deepEqual(Array.from(D.decoRecent(v)), ["town", "home"]);
+  for (let i = 0; i < 12; i++) D.decoRemember(v, "k" + i);
+  assert.equal(D.decoRecent(v).length, 8);
+  assert.equal(D.decoRecent(v)[0], "k11");
+  /* 交互式旧值（带大写/连字符）读回时归一 */
+  const dirty = vars({ decoRecent: ["Town", "high-street", "", "none"] });
+  assert.deepEqual(Array.from(D.decoRecent(dirty)), ["town", "high_street"]);
+});
+
+test("配置导出/导入：往返恢复九层、Z、路径、自动名单与预设", () => {
+  const v = vars({
+    background_image1: "town",
+    foreground_image1: "home",
+    decoImageZ: { deco_bg1: 7, deco_fg1: -3 },
+    decoImagePath: { background1: "custom/town.png" },
+    decoAutoBgEnabled: true,
+    decoAutoBgLocations: ["town", "home", "not-a-place"],
+    decoPresets: { 1: { name: "夜景", background1: "high", savedAt: 1 } }
+  });
+  const dump = D.exportDeco(v);
+  assert.equal(dump.maplelanternDeco, 1);
+  assert.equal(dump.layers.background_image1, "town");
+  assert.equal(dump.shows.show_background1, true);
+  assert.equal(dump.imageZ.deco_bg1, 7);
+  assert.equal(dump.imagePath.background1, "custom/town.png");
+  assert.deepEqual(Array.from(dump.auto.bgList), ["town", "home"]);
+  assert.equal(dump.presets["1"].name, "夜景");
+
+  const fresh = vars();
+  const res = D.importDeco(fresh, dump);
+  assert.equal(res.ok, true);
+  assert.equal(fresh.background_image1, "town");
+  assert.equal(fresh.foreground_image1, "home");
+  assert.equal(fresh.decoImageZ.deco_bg1, 7);
+  assert.equal(fresh.decoImagePath.background1, "custom/town.png");
+  assert.equal(fresh.decoAutoBgEnabled, true);
+  assert.deepEqual(Array.from(fresh.decoAutoBgLocations), ["town", "home"]);
+  assert.equal(fresh.decoPresets["1"].name, "夜景");
+  assert.equal(fresh.decoPresets["1"].background1, "high");
+
+  /* 导出再导入一次应完全等价（幂等） */
+  const again = D.importDeco(vars(), D.exportDeco(fresh));
+  assert.equal(again.ok, true);
+});
+
+test("配置导入：格式错整体拒收；越界 Z 夹紧；非法路径/槽位丢弃", () => {
+  assert.equal(D.importDeco(vars(), null).ok, false);
+  assert.equal(D.importDeco(vars(), { layers: {} }).ok, false, "缺 maplelanternDeco 标记");
+  assert.equal(D.importDeco(vars(), { maplelanternDeco: 2 }).ok, false, "版本标记不符");
+
+  const v = vars();
+  const res = D.importDeco(v, {
+    maplelanternDeco: 1,
+    layers: { background_image1: "../../etc/passwd", foreground_image1: "Town" },
+    imageZ: { deco_bg1: 999, deco_fg1: -999, "__proto__": 5 },
+    imagePath: { background1: "ok.png", foreground1: "../bad.png", "bad key!": "x.png" },
+    presets: { 0: { name: "零槽" }, 100: { name: "百槽" }, 2: { name: "可用" } }
+  });
+  assert.equal(res.ok, true);
+  assert.equal(v.background_image1, "none", "含路径分隔符/.. 的图名归一为 none（allowlist 之外一律拒绝）");
+  assert.equal(v.foreground_image1, "town", "大小写归一");
+  assert.equal(v.decoImageZ.deco_bg1, 50, "Z 上界夹紧");
+  assert.equal(v.decoImageZ.deco_fg1, -50, "Z 下界夹紧");
+  assert.equal(Object.prototype.hasOwnProperty.call(v.decoImageZ, "__proto__"), false, "原型键丢弃");
+  assert.equal(v.decoImagePath.background1, "ok.png");
+  assert.equal(Object.prototype.hasOwnProperty.call(v.decoImagePath, "foreground1"), false, "含 .. 的路径丢弃");
+  assert.equal(Object.keys(v.decoImagePath).length, 1);
+  assert.deepEqual(Object.keys(v.decoPresets), ["2"], "只有槽 2 被接收");
+  assert.equal(v.decoPresets["2"].name, "可用");
 });
 
 test("预设：保存/套用包含九图、Z、路径与显示状态", () => {

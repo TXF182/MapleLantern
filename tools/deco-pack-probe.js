@@ -1,7 +1,7 @@
 /* 灯台 MapleLantern — 布景页真实 file:// 双包探针
  *
  * 用法：
- *   node tools\deco-pack-probe.js             # 主包 + 图库包：发现 105 张图、状态“图库已接入”
+ *   node tools\deco-pack-probe.js             # 主包 + 图库包：发现 106 张图、状态“图库已接入”
  *   ML_MODE=missing node tools\deco-pack-probe.js  # 只装主包：状态“未加载”、缩略图提示缺图
  *
  * 产物：%TEMP%\ml_deco_<mode>_*.png + stdout JSON 摘要；失败 exit 1。
@@ -19,8 +19,8 @@ const PROJECT = path.join(ROOT, "..");
 const GAME = path.join(PROJECT, "game", "Degrees of Lewdity.html");
 const IMPORT = path.join(PROJECT, "game", "mce-mod-import.html");
 const MODE = process.env.ML_MODE === "missing" ? "missing" : "both";
-const MAIN_ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.5.11.mod.zip");
-const IMAGE_ZIP = process.env.ML_IMAGE_ZIP || path.join(ROOT, "dist", "MapleLantern-ImagePack-1.5.11.mod.zip");
+const MAIN_ZIP = process.env.ML_ZIP || path.join(ROOT, "dist", "MapleLantern-1.5.12.mod.zip");
+const IMAGE_ZIP = process.env.ML_IMAGE_ZIP || path.join(ROOT, "dist", "MapleLantern-ImagePack-1.5.12.mod.zip");
 const PACKS = MODE === "missing" ? [MAIN_ZIP] : [MAIN_ZIP, IMAGE_ZIP];
 const PROFILE = path.join(os.tmpdir(), "lantern-deco-" + MODE + "-" + Date.now());
 const TAG = "ml_deco_" + MODE;
@@ -207,14 +207,14 @@ async function openLantern(page) {
     });
     const ready = MODE === "both";
     check("图库状态与期望一致", ready ? state.statusClass.indexOf("is-ready") >= 0 : state.statusClass.indexOf("is-missing") >= 0, state.statusClass);
-    check("图库状态文案", ready ? /图库已接入|Image pack ready/i.test(state.statusText) && /105/.test(state.statusText) : /未加载|not loaded|missing/i.test(state.statusText), state.statusText);
+    check("图库状态文案", ready ? /图库已接入|Image pack ready/i.test(state.statusText) && /106/.test(state.statusText) : /未加载|not loaded|missing/i.test(state.statusText), state.statusText);
     check("图库重新检测入口", ready ? state.retryHidden === true : state.retryHidden === false, state.retryHidden);
     check("缺包时自动背景开关禁用", ready ? state.autoDisabled === false : state.autoDisabled === true, state.autoDisabled);
     check("缺包时自动前景开关禁用", ready ? state.fgAutoDisabled === false : state.fgAutoDisabled === true, state.fgAutoDisabled);
     check("九层全部渲染", state.layers === 9, state.layers);
     check("背景/前景两个折叠组", state.groups.length === 2 && state.groups[0].open === true && state.groups[1].open === false, state.groups);
     check("缺包提示可见性符合期望", ready ? state.hints.every((h) => h.hidden === true) : state.hints.some((h) => h.hidden === false), state.hints);
-    check("图库目录 105 项", state.catalog === 105, state.catalog);
+    check("图库目录 106 项", state.catalog === 106, state.catalog);
     check("真实 getImage 可读", ready ? (state.image && state.image.kind.indexOf("data:image") === 0 && state.image.length > 10000) : (!state.image || state.image === "null"), state.image);
     check("真实前景 getImage 可读", ready ? (state.fgImage && state.fgImage.kind.indexOf("data:image") === 0 && state.fgImage.length > 10000) : (!state.fgImage || state.fgImage === "null"), state.fgImage);
     check("首/中/末三张图都可读（或缺包时都不可读）", ready ? state.samples.every((s) => s.kind.indexOf("data:image") === 0 && s.length > 10000) : state.samples.every((s) => !s.kind), state.samples);
@@ -245,7 +245,7 @@ async function openLantern(page) {
       };
     });
     check("图库选择器可打开", picker.opened === true, picker);
-    check("图库缩略图 106 项（105 图 + 无）", pickerState && pickerState.count === 106, pickerState && pickerState.count);
+    check("图库缩略图 107 项（106 图 + 无）", pickerState && pickerState.count === 107, pickerState && pickerState.count);
     check("缺包时可见缩略图全部缺图", ready || (pickerState && pickerState.missing > 0 && pickerState.loaded === 0), pickerState && { missing: pickerState.missing, loaded: pickerState.loaded });
     check("装包后首屏缩略图真实加载", !ready || (pickerState && pickerState.loaded > 0 && pickerState.firstImage && pickerState.firstImage.indexOf("data:image") === 0), pickerState);
     check("装包后图库项不再误报缺图", !ready || (pickerState && pickerState.labelsWithMissing === 0 && !/图片缺失|Image missing/i.test(pickerState.firstLabel || "")), pickerState);
@@ -285,7 +285,7 @@ async function openLantern(page) {
       };
     });
     check("前景图库选择器可打开", fgPicker.opened === true, fgPicker);
-    check("前景图库缩略图 106 项（105 图 + 无）", fgPickerState && fgPickerState.count === 106, fgPickerState && fgPickerState.count);
+    check("前景图库缩略图 107 项（106 图 + 无）", fgPickerState && fgPickerState.count === 107, fgPickerState && fgPickerState.count);
     check("前景选择器只列 foreground1", fgPickerState && fgPickerState.folders.length === 1 && fgPickerState.folders[0] === "foreground1", fgPickerState && fgPickerState.folders);
     check("前景选择器头部标明来源", fgPickerState && /foreground1/.test(fgPickerState.sourceText || ""), fgPickerState && fgPickerState.sourceText);
     check("前景缩略图真实加载", !ready || (fgPickerState && fgPickerState.loaded > 0 && fgPickerState.firstImage && fgPickerState.firstImage.indexOf("data:image") === 0), fgPickerState);
@@ -296,6 +296,80 @@ async function openLantern(page) {
       if (b) b.click();
     });
     await page.waitForTimeout(200);
+
+    /* 图库「只看本地点可用」：勾选后只保留当前地点链上的图库键 */
+    const localFilter = await page.evaluate(() => {
+      const D = window.MapleLanternDeco;
+      const v = window.SugarCube.State.variables;
+      const info = D.locationInfo(v, window.setup, window.SugarCube.State.passage);
+      const btn = document.querySelector('#ml-pane [data-deco-select-image="background1"]');
+      if (!btn) return { opened: false };
+      btn.click();
+      const p = document.querySelector("#ml-pane [data-deco-picker]");
+      const only = p.querySelector("[data-deco-only-local]");
+      if (!only) return { opened: true, onlyLocal: false, chain: info.chain };
+      only.checked = true;
+      only.dispatchEvent(new Event("change", { bubbles: true }));
+      const picks = Array.from(p.querySelectorAll(".ml-deco-pick"));
+      const names = picks.map((n) => n.getAttribute("data-deco-pick-name"));
+      return { opened: true, onlyLocal: true, chain: info.chain, names: names, count: names.length };
+    });
+    check("图库「只看本地点可用」按地点链过滤",
+      localFilter && localFilter.onlyLocal === true && localFilter.count >= 2 &&
+      localFilter.names.indexOf("none") >= 0 &&
+      localFilter.names.every((n) => n === "none" || localFilter.chain.indexOf(n) >= 0), localFilter);
+
+    /* 最近使用：选中后重开图库，最近行应出现该项并置顶，变量同步写入 */
+    const recent = await page.evaluate(() => {
+      const p = document.querySelector("#ml-pane [data-deco-picker]");
+      const pick = Array.from(p.querySelectorAll(".ml-deco-pick")).find((n) => n.getAttribute("data-deco-pick-name") !== "none");
+      if (!pick) return { picked: null };
+      const name = pick.getAttribute("data-deco-pick-name");
+      pick.click();
+      const v = window.SugarCube.State.variables;
+      const btn = document.querySelector('#ml-pane [data-deco-select-image="background1"]');
+      btn.click();
+      const p2 = document.querySelector("#ml-pane [data-deco-picker]");
+      const row = p2.querySelector("[data-deco-recent]");
+      const chips = row ? Array.from(row.querySelectorAll("[data-deco-recent-name]")).map((n) => n.getAttribute("data-deco-recent-name")) : [];
+      return { picked: name, rowHidden: !row || row.hidden, chips: chips, varName: v.background_image1 };
+    });
+    check("图库最近使用：选中项置顶并在重开后可见",
+      !ready || (recent && recent.picked && recent.varName === recent.picked && recent.rowHidden === false && recent.chips.indexOf(recent.picked) >= 0), recent);
+
+    /* 配置导出 / 导入：九层 JSON 往返恢复；坏数据整体拒收 */
+    const exchange = await page.evaluate(() => {
+      const D = window.MapleLanternDeco;
+      const v = window.SugarCube.State.variables;
+      const before = D.normalizeName(v.background_image1);
+      const area = document.querySelector("#ml-pane [data-deco-exchange]");
+      const exp = document.querySelector("#ml-pane [data-deco-export]");
+      const imp = document.querySelector("#ml-pane [data-deco-import]");
+      if (!area || !exp || !imp) return { present: false };
+      exp.click();
+      const text = area.value;
+      let parsed = null;
+      try { parsed = JSON.parse(text); } catch (e) { parsed = null; }
+      const layerCount = parsed && parsed.layers ? Object.keys(parsed.layers).length : 0;
+      v.background_image1 = "none";
+      area.value = text;
+      imp.click();
+      const status = document.querySelector("#ml-pane [data-deco-exchange-status]");
+      const after = D.normalizeName(v.background_image1);
+      const area2 = document.querySelector("#ml-pane [data-deco-exchange]");
+      area2.value = "{\"hello\":1}";
+      document.querySelector("#ml-pane [data-deco-import]").click();
+      const status2 = document.querySelector("#ml-pane [data-deco-exchange-status]");
+      const after2 = D.normalizeName(v.background_image1);
+      return {
+        present: true, hasText: text.length > 0, layerCount: layerCount, before: before, after: after, ok: before === after,
+        status: status ? status.textContent : null, after2: after2,
+        rejected: after2 === after && /失败|failed/i.test(status2 ? status2.textContent : "")
+      };
+    });
+    check("配置导出/导入：九层 JSON 往返且坏数据拒收",
+      exchange && exchange.present === true && exchange.hasText === true && exchange.layerCount === 9 &&
+      exchange.ok === true && exchange.rejected === true, exchange);
 
     const autoFg = await page.evaluate(async () => {
       const t = document.querySelector("#ml-pane [data-deco-auto-fg-toggle]");
@@ -345,21 +419,35 @@ async function openLantern(page) {
       const setup = window.setup;
       const baseVars = window.SugarCube.State.variables;
       const catalog = D.CATALOG;
-      const mk = (bus, outside) => Object.assign({}, baseVars, { location: "town", outside: outside, bus: bus });
+      const mk = (bus, outside, location) => Object.assign({}, baseVars, { location: location || "town", outside: outside, bus: bus });
       const wolf = D.locationInfo(mk("wolf", 1), setup);
       const indoor = D.locationInfo(mk("bus", 0), setup);
       const noBus = D.locationInfo(mk(undefined, 1), setup);
+      const hotel = D.locationInfo(mk(undefined, 0, "hotel"), setup);
+      const alleyCom = D.locationInfo(mk("commercial", 1, "alley"), setup);
+      const alleyInd = D.locationInfo(mk("industrial", 1, "alley"), setup);
+      const alleyRes = D.locationInfo(mk("residential", 1, "alley"), setup);
+      const industrial = D.locationInfo(mk("industrial", 1, "industrial"), setup);
       return {
         wolfChain: wolf.chain,
         wolfPicked: D.pickAutoLocation(wolf, catalog, catalog, []),
         indoorChain: indoor.chain,
         indoorPicked: D.pickAutoLocation(indoor, catalog, catalog, []),
         noBusChain: noBus.chain,
+        hotelChain: hotel.chain,
+        hotelPicked: D.pickAutoLocation(hotel, catalog, catalog, []),
+        alleyCom: alleyCom.chain[0],
+        alleyInd: alleyInd.chain[0],
+        alleyRes: alleyRes.chain[0],
+        alleyPicked: D.pickAutoLocation(alleyCom, catalog, catalog, []),
+        industrialChain0: industrial.chain[0],
         catalogCount: catalog.length
       };
     });
     check("街道总线：wolf 链首命中且室内不插 bus", streetBus && streetBus.wolfChain[0] === "wolf" && streetBus.wolfPicked === "wolf" && streetBus.indoorChain.indexOf("bus") < 0 && streetBus.indoorPicked === "town" && streetBus.noBusChain[0] === "town", streetBus);
-    check("街道总线：CATALOG 已含 105 项", streetBus && streetBus.catalogCount === 105, streetBus && streetBus.catalogCount);
+    check("街道档位：alley/industrial 命中三张街区暗巷图", streetBus && streetBus.alleyCom === "com_alley" && streetBus.alleyInd === "ind_alley" && streetBus.alleyRes === "res_alley" && streetBus.alleyPicked === "com_alley" && streetBus.industrialChain0 === "ind_alley", streetBus);
+    check("Avery Hotel：链首命中 hotel 且自动选中", streetBus && streetBus.hotelChain[0] === "hotel" && streetBus.hotelPicked === "hotel", streetBus && { chain: streetBus.hotelChain, picked: streetBus.hotelPicked });
+    check("街道总线：CATALOG 已含 106 项", streetBus && streetBus.catalogCount === 106, streetBus && streetBus.catalogCount);
 
     /* 室内借用页：原版三页没有 $bus，只能按 passage 名命中；缺图回退各自共用图。
        真机 State.variables 模拟各页状态，传真实 passage 名验证链首与自动选中。 */

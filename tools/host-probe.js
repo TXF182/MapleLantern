@@ -20,7 +20,7 @@
     panel: !!panel,
     deco: !!deco && deco.LAYERS.length === 9,
     decoPanel: !!decoPanel && decoPanel.__ready === true,
-    decoCatalog: !!(deco && deco.CATALOG && deco.CATALOG.length === 105),
+    decoCatalog: !!(deco && deco.CATALOG && deco.CATALOG.length === 106),
     version: core ? core.VERSION : null,
     cardKeys: !!(s && s.custom && cardKeys.every((k) => k in s.custom)),
     bgKeys: !!(s && s.custom && "bgOn" in s.custom),

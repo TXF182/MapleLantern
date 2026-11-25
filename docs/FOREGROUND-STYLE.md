@@ -14,8 +14,8 @@
 | 背景层统一走 `img/decorations/ml/background1`，前景层统一走 `img/decorations/ml/foreground1` | `src/deco-core.js` 的 `LIBRARY_DIR` / `FOREGROUND_DIR` / `folderDir` |
 | `safeImagePath` 只接受同类型目录；旧 `foregroundN` 路径按类型重写，背景图不会写进前景槽，前景图也不会写进背景槽 | `src/deco-core.js` 的 `safeImagePath` |
 | 布景页选图源按图层类型分流；背景层只列 `background1`，前景层只列 `foreground1` | `src/deco-panel.js` 的 `openPicker` / `renderPickerGrid` |
-| 图包打包器分别校验 105 张背景、105 张前景、文件名一一对应、总 210 条 | `pack-image.ps1` |
-| 上传的 105 张前景实际为 `512×256 RGBA`，中央 `x=86–237` 全透明（含 2026-11-24 街道总线 14 张 + 室内借用页 3 张） | `docs/foreground-style/validate_foreground.py` 实测 `105/105 PASS` |
+| 图包打包器分别校验 106 张背景、106 张前景、文件名一一对应、总 212 条 | `pack-image.ps1` |
+| 上传的 106 张前景实际为 `512×256 RGBA`，中央 `x=86–237` 全透明（含 2026-11-24 街道总线 14 张 + 室内借用页 3 张 + 2026-11-25 hotel 1 张；其中 hotel / bus_station / soup_kitchen / police_back_office 4 张为两帧呼吸微差，走 `--animated-allow`） | `docs/foreground-style/validate_foreground.py` 实测 `106/106 PASS`（严格静态口径 102/106） |
 
 **结论：上传包已可直接作为 `foreground1` 图库使用；只要把图库包和 1.5.11 本体一起装，背景层与前景层就会各读各的目录。**
 
@@ -27,8 +27,8 @@
 | 文件 | PNG-32，RGBA，sRGB，非索引色 |
 | 画布 | `512 × 256`，横向 2:1 |
 | 帧 | `2` 帧，每帧 `256 × 256`；左帧 `x=0-255`，右帧 `x=256-511` |
-| 静态前景 | 两帧必须**逐像素完全一致**；`animation: "idle"` 下不会闪烁 |
-| 动态前景 | 最多 2 帧循环；两帧都要满足下面的安全区，不能一帧透明一帧遮人 |
+| 静态前景（默认） | 两帧必须**逐像素完全一致**。宿主 `Renderer.Animations.idle = { frames: 2, duration: 1000 }`，帧一致才不会闪 |
+| 动态前景（白名单） | 允许两帧 RGB 微差：差异只在左右装饰带、中央 `x=86-237` 两帧完全一致、alpha 不得变化、单通道差 ≤24；校验时用 `--animated-allow <文件名>` 显式放行 |
 | Alpha | 必须是真 Alpha；`alpha.min()=0`、`alpha.max()=255`；`alpha=0` 的像素 RGB 必须清零，避免白边 |
 | 透明证明 | 不能拿“白底/棋盘格/PNG 后缀/全不透明 RGBA”当透明 |
 
@@ -194,18 +194,21 @@
 ```powershell
 cd MapleLantern\docs\foreground-style
 python validate_foreground.py samples\*_sheet_512x256.png samples\home_cohesion\*_sheet_512x256.png
+python validate_foreground.py --animated-allow "hotel.png,bus_station.png,soup_kitchen.png,police_back_office.png" ..\..\imagepack\img\decorations\ml\foreground1\*.png
 python -m unittest -v test_validate_foreground.py
 ```
 
 当前实测：
 
-- 校验脚本单测 **6/6 OK**；
+- 校验脚本单测 **10/10 OK**（含动画帧放行 / 中央差异拒收 / alpha 变化拒收 / 通道差上限 4 条）；
 - 上传的 88 张前景 **88/88 PASS**；三张样图 + `home_cohesion` 联动样图 **4/4 PASS**；完整命令输出与哈希见 `VERIFY.txt`；
 - 安全区左帧 `x=86-237`、右帧 `x=342-493` alpha 最大值均为 **0**；
-- 上传包两帧逐像素一致；不透明占比 **1.39%-12.52%**，均低于 30%；
+- 图库 106 张：`--animated-allow` 口径 **106/106 PASS**；严格静态口径 **102/106 PASS**（4 张动画帧按设计拒收）；
+- 4 张动画帧实测（frame1 左右带 RGB ×1.06，alpha 不变，中央两帧逐像素一致）：hotel diff 16,924 px / bus_station 10,777 / soup_kitchen 7,425 / police_back_office 15,440，最大通道差均为 **14**；
+- 上传包静态帧逐像素一致；不透明占比 **1.39%-12.52%**，均低于 30%；
 - 既有样图不透明占比：室内 `18.6%`、森林 `16.6%`、城镇 `25.1%`、home 联动 `14.8%`，均 ≤30%。
 
-校验脚本会拦：尺寸/模式不对、安全区有像素、两帧不一致、alpha 全不透明、`alpha=0` 带白底、 不透明占比超 30%。
+校验脚本会拦：尺寸/模式不对、安全区有像素、两帧不一致（未放行时）、动画帧中央差异 / alpha 变化 / 通道差 >24、alpha 全不透明、`alpha=0` 带白底、不透明占比超 30%。
 
 ## 9. 1.5.11 已落地的四处
 
@@ -230,7 +233,7 @@ python -m unittest -v test_validate_foreground.py
 - 只改 `src/*.js` / `src/*.css`；不改 `src/README.md` 以外未授权文件。
 - 版本三源同步：`src/boot.json`、`src/core.js`、`src/dossier-core.js`、`src/deco-core.js`、`imagepack/boot.json`。
 - 改码前存基线（`git status` + 涉及文件 SHA256）；改完跑全链、宿主探针、真实 `file://` 双包探针。
-- 发布只在当轮明确“发布”时执行；1.5.11 本轮只交付代码与图库包，尚未推送 Release。
+- 发布只在当轮明确“发布”时执行；1.5.11 已于 2026-11-25 发布，1.5.12 沿用同一套前景口径。
 
 ## 11. 文件与哈希
 

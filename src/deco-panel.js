@@ -29,6 +29,10 @@
       z: "Z 序偏移",
       picker: "图库",
       search: "搜索地点 / 图片名",
+      onlyLocal: "只看本地点可用",
+      recent: "最近使用",
+      recentClear: "清除",
+      onlyLocalEmpty: "当前地点没有可识别的图库键（仍可选“无”）",
       none: "无",
       custom: "自定义名称",
       source: "来源文件夹",
@@ -41,6 +45,14 @@
       newPreset: "+ 新增预设",
       blankPreset: "空白预设",
       noPresets: "还没有预设。",
+      exchange: "配置备份",
+      exchangeHint: "复制这段 JSON 可备份九层图、层级偏移、自动名单与预设；粘贴后点“导入”即可恢复。",
+      exportConfig: "导出配置",
+      importConfig: "导入配置",
+      exportDone: "已导出，可复制保存",
+      importDone: "已导入",
+      importBad: "导入失败：不是灯台配置或格式不对",
+      importEmpty: "没有可导入的文本",
       filter: "地点滤镜",
       autoSection: "自动布景（按地点）",
       autoBg: "启用背景",
@@ -117,6 +129,10 @@
       z: "Z offset",
       picker: "Gallery",
       search: "Search location / image",
+      onlyLocal: "Only images usable here",
+      recent: "Recent",
+      recentClear: "Clear",
+      onlyLocalEmpty: "No gallery key maps to this location (None is still available).",
       none: "None",
       custom: "Custom name",
       source: "Source folder",
@@ -129,6 +145,14 @@
       newPreset: "+ New preset",
       blankPreset: "Blank preset",
       noPresets: "No presets yet.",
+      exchange: "Config backup",
+      exchangeHint: "Copy this JSON to back up the nine layers, offsets, auto list and presets; paste and press Import to restore.",
+      exportConfig: "Export",
+      importConfig: "Import",
+      exportDone: "Exported — copy and keep it",
+      importDone: "Imported",
+      importBad: "Import failed: not a Lantern config or malformed",
+      importEmpty: "Nothing to import",
       filter: "Location filter",
       autoSection: "Auto scenery (by location)",
       autoBg: "Enable background",
@@ -202,6 +226,9 @@
     pickerLayer: null,
     pickerQuery: "",
     pickerSource: "background1",
+    pickerOnlyLocal: false,
+    exchangeText: "",
+    exchangeStatus: "",
     presetSlot: 1,
     timer: 0,
     timers: [],
@@ -784,7 +811,20 @@
     var tools = el("div", "ml-deco-picker-tools");
     var search = el("input", "ml-deco-search", { type: "search", placeholder: t("search") });
     tools.appendChild(search);
+    var onlyLabel = el("label", "ml-deco-check ml-deco-only-local");
+    var onlyInput = el("input", "", { type: "checkbox", "data-deco-only-local": "1" });
+    onlyInput.checked = state.pickerOnlyLocal === true;
+    onlyLabel.appendChild(onlyInput);
+    onlyLabel.appendChild(text("span", t("onlyLocal")));
+    tools.appendChild(onlyLabel);
     picker.appendChild(tools);
+
+    var recentRow = el("div", "ml-deco-recent", { "data-deco-recent": "1", hidden: "" });
+    picker.appendChild(recentRow);
+    var emptyHint = text("p", t("onlyLocalEmpty"), "ml-hint");
+    emptyHint.setAttribute("data-deco-only-empty", "1");
+    emptyHint.hidden = true;
+    picker.appendChild(emptyHint);
 
     var grid = el("div", "ml-deco-picker-grid");
     picker.appendChild(grid);
@@ -803,13 +843,28 @@
     picker.appendChild(customRow);
 
     picker.__grid = grid;
+    picker.__recent = recentRow;
+    picker.__emptyHint = emptyHint;
     picker.__search = search;
     picker.__customInput = customInput;
     picker.__source = sourceNode;
     state.picker = picker;
 
+    /* 107 项重建 + 缩略图入队较重：输入去抖 150ms，中文输入法组合期不重建 */
+    var searchTimer = 0;
+    var composing = false;
+    function scheduleGrid() {
+      if (searchTimer) root.clearTimeout(searchTimer);
+      searchTimer = root.setTimeout(function () { searchTimer = 0; renderPickerGrid(); }, 150);
+    }
     search.addEventListener("input", function () {
       state.pickerQuery = String(search.value || "").trim().toLowerCase();
+      if (!composing) scheduleGrid();
+    });
+    search.addEventListener("compositionstart", function () { composing = true; });
+    search.addEventListener("compositionend", function () { composing = false; scheduleGrid(); });
+    onlyInput.addEventListener("change", function () {
+      state.pickerOnlyLocal = onlyInput.checked === true;
       renderPickerGrid();
     });
     return picker;
@@ -975,6 +1030,65 @@
     section.appendChild(nameRow);
 
     if (!slots.length) section.appendChild(text("p", t("noPresets"), "ml-hint"));
+    return section;
+  }
+
+  function buildExchange() {
+    var section = el("section", "ml-deco-section", { "data-deco-exchange-section": "1" });
+    section.appendChild(text("h4", t("exchange"), "ml-deco-section-title"));
+    section.appendChild(text("p", t("exchangeHint"), "ml-hint"));
+    var area = el("textarea", "ml-deco-exchange", { rows: "4", "data-deco-exchange": "1" });
+    area.value = state.exchangeText || "";
+    section.appendChild(area);
+
+    var status = text("p", state.exchangeStatus || "", "ml-hint");
+    status.setAttribute("data-deco-exchange-status", "1");
+    status.hidden = !state.exchangeStatus;
+    section.appendChild(status);
+
+    var row = el("div", "ml-deco-exchange-actions");
+    var exportBtn = button(t("exportConfig"), "ml-btn ml-btn-sm", function () {
+      var v = vars();
+      if (!v) return;
+      var dump = D.exportDeco(v);
+      if (!dump) return;
+      state.exchangeText = JSON.stringify(dump, null, 2);
+      area.value = state.exchangeText;
+      state.exchangeStatus = t("exportDone");
+      status.textContent = state.exchangeStatus;
+      status.hidden = false;
+      try { area.focus(); area.select(); } catch (e) { /* 老 WebView 不支持 select */ }
+    });
+    exportBtn.setAttribute("data-deco-export", "1");
+    row.appendChild(exportBtn);
+
+    var importBtn = button(t("importConfig"), "ml-btn ml-btn-sm", function () {
+      var v = vars();
+      if (!v) return;
+      var raw = String(area.value || "").trim();
+      if (!raw) {
+        state.exchangeStatus = t("importEmpty");
+        status.textContent = state.exchangeStatus;
+        status.hidden = false;
+        return;
+      }
+      var data = null;
+      try { data = JSON.parse(raw); } catch (e) { data = null; }
+      var res = D.importDeco(v, data);
+      if (!res.ok) {
+        state.exchangeStatus = t("importBad");
+        status.textContent = state.exchangeStatus;
+        status.hidden = false;
+        return;
+      }
+      state.exchangeText = raw;
+      state.exchangeStatus = t("importDone") + " · " + res.applied + " / " + res.presets;
+      refresh();
+      rebuildPage();
+    });
+    importBtn.setAttribute("data-deco-import", "1");
+    row.appendChild(importBtn);
+    section.appendChild(row);
     return section;
   }
 
@@ -1207,6 +1321,7 @@
     page.appendChild(buildLayers());
     var options = el("div", "ml-deco-options");
     options.appendChild(buildPresets());
+    options.appendChild(buildExchange());
     options.appendChild(buildAuto());
     page.appendChild(options);
     page.appendChild(buildFilter());
@@ -1270,6 +1385,37 @@
     }
   }
 
+  function renderRecentRow(picker, source) {
+    var row = picker.__recent;
+    if (!row) return;
+    row.textContent = "";
+    var keys = [];
+    try { keys = D.decoRecent(vars() || {}); } catch (e) { keys = []; }
+    if (!keys.length) { row.hidden = true; return; }
+    row.hidden = false;
+    row.appendChild(text("span", t("recent"), "ml-deco-recent-label"));
+    keys.forEach(function (name) {
+      var chip = button(name, "ml-deco-chip", function () {
+        var layer = state.pickerLayer;
+        if (!layer) return;
+        try { D.decoRemember(vars() || {}, name); } catch (e) { /* 不向游戏抛 */ }
+        setImage(layer, name, source);
+        closePicker();
+      });
+      chip.setAttribute("data-deco-recent-name", name);
+      chip.title = name;
+      row.appendChild(chip);
+    });
+    var clear = button(t("recentClear"), "ml-deco-chip ml-deco-chip-clear", function () {
+      var v = vars();
+      if (!v) return;
+      v.decoRecent = [];
+      renderRecentRow(state.picker, state.pickerSource);
+    });
+    clear.setAttribute("data-deco-recent-clear", "1");
+    row.appendChild(clear);
+  }
+
   function renderPickerGrid() {
     var picker = state.picker;
     if (!picker || picker.hidden) return;
@@ -1285,8 +1431,30 @@
         : (sourceStatus === "partial" ? t("packPartialHint") : t("packHint"));
     }
 
+    /* 「只看本地点可用」：按灯台真实图链顺序取当前地点可命中的图库键 */
+    var onlyLocal = state.pickerOnlyLocal === true;
+    var chain = [];
+    if (onlyLocal) {
+      var info = null;
+      try { info = D.locationInfo(vars() || {}, setup(), passage()); } catch (e) { info = null; }
+      if (info && info.chain) {
+        for (var ci = 0; ci < info.chain.length; ci++) {
+          var ck = D.normalizeName(info.chain[ci]);
+          if (ck !== "none" && chain.indexOf(ck) < 0) chain.push(ck);
+        }
+      }
+    }
+
+    var emptyHint = picker.__emptyHint;
+    if (emptyHint) emptyHint.hidden = !(onlyLocal && !chain.length);
+
+    function remember(name) {
+      try { D.decoRemember(vars() || {}, name); } catch (e) { /* 不向游戏抛 */ }
+    }
+
     function addItem(name, label) {
       if (q && (String(name) + " " + String(label)).toLowerCase().indexOf(q) < 0) return;
+      if (onlyLocal && name !== "none" && chain.indexOf(name) < 0) return;
       var item = el("button", "ml-deco-pick", { type: "button" });
       item.setAttribute("data-deco-pick-name", name);
       item.setAttribute("data-deco-pick-folder", source);
@@ -1302,6 +1470,7 @@
       item.addEventListener("click", function () {
         var layer = state.pickerLayer;
         if (!layer) return;
+        remember(name);
         setImage(layer, name, source);
         closePicker();
       });
@@ -1310,6 +1479,7 @@
 
     addItem("none", t("none"));
     D.CATALOG.forEach(function (name) { addItem(name, name); });
+    renderRecentRow(picker, source);
   }
 
   /* ------------------------------------------------------------------ 宿主 */

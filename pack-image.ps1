@@ -31,8 +31,8 @@ foreach ($rel in @($boot.imgFileList)) {
 $images = @($boot.imgFileList)
 $bgImages = @($images | Where-Object { ([string]$_).StartsWith("img/decorations/ml/background1/") })
 $fgImages = @($images | Where-Object { ([string]$_).StartsWith("img/decorations/ml/foreground1/") })
-if ($bgImages.Count -ne 105) { throw "背景图条目数 $($bgImages.Count) != 105" }
-if ($fgImages.Count -ne 105) { throw "前景图条目数 $($fgImages.Count) != 105" }
+if ($bgImages.Count -ne 106) { throw "背景图条目数 $($bgImages.Count) != 106" }
+if ($fgImages.Count -ne 106) { throw "前景图条目数 $($fgImages.Count) != 106" }
 if (($bgImages.Count + $fgImages.Count) -ne $images.Count) { throw "imgFileList 含背景/前景之外的路径" }
 $bgNames = @($bgImages | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension([string]$_) })
 $fgNames = @($fgImages | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension([string]$_) })

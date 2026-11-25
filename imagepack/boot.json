@@ -1,6 +1,6 @@
 {
   "name": "MapleLantern-ImagePack",
-  "version": "1.5.11",
+  "version": "1.5.12",
   "nickName": "灯台 · 布景图库",
   "scriptFileList_inject_early": [],
   "scriptFileList": [],
@@ -112,6 +112,7 @@
     "img/decorations/ml/background1/bus_station.png",
     "img/decorations/ml/background1/soup_kitchen.png",
     "img/decorations/ml/background1/police_back_office.png",
+    "img/decorations/ml/background1/hotel.png",
     "img/decorations/ml/foreground1/adult_shop.png",
     "img/decorations/ml/foreground1/alex_cottage.png",
     "img/decorations/ml/foreground1/alex_farm.png",
@@ -216,7 +217,8 @@
     "img/decorations/ml/foreground1/wolf.png",
     "img/decorations/ml/foreground1/bus_station.png",
     "img/decorations/ml/foreground1/soup_kitchen.png",
-    "img/decorations/ml/foreground1/police_back_office.png"
+    "img/decorations/ml/foreground1/police_back_office.png",
+    "img/decorations/ml/foreground1/hotel.png"
   ],
   "additionFile": [
     "README.md"
@@ -240,7 +242,7 @@
     },
     {
       "modName": "MapleLantern",
-      "version": ">=1.5.11"
+      "version": ">=1.5.12"
     },
     {
       "modName": "ModLoader DoL ImageLoaderHook",

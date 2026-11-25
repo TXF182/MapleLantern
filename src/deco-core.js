@@ -51,7 +51,8 @@
     "mer_pier", "orphanage", "cliff_dock", "lake_rock",
     "barb", "cliff", "connudatus", "danube", "domus", "elk", "farmroad1",
     "harvest", "high", "mer", "nightingale", "oxford", "starfish", "wolf",
-    "bus_station", "soup_kitchen", "police_back_office"
+    "bus_station", "soup_kitchen", "police_back_office",
+    "hotel"
   ];
 
   /* 室内借用页的 passage 名 → 图库键；键名已是 normalizeName 后的形态
@@ -61,11 +62,22 @@
     "bus station": "bus_station",
     "soup kitchen": "soup_kitchen",
     "soup kitchen closed": "soup_kitchen",
-    "police back office": "police_back_office"
+    "police back office": "police_back_office",
+    /* 2026-11-25 取证：原版 passage 名 `Underground Dance` / `Underground Dance Intro`
+       是地下舞蹈场（$location="underground"，同地点其他室内页很多），图库有
+       underground_dance 专属图，按 passage 名精确命中。 */
+    "underground dance": "underground_dance",
+    "underground dance intro": "underground_dance"
   };
 
+  /* $bus 的街区档位在 DoL 里叫 commercial / industrial / residential，图库键却是
+     com_alley / ind_alley / res_alley；其余 $bus 值与图库键同名（domus / danube /
+     cliff / park …），直接命中即可。2026-11-25 复核：此前直接 add(bus)，三张
+     街区暗巷图在链上永远拿不到（图库没有 commercial/industrial/residential 键）。 */
+  var BUS_ALIAS = { commercial: "com_alley", industrial: "ind_alley", residential: "res_alley" };
+
   var MODE = { external: "external", native: "native", unavailable: "unavailable" };
-  /* 灯台自带 105 张背景 + 105 张前景，分别放在独立目录，避免与原「地點圖包」
+  /* 灯台自带 106 张背景 + 106 张前景，分别放在独立目录，避免与原「地點圖包」
      的 img/decorations/background1/<name>.png 同名；图片钩子按路径精确查表，
      同路径时实际会命中先注册的原图包。 */
   var LIBRARY_DIR = "img/decorations/ml/background1";
@@ -197,11 +209,16 @@
     var outside = vars.outside !== undefined ? !!vars.outside : (outsideMeta && outsideMeta.outside !== undefined ? !!outsideMeta.outside : false);
     /* 街道总线：原版城镇街道页（宅邸街/多瑙河街/…/峭壁街）与农场路1 全部写死
        $location="town" + $outside=1，只有 $bus 区分；setup.Locations.get() 不读 $bus。
-       此时把 $bus 插到图链最前：图库有对应街道图就命中，缺图继续回退 town。
-       室内不插（如 Bus Station 是 $outside=0），避免共用 town 的地点误用街图。 */
+       暗巷两个场景同构：$location="alley" + $bus=commercial/industrial/residential，
+       工业区暴露页 $location="industrial" + $bus=industrial（2026-11-25 复核：
+       这三类此前都只能回退 town，而 com_alley/ind_alley/res_alley 三张图在库）。
+       此时把 $bus 映射后的街区键插到图链最前：图库有图就命中，缺图继续回退。
+       室内不插（如 Bus Station 是 $outside=0），避免共用地点误用街图。 */
     var bus = normalizeName(vars.bus);
-    var streetBus = base === "town" && outside && bus !== "none" && bus !== normalizeName(base) && bus !== normalizeName(visual);
-    if (streetBus) add(bus);
+    var busKey = BUS_ALIAS[bus] || bus;
+    var streetBase = base === "town" || base === "alley" || base === "industrial";
+    var streetBus = streetBase && outside && bus !== "none" && busKey !== normalizeName(base) && busKey !== normalizeName(visual);
+    if (streetBus) add(busKey);
     if (!homeFallback) add(visual);
     add(base);
     if (meta) {
@@ -374,6 +391,178 @@
     var presets = vars.decoPresets || {};
     var slots = Object.keys(presets).map(Number).filter(function (n) { return isFinite(n) && n > 0; });
     return slots.length ? Math.max.apply(null, slots) + 1 : 1;
+  }
+
+  /* ---- 图库最近使用（存档内，最多 8 个，最近的在前） ---- */
+  var RECENT_MAX = 8;
+
+  function decoRecent(vars) {
+    vars = getVars(vars) || {};
+    var list = Array.isArray(vars.decoRecent) ? vars.decoRecent : [];
+    var out = [];
+    var seen = {};
+    for (var i = 0; i < list.length && out.length < RECENT_MAX; i++) {
+      var key = normalizeName(list[i]);
+      if (!key || key === "none" || seen[key]) continue;
+      seen[key] = true;
+      out.push(key);
+    }
+    return out;
+  }
+
+  function decoRemember(vars, key) {
+    vars = getVars(vars);
+    if (!vars) return [];
+    key = normalizeName(key);
+    if (!key || key === "none") return decoRecent(vars);
+    var list = decoRecent(vars).filter(function (x) { return x !== key; });
+    list.unshift(key);
+    vars.decoRecent = list.slice(0, RECENT_MAX);
+    return vars.decoRecent;
+  }
+
+  /* ---- 配置导出 / 导入：只覆盖布景相关键，逐项白名单校验，坏数据整段丢弃 ---- */
+  function clampZ(value) {
+    var n = Number(value);
+    if (!isFinite(n)) return 0;
+    return Math.max(-50, Math.min(50, Math.round(n)));
+  }
+
+  function sanitizeImageMap(raw) {
+    var out = {};
+    if (!raw || typeof raw !== "object") return out;
+    Object.keys(raw).forEach(function (k) {
+      if (!/^[a-z0-9_]{1,40}$/.test(String(k))) return;
+      var v = raw[k];
+      if (typeof v !== "string") return;
+      var s = v.trim();
+      if (!s || s.length > 120 || s.indexOf("..") >= 0) return;
+      out[k] = s;
+    });
+    return out;
+  }
+
+  function sanitizeZMap(raw) {
+    var out = {};
+    if (!raw || typeof raw !== "object") return out;
+    Object.keys(raw).forEach(function (k) {
+      if (!/^[a-z0-9_]{1,40}$/.test(String(k))) return;
+      out[k] = clampZ(raw[k]);
+    });
+    return out;
+  }
+
+  function sanitizeLocations(raw) {
+    var allowed = {};
+    for (var i = 0; i < CATALOG.length; i++) allowed[CATALOG[i]] = true;
+    var out = [];
+    if (!Array.isArray(raw)) return out;
+    for (var j = 0; j < raw.length && out.length < CATALOG.length; j++) {
+      var k = normalizeName(raw[j]);
+      if (k && allowed[k] && out.indexOf(k) < 0) out.push(k);
+    }
+    return out;
+  }
+
+  function sanitizePreset(raw) {
+    if (!raw || typeof raw !== "object") return null;
+    var preset = {
+      name: String(raw.name || "").slice(0, 40),
+      savedAt: Number(raw.savedAt) || 0,
+      decoImageZ: sanitizeZMap(raw.decoImageZ),
+      decoImagePath: sanitizeImageMap(raw.decoImagePath),
+      shows: {}
+    };
+    for (var i = 0; i < LAYERS.length; i++) {
+      var layer = LAYERS[i];
+      preset[layer.id] = normalizeName(raw[layer.id]);
+      if (raw.shows && has(raw.shows, layer.showKey)) preset.shows[layer.showKey] = raw.shows[layer.showKey] !== false;
+      else if (has(raw, "show" + capKey(layer.id))) preset.shows[layer.showKey] = raw["show" + capKey(layer.id)] !== false;
+      else preset.shows[layer.showKey] = true;
+    }
+    return preset;
+  }
+
+  function exportDeco(vars) {
+    vars = getVars(vars);
+    if (!vars) return null;
+    var out = {
+      maplelanternDeco: 1,
+      version: typeof VERSION === "string" ? VERSION : "",
+      exportedAt: Date.now(),
+      layers: {},
+      shows: {},
+      imageZ: cloneObject(vars.decoImageZ),
+      imagePath: cloneObject(vars.decoImagePath),
+      auto: {
+        bg: vars.decoAutoBgEnabled === true,
+        fg: vars.decoAutoFgEnabled === true,
+        bgList: sanitizeLocations(vars.decoAutoBgLocations),
+        fgList: sanitizeLocations(vars.decoAutoFgLocations),
+        bgOff: sanitizeLocations(vars.decoAutoBgDisabled),
+        fgOff: sanitizeLocations(vars.decoAutoFgDisabled)
+      },
+      presets: {}
+    };
+    for (var i = 0; i < LAYERS.length; i++) {
+      var layer = LAYERS[i];
+      out.layers[layer.varKey] = normalizeName(vars[layer.varKey]);
+      out.shows[layer.showKey] = layerVisible(layer, vars);
+    }
+    Object.keys(vars.decoPresets || {}).forEach(function (slot) {
+      var n = Number(slot);
+      if (!isFinite(n) || n <= 0 || n > 99) return;
+      var preset = sanitizePreset(vars.decoPresets[slot]);
+      if (preset) out.presets[String(Math.round(n))] = preset;
+    });
+    return out;
+  }
+
+  function importDeco(vars, raw) {
+    vars = getVars(vars);
+    if (!vars) return { ok: false, reason: "no-vars" };
+    if (!raw || typeof raw !== "object") return { ok: false, reason: "bad-data" };
+    if (Number(raw.maplelanternDeco) !== 1) return { ok: false, reason: "bad-format" };
+    /* 导入等同玩家显式选择：先撤自动接管，避免下一帧被自动地点覆盖。 */
+    if (vars.decoAutoBgActive === true) restoreAutoBackground(vars);
+    if (vars.decoAutoFgActive === true) restoreAutoForeground(vars);
+    var applied = 0;
+    if (raw.layers && typeof raw.layers === "object") {
+      for (var i = 0; i < LAYERS.length; i++) {
+        var layer = LAYERS[i];
+        if (typeof raw.layers[layer.varKey] === "string") {
+          vars[layer.varKey] = normalizeName(raw.layers[layer.varKey]);
+          applied++;
+        }
+        if (raw.shows && has(raw.shows, layer.showKey)) {
+          vars[layer.showKey] = raw.shows[layer.showKey] !== false;
+        }
+      }
+    }
+    if (raw.imageZ) vars.decoImageZ = sanitizeZMap(raw.imageZ);
+    if (raw.imagePath) vars.decoImagePath = sanitizeImageMap(raw.imagePath);
+    if (raw.auto && typeof raw.auto === "object") {
+      vars.decoAutoBgEnabled = raw.auto.bg === true;
+      vars.decoAutoFgEnabled = raw.auto.fg === true;
+      if (Array.isArray(raw.auto.bgList)) vars.decoAutoBgLocations = sanitizeLocations(raw.auto.bgList);
+      if (Array.isArray(raw.auto.fgList)) vars.decoAutoFgLocations = sanitizeLocations(raw.auto.fgList);
+      if (Array.isArray(raw.auto.bgOff)) vars.decoAutoBgDisabled = sanitizeLocations(raw.auto.bgOff);
+      if (Array.isArray(raw.auto.fgOff)) vars.decoAutoFgDisabled = sanitizeLocations(raw.auto.fgOff);
+    }
+    var count = 0;
+    if (raw.presets && typeof raw.presets === "object") {
+      if (!vars.decoPresets || typeof vars.decoPresets !== "object") vars.decoPresets = {};
+      Object.keys(raw.presets).forEach(function (slot) {
+        var n = Number(slot);
+        if (!isFinite(n) || n <= 0 || n > 99) return;
+        var preset = sanitizePreset(raw.presets[slot]);
+        if (!preset) return;
+        if (!preset.name) preset.name = "预设 " + Math.round(n);
+        vars.decoPresets[String(Math.round(n))] = preset;
+        count++;
+      });
+    }
+    return { ok: true, applied: applied, presets: count };
   }
 
   function computeOverlay(env) {
@@ -876,7 +1065,7 @@
   }
 
   return Object.freeze({
-    VERSION: "1.5.11",
+    VERSION: "1.5.12",
     LAYERS: LAYERS,
     CATALOG: CATALOG,
     LIBRARY_DIR: LIBRARY_DIR,
@@ -897,6 +1086,10 @@
     applyPreset: applyPreset,
     deletePreset: deletePreset,
     nextPresetSlot: nextPresetSlot,
+    decoRecent: decoRecent,
+    decoRemember: decoRemember,
+    exportDeco: exportDeco,
+    importDeco: importDeco,
     computeOverlay: computeOverlay,
     applyOverlay: applyOverlay,
     applyAutoBackground: applyAutoBackground,

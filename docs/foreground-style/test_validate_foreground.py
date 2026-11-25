@@ -27,6 +27,26 @@ def make_sheet(center_px: bool = False, frame_diff: bool = False) -> Image.Image
     return Image.fromarray(a, "RGBA")
 
 
+def make_animated_sheet(delta: int = 6, center: bool = False, alpha_change: bool = False) -> Image.Image:
+    a = np.zeros((256, 512, 4), dtype=np.uint8)
+    for offset in (0, 256):
+        a[:, offset + 0 : offset + 64, :] = (80, 60, 40, 255)
+        a[:, offset + 244 : offset + 256, :] = (40, 60, 50, 255)
+    base = a[:, :256, :].copy()
+    f1 = base.copy()
+    for x0, x1 in ((0, 86), (238, 256)):
+        band = base[:, x0:x1, :]
+        rgb = np.clip(band[:, :, :3].astype(np.int16) + delta, 0, 255).astype(np.uint8)
+        lit = band[:, :, 3] > 0
+        f1[:, x0:x1, :3] = np.where(lit[:, :, None], rgb, 0)
+    if center:
+        f1[100, 100, :] = (255, 0, 0, 255)
+    if alpha_change:
+        f1[10, 250, :] = (0, 0, 0, 0)
+    a[:, 256:, :] = f1
+    return Image.fromarray(a, "RGBA")
+
+
 class ValidateForegroundTests(unittest.TestCase):
     def _write(self, im: Image.Image) -> str:
         fd, path = tempfile.mkstemp(suffix=".png", dir=tempfile.gettempdir())
@@ -58,6 +78,45 @@ class ValidateForegroundTests(unittest.TestCase):
             r = validate(path)
             self.assertFalse(r.ok)
             self.assertTrue(any("differ" in e for e in r.errors))
+        finally:
+            os.remove(path)
+
+    def test_animated_micro_diff_passes_when_allowed(self):
+        path = self._write(make_animated_sheet(delta=6))
+        try:
+            r = validate(path, allow_animated=True)
+            self.assertTrue(r.ok, r.errors)
+            self.assertFalse(r.meta.get("frames_equal"))
+            self.assertEqual(r.meta.get("diff_max_delta"), 6)
+            # 默认口径仍视作“静态帧不一致”拒收
+            self.assertFalse(validate(path).ok)
+        finally:
+            os.remove(path)
+
+    def test_animated_center_diff_rejected(self):
+        path = self._write(make_animated_sheet(center=True))
+        try:
+            r = validate(path, allow_animated=True)
+            self.assertFalse(r.ok)
+            self.assertTrue(any("safe zone" in e for e in r.errors))
+        finally:
+            os.remove(path)
+
+    def test_animated_alpha_change_rejected(self):
+        path = self._write(make_animated_sheet(alpha_change=True))
+        try:
+            r = validate(path, allow_animated=True)
+            self.assertFalse(r.ok)
+            self.assertTrue(any("change alpha" in e for e in r.errors))
+        finally:
+            os.remove(path)
+
+    def test_animated_delta_cap_enforced(self):
+        path = self._write(make_animated_sheet(delta=40))
+        try:
+            r = validate(path, allow_animated=True)
+            self.assertFalse(r.ok)
+            self.assertTrue(any("delta 40" in e and "24" in e for e in r.errors))
         finally:
             os.remove(path)
 

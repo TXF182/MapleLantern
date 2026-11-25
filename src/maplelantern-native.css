@@ -693,6 +693,11 @@ html[data-ml-native="on"][data-ml-opt-stats="1"] #stats {
   margin: 0 !important;
   padding: 0 8px !important;
   box-sizing: border-box;
+  /* 原版 #stats 是 background-color: var(--850) 的深色条；四格卡片化后
+     容器底色不改会露出一整块黑底（玩家反馈 2026-11-24）。换成与侧栏底
+     同源的 --mln-bg，深色/浅色主题各自跟随；原版 --150 上下分隔线一并换主题描边。 */
+  background: var(--mln-bg) !important;
+  border-color: var(--mln-border) !important;
 }
 
 html[data-ml-native="on"][data-ml-opt-stats="1"] #stats > .content,

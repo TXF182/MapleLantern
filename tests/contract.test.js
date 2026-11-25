@@ -31,7 +31,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.11");
+  assert.equal(boot.version, "1.5.12");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -74,9 +74,9 @@ test("boot.json：GameVersion 精确锁、Host 区间、不硬依赖 DoLGameUI",
   assert.ok(ilh, "图库包缺少 ImageLoaderHook 依赖声明");
   assert.equal(ilh.version, "^2.3.0");
   const imgRels = packBoot.imgFileList;
-  assert.equal(imgRels.length, 210, "图库包应包含 105 张背景 + 105 张前景");
-  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/background1/")).length, 105, "背景应 105 张");
-  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/foreground1/")).length, 105, "前景应 105 张");
+  assert.equal(imgRels.length, 212, "图库包应包含 106 张背景 + 106 张前景（2026-11-25 补 hotel）");
+  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/background1/")).length, 106, "背景应 106 张");
+  assert.equal(imgRels.filter((r) => r.startsWith("img/decorations/ml/foreground1/")).length, 106, "前景应 106 张");
   for (const rel of imgRels) {
     assert.ok(fs.existsSync(path.join(PACK, rel)), rel + " 不在图库包内");
   }
@@ -314,6 +314,16 @@ test("1.2.0：立绘与侧栏保持 1.1.22 游戏原生几何，不再重写画�
     "不得改 #ui-bar 宽度：原生 17.5em=280，压到 216 会把画布挤进窄栏");
   assert.match(clean, /#stats\s*\{[^}]*width:\s*100% !important/s,
     "金额卡必须填满原生 280 侧栏，不能停在 248");
+});
+
+test("1.5.11 反馈：四格容器换主题同色系底，不再露出原版深色 #stats 底", () => {
+  const clean = strip(nativeCss);
+  assert.match(clean,
+    /\[data-ml-opt-stats="1"\] #stats\s*\{[^}]*background:\s*var\(--mln-bg\) !important/s,
+    "四格模式 #stats 容器必须换成主题底色（对齐侧栏底），否则原版 background-color: var(--850) 会露出黑色块");
+  assert.match(clean,
+    /\[data-ml-opt-stats="1"\] #stats\s*\{[^}]*border-color:\s*var\(--mln-border\) !important/s,
+    "原版上下 2px --150 分隔线在浅色卡面上要换成主题描边");
 });
 
 test("1.3.1：窄屏展开侧栏不再把 #story 挤成两字列", () => {

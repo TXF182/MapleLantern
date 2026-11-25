@@ -2,15 +2,21 @@
 # -*- coding: utf-8 -*-
 """Validate MapleLantern foreground assets.
 
-Canonical pack asset: 512x256 RGBA, two 256x256 frames, static duplicate frames.
+Canonical pack asset: 512x256 RGBA, two 256x256 frames.
 Per-frame character safe zone: x=86..237, full height, alpha must be exactly 0.
 Only the left band (0..85) and right band (238..255) may carry pixels.
 The 152px center is the common denominator of the shipped edge-frame pack
 (left band 32..85, right band 238..247) and the generated sample sheets.
 
+Frames are duplicate by default (host plays `idle`, which is 2 frames x 1000 ms).
+Pass --animated-allow <basenames> to permit a two-frame micro difference for
+listed files only: the character safe zone must stay identical between frames,
+alpha must not change, and RGB deltas are capped (MAX_ANIM_DELTA).
+
 Usage:
   python validate_foreground.py samples/*_sheet_512x256.png
   python validate_foreground.py --json samples/*_sheet_512x256.png
+  python validate_foreground.py --animated-allow "hotel.png,bus_station.png" imagepack/img/decorations/ml/foreground1/*.png
 """
 
 from __future__ import annotations
@@ -31,6 +37,7 @@ FRAME_H = 256
 SAFE_X0 = 86
 SAFE_X1 = 238  # exclusive
 MAX_OPAQUE_RATIO = 0.30
+MAX_ANIM_DELTA = 24       # per-channel RGB delta cap for animated frames
 
 
 @dataclass
@@ -65,7 +72,47 @@ def _check_frame(a: np.ndarray, offset: int, r: Result, label: str) -> None:
         r.fail(f"{label}: opaque ratio {opaque_ratio:.1%} > {MAX_OPAQUE_RATIO:.0%}")
 
 
-def validate(path: str) -> Result:
+def _check_frame_diff(f0: np.ndarray, f1: np.ndarray, r: Result, allow_animated: bool) -> None:
+    if np.array_equal(f0, f1):
+        r.meta["frames_equal"] = True
+        return
+    r.meta["frames_equal"] = False
+    if not allow_animated:
+        r.fail("frame0 and frame1 differ; pass --animated-allow for an intended two-frame micro difference")
+        return
+
+    # 中央安全区两帧必须完全一致（不允许一帧遮人一帧不遮）。
+    if not np.array_equal(f0[:, SAFE_X0:SAFE_X1, :], f1[:, SAFE_X0:SAFE_X1, :]):
+        r.fail("animated frames differ inside character safe zone x=86..237")
+        return
+
+    # 差异只允许出现在左右装饰带。
+    band = np.zeros((FRAME_H, FRAME_W), dtype=bool)
+    band[:, :SAFE_X0] = True
+    band[:, SAFE_X1:] = True
+    diff = np.any(f0 != f1, axis=2) & band
+    r.meta["diff_px"] = int(diff.sum())
+    if not diff.any():
+        r.fail("animated frames differ only outside the allowed bands")
+        return
+
+    # alpha 不许变化：不允许一帧有图一帧透明（会闪入闪出）。
+    if np.any(f0[:, :, 3] != f1[:, :, 3]):
+        r.fail("animated frames change alpha; only RGB micro variation is allowed")
+        return
+
+    delta = np.abs(f0[:, :, :3].astype(np.int16) - f1[:, :, :3].astype(np.int16))
+    max_delta = int(delta.max())
+    r.meta["diff_max_delta"] = max_delta
+    if max_delta > MAX_ANIM_DELTA:
+        r.fail(f"animated frame RGB delta {max_delta} > {MAX_ANIM_DELTA}")
+
+    band_px = int(((f0[:, :, 3] > 0) & band).sum())
+    r.meta["diff_ratio"] = round(float(diff.sum()) / float(max(1, band_px)), 4)
+    r.meta["diff_band_px"] = band_px
+
+
+def validate(path: str, allow_animated: bool = False) -> Result:
     r = Result(path=path)
     try:
         with Image.open(path) as src:
@@ -98,10 +145,7 @@ def validate(path: str) -> Result:
     _check_frame(a, 0, r, "frame0")
     if im.size[0] == 512:
         _check_frame(a, 256, r, "frame1")
-        if not np.array_equal(a[:, :256, :], a[:, 256:, :]):
-            r.fail("frame0 and frame1 differ; static foreground must be duplicate frames")
-        else:
-            r.meta["frames_equal"] = True
+        _check_frame_diff(a[:, :256, :], a[:, 256:, :], r, allow_animated)
     return r
 
 
@@ -119,6 +163,8 @@ def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate MapleLantern foreground PNG assets")
     parser.add_argument("paths", nargs="+", help="PNG paths or glob patterns")
     parser.add_argument("--json", action="store_true", help="print machine-readable JSON")
+    parser.add_argument("--animated-allow", default="",
+                        help="comma-separated basenames allowed a two-frame micro difference (e.g. hotel.png)")
     args = parser.parse_args(argv)
 
     files = expand(args.paths)
@@ -126,7 +172,8 @@ def main(argv: List[str] | None = None) -> int:
         print("no input files", file=sys.stderr)
         return 2
 
-    results = [validate(p) for p in files]
+    allow = {os.path.basename(x.strip()) for x in args.animated_allow.split(",") if x.strip()}
+    results = [validate(p, allow_animated=os.path.basename(p) in allow) for p in files]
     if args.json:
         print(json.dumps([r.__dict__ for r in results], ensure_ascii=False, indent=2))
     else:
