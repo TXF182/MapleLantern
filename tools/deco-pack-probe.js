@@ -337,6 +337,19 @@ async function openLantern(page) {
     check("图库最近使用：选中项置顶并在重开后可见",
       !ready || (recent && recent.picked && recent.varName === recent.picked && recent.rowHidden === false && recent.chips.indexOf(recent.picked) >= 0), recent);
 
+    /* 最近使用可一键清除：记录归零、行收起 */
+    const recentClear = await page.evaluate(() => {
+      const row = document.querySelector("#ml-pane [data-deco-recent]");
+      const btn = row ? row.querySelector("[data-deco-recent-clear]") : null;
+      if (!btn) return { present: false };
+      btn.click();
+      const v = window.SugarCube.State.variables;
+      const row2 = document.querySelector("#ml-pane [data-deco-recent]");
+      return { present: true, count: Array.isArray(v.decoRecent) ? v.decoRecent.length : -1, hidden: !row2 || row2.hidden };
+    });
+    check("图库最近使用：一键清除后记录归零、行收起",
+      !ready || (recentClear.present && recentClear.count === 0 && recentClear.hidden === true), recentClear);
+
     /* 配置导出 / 导入：九层 JSON 往返恢复；坏数据整体拒收 */
     const exchange = await page.evaluate(() => {
       const D = window.MapleLanternDeco;
