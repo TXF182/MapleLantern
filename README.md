@@ -250,7 +250,7 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 1.5.11 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.11>）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
 
-1.5.14 产物（本机打包，未发布）：`dist\MapleLantern-1.5.14.mod.zip`（本体，不含图，234,182 B / 19 条目 / SHA256 `5786985b05f9a6e36f5f16cce16e61d50612be3b27682a46639280fe727c0512`）与 `dist\MapleLantern-ImagePack-1.5.14.mod.zip`（14,352,459 B / 214 条目 / 212 图 / SHA256 `e16afc298d9eb3b75143e9781049f52f9c02a829e81e8a9d843b8ca3877a09cb`）。
+1.5.14 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.14>）：`dist\MapleLantern-1.5.14.mod.zip`（本体，不含图，234,182 B / 19 条目 / SHA256 `5786985b05f9a6e36f5f16cce16e61d50612be3b27682a46639280fe727c0512`）与 `dist\MapleLantern-ImagePack-1.5.14.mod.zip`（14,352,459 B / 214 条目 / 212 图 / SHA256 `e16afc298d9eb3b75143e9781049f52f9c02a829e81e8a9d843b8ca3877a09cb`）。
 1.5.13 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.13>）：`dist\MapleLantern-1.5.13.mod.zip`（本体，不含图，19 条目）与 `dist\MapleLantern-ImagePack-1.5.13.mod.zip`（214 条目 / 212 图）；体积与 SHA256 以 `dist\SHA256.txt` / `dist\SHA256-decor.txt` 为准。
 
 1.5.12 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.12>）：`dist\MapleLantern-1.5.12.mod.zip`（本体，不含图，232,072 B / 19 条目 / SHA256 `767a1ef5296305bff3705db728a3e7776677a464e8623a4a47ce738f7178fddb`）与 `dist\MapleLantern-ImagePack-1.5.12.mod.zip`（106 背景 + 106 前景，14,352,459 B / 214 条目 / 212 图 / SHA256 `94c8a08d2200b9e9aa20d526e3387660bf9e458bd8b4b781900832925a2f8edd`）。
