@@ -18,7 +18,7 @@ function ruleBodies(sel) {
   const out = [];
   const escaped = sel.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   /* 允许选择器出现在逗号分隔的选择器组里：只要求这段选择器后面跟 { 或 ,…{ */
-  const re = new RegExp("(?:^|\\n)" + escaped + "[^{}]*\\{([^}]*)\\}", "g");
+  const re = new RegExp("(?:^|\\n)" + escaped + "\\s*(?:,[^{}]*)?\\{([^}]*)\\}", "g");
   let m;
   while ((m = re.exec(CSS))) { out.push(m[1]); }
   return out;
@@ -39,7 +39,7 @@ test("衣柜衣物行：整宽行卡 + 图标回到普通流 + 正文包裹层",
 
   const body = ruleBodies('html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body');
   assert.ok(body.length >= 1, "缺少 .ml-ward-body 规则");
-  assert.match(body[0], /flex:\s*1 1 auto/, "正文必须占满剩余宽度");
+  assert.match(body[0], /flex:\s*1 1 0/, "正文必须占满剩余宽度（basis 0 才不会把行挤到下一行）");
 });
 
 test("动作按钮仍是两列，不受衣物行改动影响", () => {
@@ -53,4 +53,15 @@ test("裸 img.icon 进入选项卡时也要归位（不只 .icon-container）", 
   assert.ok(bare.length >= 1, "缺少选项卡裸图标规则");
   assert.match(bare[0], /position:\s*(relative|static)/, "裸图标必须脱离原版绝对定位");
   assert.match(bare[0], /top:\s*auto/, "原版 top 偏移必须清零");
+});
+
+test("1.5.14 兜底：JS 没打标记时 :has 也能把图标行拉满宽", () => {
+  const row = ruleBodies('html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> img.icon)');
+  assert.ok(row.length >= 1, "缺少 :has 衣物行兜底规则");
+  assert.match(row[0], /width:\s*100%/, "兜底也必须整行占满");
+  assert.match(row[0], /display:\s*flex/, "兜底行用 flex 排图标与文字");
+
+  const flat = ruleBodies('html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) > .ml-option-group');
+  assert.ok(flat.length >= 1, "缺少选项卡摊平规则");
+  assert.match(flat[0], /display:\s*contents/, "已分组时必须把卡片盒摊平，图标才能回到行内");
 });

@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.5.13）
+# 灯台 · Lantern（MapleLantern 1.5.14）
+
+- **1.5.14 · 衣柜行卡兜底**：`packWardrobeRows()` 改为扫描全部 `.wardrobeItem`（商店列表除外），不再依赖 `#wardrobewear`/`#wardrobe` 容器；商店分类分支补调用；选项卡片已分组时用 `:has()` 摊平 `.ml-option-group`、整行 100% 宽、图标 38×38 回卡内，JS 标记失效也不复发。`.wardrobe-card.test.js` 增至 4 条（新增 `:has()` 兜底契约），全量 **335/335 PASS**。
 
 - **1.5.13 · 触屏悬停与抽屉留白**：带位移/缩放的 10 条悬停规则收进 `@media (hover: hover)`，触屏点完不再停在悬停态；抽屉正文底部留白 16 → 10px，着装页内容高 421 → 415 一屏放下。衣柜衣物行改为整宽行卡：`packWardrobeRows()` 把裸 `img.icon` 与名称/属性收进同一张卡（38×38 图标在卡内），无图标动作行保持两列胶囊；主循环与 `adoptOrphanIcons` 跳过 `.wardrobeItem`，不再拆成两截。新增 `tests/hover-guard.test.js` 4 条、`tests/wardrobe-card.test.js` 3 条、衣柜 DOM 用例 1 条，全量 **334/334 PASS**。
 

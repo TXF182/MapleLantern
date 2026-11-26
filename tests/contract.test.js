@@ -31,7 +31,7 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.13");
+  assert.equal(boot.version, "1.5.14");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
   assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
@@ -654,7 +654,7 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
     const size = fs.statSync(path.join(SRC, f)).size;
     /* 1.4.20：原生层新增手机窄屏安全网格与 numberStepper 还原，CSS 从约 204KB
        增至约 207KB；上限随实现上调到 220KB，仍远低于 1MB。
-       1.5.13：衣柜衣物行卡化（图标归位 + 行内 body + 动作按钮隔离），CSS 从 236KB
+       1.5.14：衣柜衣物行卡化（图标归位 + 行内 body + 动作按钮隔离），CSS 从 236KB
        增至 239KB；上限随实现上调到 244KB，仍远低于 1MB。 */
     assert.ok(size < 244 * 1024, f + " 过大: " + size);
   }

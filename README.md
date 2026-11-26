@@ -3,8 +3,14 @@
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生界面替换层。只改呈现，不碰游戏数值与存档写入。
 QQ群:630879012
 
-当前版本：**1.5.13**
+当前版本：**1.5.14**
 
+## 1.5.14 重点
+
+- **衣柜行卡兜底**：`packWardrobeRows()` 不再依赖 `#wardrobewear` / `#wardrobe` 容器，凡 `.wardrobeItem` 都整理（商店列表除外）；选项卡片已先分组时用 `:has()` 把 `.ml-option-group` 摊平、整行拉满宽、图标 reset 回 38×38，JS 标记失效也不会再出现「图标在卡外、右边空一半」。
+- **补漏调用点**：商店/分类分支此前只清分隔符、不整理衣物行，现已补 `packWardrobeRows()`；图标识别兼容 `span.spanIcon` 配件图标打头的行。
+- **版本可辨识**：升到 1.5.14 并同步五源、图库依赖与测试字面，避免设备按「同 id + 同版本」继续沿用旧包。
+- **回归**：`tests/wardrobe-card.test.js` +1 条 `:has()` 兜底契约（共 4 条），全量 **335/335 PASS**。
 ## 1.5.13 重点
 
 - **触屏点完不再“漂着”**：10 条带位移或缩放的悬停规则收进 `@media (hover: hover)`，手指抬起后按钮立即回位，侧栏按钮、浮窗按钮、正文选项卡一致；桌面悬停效果不变。
@@ -218,8 +224,8 @@ QQ群:630879012
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.13.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
-3. 再导入 `MapleLantern-ImagePack-1.5.13.mod.zip` 布景图库（106 背景 + 106 前景，两包版本同步）；只装本体也能运行布景功能，但没有图可显示。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.14.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
+3. 再导入 `MapleLantern-ImagePack-1.5.14.mod.zip` 布景图库（106 背景 + 106 前景，两包版本同步）；只装本体也能运行布景功能，但没有图可显示。
 4. 刷新页面。
 
 > 把 zip 复制进游戏目录不等于安装：模组由浏览器本地数据库加载。
@@ -244,6 +250,7 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 1.5.11 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.11>）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
 
+1.5.14 产物（本机打包，未发布）：`dist\MapleLantern-1.5.14.mod.zip`（本体，不含图，234,182 B / 19 条目 / SHA256 `5786985b05f9a6e36f5f16cce16e61d50612be3b27682a46639280fe727c0512`）与 `dist\MapleLantern-ImagePack-1.5.14.mod.zip`（14,352,459 B / 214 条目 / 212 图 / SHA256 `e16afc298d9eb3b75143e9781049f52f9c02a829e81e8a9d843b8ca3877a09cb`）。
 1.5.13 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.13>）：`dist\MapleLantern-1.5.13.mod.zip`（本体，不含图，19 条目）与 `dist\MapleLantern-ImagePack-1.5.13.mod.zip`（214 条目 / 212 图）；体积与 SHA256 以 `dist\SHA256.txt` / `dist\SHA256-decor.txt` 为准。
 
 1.5.12 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.12>）：`dist\MapleLantern-1.5.12.mod.zip`（本体，不含图，232,072 B / 19 条目 / SHA256 `767a1ef5296305bff3705db728a3e7776677a464e8623a4a47ce738f7178fddb`）与 `dist\MapleLantern-ImagePack-1.5.12.mod.zip`（106 背景 + 106 前景，14,352,459 B / 214 条目 / 212 图 / SHA256 `94c8a08d2200b9e9aa20d526e3387660bf9e458bd8b4b781900832925a2f8edd`）。

@@ -478,21 +478,21 @@
      这里把非图标子节点统一收进 .ml-ward-body：整行保持一张卡，图标在左、
      文字在右；无图标的动作行（Strip / Towel）不动，仍走两列胶囊。 */
   function packWardrobeRows(root) {
-    var rows = root.querySelectorAll("#wardrobewear .wardrobeItem, #wardrobe .wardrobeItem");
+    var rows = root.querySelectorAll(".wardrobeItem");
     for (var i = 0; i < rows.length; i++) {
       var row = rows[i];
+      if (row.closest && row.closest("#clothingShop-div, #clothes-list")) { continue; }
       if (row.getAttribute("data-ml-ward-item") === "1") { continue; }
       var stale = row.querySelector(".ml-option-group");
-      if (stale) {
+      while (stale) {
         while (stale.firstChild) { row.insertBefore(stale.firstChild, stale); }
         stale.parentNode.removeChild(stale);
+        stale = row.querySelector(".ml-option-group");
       }
       var icon = null;
-      for (var c = row.firstChild; c; c = c.nextSibling) {
-        if (c.nodeType === 3 && !(c.nodeValue || "").trim()) { continue; }
-        if (c.nodeType === 1 && c.tagName === "IMG" && c.classList.contains("icon")) { icon = c; }
-        else if (c.nodeType === 1 && c.classList.contains("icon-container")) { icon = c; }
-        break;
+      for (var c = row.firstElementChild; c; c = c.nextElementSibling) {
+        if (c.tagName === "IMG" && c.classList.contains("icon")) { icon = c; break; }
+        if (c.classList.contains("icon-container") || c.classList.contains("spanIcon")) { icon = c; break; }
       }
       if (!icon) { continue; }
       var body = doc.createElement("div");
@@ -1556,7 +1556,10 @@
       markShopTools(passages, shopPage);
       tidyShopText(passages, shopPage, dirty);
       markEmptyDetails(passages, shopPage, dirty);
-      if (wardrobeBits) { tidySeparators(passages); }
+      if (wardrobeBits) {
+        tidySeparators(passages);
+        packWardrobeRows(passages);
+      }
       state.packChanged = false;
       state.packStable = true;
       state.packDirty = null;

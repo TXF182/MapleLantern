@@ -681,7 +681,7 @@ html[data-ml-native="on"] header#title {
 html[data-ml-native="on"] #story-caption {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
 }
 
@@ -859,7 +859,7 @@ html[data-ml-native="on"] #storyCaptionDiv {
 html[data-ml-native="on"] #storyCaptionContent {
   position: relative !important;
   top: auto !important;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   height: auto !important;
   max-height: none !important;
   min-height: 0;
@@ -1823,12 +1823,81 @@ html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"
   flex-wrap: wrap;
   align-items: baseline;
   gap: 2px 6px;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
 }
 
 html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body > a.link-internal.macro-link,
 html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body > a.macro-link {
+  display: inline-flex !important;
+  align-items: center;
+  width: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: var(--mln-text) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+}
+
+/* 兜底（1.5.14）：若 JS 标记没打上（旧包缓存、或选项卡片已经先分组），用 :has 认出
+   「带图标的衣物行」，把 .ml-option-group 摊平成内容、整行拉满宽，图标回卡内。
+   :has() 不被支持时整段失效，不影响上面的主规则与动作按钮。 */
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> img.icon),
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .icon-container),
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) {
+  display: flex !important;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 0 6px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--mln-border) !important;
+  border-radius: 12px !important;
+  background: var(--mln-surface) !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> img.icon) > img.icon,
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .icon-container) > .icon-container,
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) > .ml-option-group > img.icon {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  flex: 0 0 38px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: none !important;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) > .ml-option-group {
+  display: contents !important;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) > .ml-option-group > a.link-internal.macro-link,
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> .ml-option-group > img.icon) > .ml-option-group > a.macro-link,
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> img.icon) > a.link-internal.macro-link,
+html[data-ml-native="on"] #passages .passage .wardrobeItem:not([data-ml-ward-item="1"]):has(> img.icon) > a.macro-link {
   display: inline-flex !important;
   align-items: center;
   width: auto !important;
@@ -2134,7 +2203,7 @@ html[data-ml-native="on"] #passages .passage .searchBar {
 }
 
 html[data-ml-native="on"] #passages .passage #textbox--shopnamefiltertextbox {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
 }
 
@@ -2378,7 +2447,7 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
   border-radius: 0 0 var(--mln-radius-sm) var(--mln-radius-sm);
   background: var(--mln-surface);
   color: var(--mln-text);
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   height: auto;
   overflow-y: auto;
@@ -3157,7 +3226,7 @@ html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:ha
 }
 
 html[data-ml-native="on"][data-ml-opt-overlay="1"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .characteristic-title {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   color: var(--mln-text);
   font-size: 12px;
@@ -3277,7 +3346,7 @@ html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options
 }
 
 html[data-ml-native="on"] #customOverlayContent:not(:has(#cheat_extended_options,#CE_settingsDiv,.CEtab,.CEbuttonBar,.CEDISPLAY,#mce-root)) .relation-name {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   color: var(--mln-text);
   font-size: 13px;
