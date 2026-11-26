@@ -3,7 +3,13 @@
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生界面替换层。只改呈现，不碰游戏数值与存档写入。
 QQ群:630879012
 
-当前版本：**1.5.12**
+当前版本：**1.5.13**
+
+## 1.5.13 重点
+
+- **触屏点完不再“漂着”**：10 条带位移或缩放的悬停规则收进 `@media (hover: hover)`，手指抬起后按钮立即回位，侧栏按钮、浮窗按钮、正文选项卡一致；桌面悬停效果不变。
+- **着装页一屏放下**：抽屉正文底部留白 16 → 10px，内容高 421 → 415，原先那 5px 滚动消失。
+- **回归**：新增 `tests/hover-guard.test.js` 4 条断言（含“不许靠删动效实现守卫”的反断言），全量 **330/330 PASS**；`tools\verify.ps1` 4/4。
 
 ## 1.5.12 重点
 
@@ -211,8 +217,8 @@ QQ群:630879012
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.12.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
-3. 再导入 `MapleLantern-ImagePack-1.5.12.mod.zip` 布景图库（106 背景 + 106 前景）；只装本体也能运行布景功能，但没有图可显示。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.13.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
+3. 再导入 `MapleLantern-ImagePack-1.5.13.mod.zip` 布景图库（106 背景 + 106 前景，两包版本同步）；只装本体也能运行布景功能，但没有图可显示。
 4. 刷新页面。
 
 > 把 zip 复制进游戏目录不等于安装：模组由浏览器本地数据库加载。
@@ -236,6 +242,8 @@ pwsh -NoProfile -File tools\host-probe.ps1
 打包产物在 `dist\`，并写入 `dist\SHA256.txt`。
 
 1.5.11 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.11>）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
+
+1.5.13 产物（**未发布**，仅本地）：`dist\MapleLantern-1.5.13.mod.zip`（本体，不含图，19 条目；体积与 SHA256 以 `dist\SHA256.txt` 为准）。
 
 1.5.12 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.12>）：`dist\MapleLantern-1.5.12.mod.zip`（本体，不含图，232,072 B / 19 条目 / SHA256 `767a1ef5296305bff3705db728a3e7776677a464e8623a4a47ce738f7178fddb`）与 `dist\MapleLantern-ImagePack-1.5.12.mod.zip`（106 背景 + 106 前景，14,352,459 B / 214 条目 / 212 图 / SHA256 `94c8a08d2200b9e9aa20d526e3387660bf9e458bd8b4b781900832925a2f8edd`）。
 
