@@ -637,9 +637,12 @@ html[data-ml-native="on"] #ui-bar .macro-button {
   transition: background-color .12s ease, border-color .12s ease, transform .12s ease, box-shadow .12s ease;
 }
 
-html[data-ml-native="on"] #ui-bar .macro-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px -12px var(--mln-glow);
+/* 触屏没有真悬停：侧栏按钮的抬升只给可悬停设备 */
+@media (hover: hover) {
+  html[data-ml-native="on"] #ui-bar .macro-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -12px var(--mln-glow);
+  }
 }
 
 html[data-ml-native="on"] #ui-bar-body {
@@ -1094,12 +1097,15 @@ html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons#overlayButton
   padding: 8px 4px;
 }
 
-html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:hover,
-html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:hover {
-  border-color: var(--mln-accent);
-  background: var(--mln-surface-3);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px -12px var(--mln-glow);
+/* 触屏没有真悬停：浮窗按钮点完不留抬升残留 */
+@media (hover: hover) {
+  html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:hover,
+  html[data-ml-native="on"][data-ml-opt-sidebar="1"] #menu button:hover {
+    border-color: var(--mln-accent);
+    background: var(--mln-surface-3);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px -12px var(--mln-glow);
+  }
 }
 
 html[data-ml-native="on"][data-ml-opt-sidebar="1"] #overlayButtons button:active,
@@ -1450,12 +1456,14 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage > a.macro-
   transition: border-color 120ms ease, background-color 120ms ease, transform 80ms ease;
 }
 
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link:hover,
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link:hover {
-  border-color: var(--mln-accent);
-  background: var(--mln-surface-2);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
+@media (hover: hover) {
+  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link:hover,
+  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.macro-link:hover {
+    border-color: var(--mln-accent);
+    background: var(--mln-surface-2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
+  }
 }
 
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage a.link-internal.macro-link:active,
@@ -1510,11 +1518,13 @@ html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option
   transition: border-color 120ms ease, background-color 120ms ease, transform 100ms ease, filter 100ms ease;
 }
 
-html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:hover {
-  border-color: var(--mln-accent);
-  background: var(--mln-surface-2);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
+@media (hover: hover) {
+  html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:hover {
+    border-color: var(--mln-accent);
+    background: var(--mln-surface-2);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px -14px var(--mln-glow), inset 0 1px 0 rgb(255 255 255 / 6%);
+  }
 }
 
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group:active {

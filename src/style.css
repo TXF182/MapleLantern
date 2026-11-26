@@ -486,7 +486,10 @@
 }
 #ml-root .ml-orb[data-degraded="1"] .ml-orb-dot { display: block; background: var(--ml-accent); }
 
-#ml-root .ml-orb:hover { transform: translateY(-1px); filter: brightness(1.08); }
+/* 触屏没有真悬停：位移/缩放只给可悬停设备，避免点完手指抬起后停在悬停态 */
+@media (hover: hover) {
+  #ml-root .ml-orb:hover { transform: translateY(-1px); filter: brightness(1.08); }
+}
 #ml-root .ml-orb:active { transform: scale(.97); }
 #ml-root[data-dragging="1"] .ml-orb { transition: none; filter: brightness(1.12); will-change: transform; cursor: grabbing; }
 #ml-root[data-dragging="1"] { -webkit-user-select: none; user-select: none; cursor: grabbing; }
@@ -687,7 +690,9 @@
   color: var(--ml-muted);
   transition: background-color .14s ease, color .14s ease, transform .12s ease;
 }
-#ml-root .ml-icon:hover { background: var(--ml-bg-raise); color: var(--ml-text); transform: translateY(-1px); }
+@media (hover: hover) {
+  #ml-root .ml-icon:hover { background: var(--ml-bg-raise); color: var(--ml-text); transform: translateY(-1px); }
+}
 #ml-root .ml-icon:active { transform: scale(.96); }
 #ml-root .ml-ico { display: inline-flex; width: 18px; height: 18px; flex: 0 0 auto; }
 #ml-root .ml-ico svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
@@ -1117,11 +1122,13 @@
   font-size: calc(12.5px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
   transition: background-color .14s ease, border-color .14s ease, transform .12s ease, box-shadow .18s ease;
 }
-#ml-root .ml-btn:hover {
-  background: var(--ml-bg-raise);
-  border-color: var(--ml-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px -12px var(--ml-press-glow);
+@media (hover: hover) {
+  #ml-root .ml-btn:hover {
+    background: var(--ml-bg-raise);
+    border-color: var(--ml-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 7px 18px -12px var(--ml-press-glow);
+  }
 }
 #ml-root .ml-btn:active { transform: translateY(0) scale(.98); box-shadow: none; }
 #ml-root .ml-btn-wide { width: 100%; }
@@ -1178,11 +1185,13 @@
   font-size: calc(12px * var(--dgu-font-scale, 1) * var(--ml-scale, 1));
   transition: color .14s ease, border-color .14s ease, background-color .14s ease, transform .12s ease, box-shadow .18s ease;
 }
-#ml-root .ml-seg-btn:hover {
-  color: var(--ml-text);
-  border-color: var(--ml-accent);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 14px -10px var(--ml-press-glow);
+@media (hover: hover) {
+  #ml-root .ml-seg-btn:hover {
+    color: var(--ml-text);
+    border-color: var(--ml-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px -10px var(--ml-press-glow);
+  }
 }
 #ml-root .ml-seg-btn:active { transform: translateY(0) scale(.97); box-shadow: none; }
 #ml-root .ml-seg-btn[aria-checked="true"] {
@@ -1213,10 +1222,12 @@
   transform: none;
   transition: border-color .16s ease, box-shadow .18s ease, transform .12s ease, background-color .16s ease;
 }
-#ml-root .ml-seg--themes .ml-theme-tile:hover {
-  border-color: var(--ml-pv-accent);
-  box-shadow: 0 6px 16px -12px var(--ml-pv-accent);
-  transform: scale(1.015);
+@media (hover: hover) {
+  #ml-root .ml-seg--themes .ml-theme-tile:hover {
+    border-color: var(--ml-pv-accent);
+    box-shadow: 0 6px 16px -12px var(--ml-pv-accent);
+    transform: scale(1.015);
+  }
 }
 #ml-root .ml-seg--themes .ml-theme-tile:active { box-shadow: none; transform: scale(.97); }
 #ml-root .ml-seg--themes .ml-theme-tile[aria-checked="true"] {
@@ -1417,7 +1428,9 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
   transition: transform .12s ease, box-shadow .16s ease;
 }
-#ml-root .ml-color-dot:hover::before { transform: scale(1.08); }
+@media (hover: hover) {
+  #ml-root .ml-color-dot:hover::before { transform: scale(1.08); }
+}
 #ml-root .ml-color-dot:active::before { transform: scale(.94); }
 #ml-root .ml-color-dot[aria-checked="true"]::before {
   box-shadow: 0 0 0 2px var(--ml-bg), 0 0 0 3px var(--ml-accent);
@@ -1607,7 +1620,9 @@
   background: var(--ml-line-strong);
 }
 #ml-root[data-sheet="1"] .ml-head { padding-top: 4px; }
-#ml-root[data-sheet="1"] .ml-body { padding-bottom: calc(16px + var(--ml-safe-b)); }
+/* sheet 正文底部 16px 会让着装页多出 5px 滚动（421/416）；收到 10px 后一屏放下，
+   安全区由 --ml-safe-b 继续叠加。 */
+#ml-root[data-sheet="1"] .ml-body { padding-bottom: calc(10px + var(--ml-safe-b)); }
 #ml-root[data-sheet="1"] .ml-foot { padding-bottom: calc(10px + var(--ml-safe-b)); }
 
 /* 抽屉打开时球被盖住：先让位，关闭后回来 */
