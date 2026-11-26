@@ -1305,3 +1305,35 @@ test("性能：商店内一次点击只安排一拍补扫", async () => {
   assert.ok(after - before <= 1, "商店内单击只应安排一拍 apply，实际 " + (after - before));
 });
 
+
+test("衣柜衣物行：图标收进行卡，动作按钮仍是无图标的动作行", async () => {
+  const { w } = createEnv();
+  await tick(w);
+  const p = w.document.querySelector("#passages .passage");
+  p.innerHTML =
+    '<div id="wardrobewear">' +
+    '<div class="wardrobeItem wardrobe-action no-numberify"><img class="icon" src="shoe.png">' +
+    '<a class="link-internal macro-link">鞋罩短靴</a><span class="pink">♀</span>' +
+    '<span class="pink">（医院粉）</span><span class="gold">有品位</span></div>' +
+    '<div class="wardrobeItem wardrobe-action no-numberify"><img class="icon" src="boot.png">' +
+    '<a class="link-internal macro-link">褶皱长靴</a><span class="brown">（棕色）</span></div>' +
+    '<div class="wardrobeItem wardrobe-action no-numberify">' +
+    '<a class="link-internal macro-link">Strip</a></div>' +
+    '</div>';
+  w.MapleLanternNative.refresh();
+  await tick(w, 120);
+  const rows = p.querySelectorAll("#wardrobewear .wardrobeItem");
+  assert.equal(rows.length, 3);
+  const row = rows[0];
+  assert.equal(row.getAttribute("data-ml-ward-item"), "1", "衣物行应标记为行卡");
+  assert.equal(row.querySelectorAll(".ml-option-group").length, 0, "衣物行不应再被选项卡片包成独立卡");
+  const icon = row.querySelector("img.icon");
+  assert.equal(icon.parentElement, row, "图标必须是行卡的直接子节点（在卡内）");
+  const body = row.querySelector(".ml-ward-body");
+  assert.ok(body, "缺少正文包裹层");
+  assert.equal(body.querySelector("a").textContent, "鞋罩短靴");
+  assert.equal(body.querySelectorAll("span").length, 3, "颜色/属性必须留在正文里");
+  const action = rows[2];
+  assert.equal(action.getAttribute("data-ml-ward-item"), null, "无图标动作行不应套衣物行卡");
+  assert.equal(action.querySelector(".ml-ward-body"), null);
+});

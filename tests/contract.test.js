@@ -653,8 +653,10 @@ test("体积预算：UI 包源码应远小于 1MB", () => {
   for (const f of ["core.js", "maplelantern-native.js", "render.js", "style.css", "maplelantern-native.css", "effects.css", "boot.json"]) {
     const size = fs.statSync(path.join(SRC, f)).size;
     /* 1.4.20：原生层新增手机窄屏安全网格与 numberStepper 还原，CSS 从约 204KB
-       增至约 207KB；上限随实现上调到 220KB，仍远低于 1MB。 */
-    assert.ok(size < 232 * 1024, f + " 过大: " + size);
+       增至约 207KB；上限随实现上调到 220KB，仍远低于 1MB。
+       1.5.13：衣柜衣物行卡化（图标归位 + 行内 body + 动作按钮隔离），CSS 从 236KB
+       增至 239KB；上限随实现上调到 244KB，仍远低于 1MB。 */
+    assert.ok(size < 244 * 1024, f + " 过大: " + size);
   }
   assert.ok(core.length > 1000 && index.length > 1000 && native.length > 1000);
 });

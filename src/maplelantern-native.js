@@ -473,6 +473,41 @@
     }
   }
 
+  /* 衣柜衣物行是「图标 + 名称 + 属性」三段并列：原版把图标和链接当兄弟节点，
+     选项卡片会把两者单独包成一张卡，裸 img.icon 还会被原版 margin 带出卡外。
+     这里把非图标子节点统一收进 .ml-ward-body：整行保持一张卡，图标在左、
+     文字在右；无图标的动作行（Strip / Towel）不动，仍走两列胶囊。 */
+  function packWardrobeRows(root) {
+    var rows = root.querySelectorAll("#wardrobewear .wardrobeItem, #wardrobe .wardrobeItem");
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      if (row.getAttribute("data-ml-ward-item") === "1") { continue; }
+      var stale = row.querySelector(".ml-option-group");
+      if (stale) {
+        while (stale.firstChild) { row.insertBefore(stale.firstChild, stale); }
+        stale.parentNode.removeChild(stale);
+      }
+      var icon = null;
+      for (var c = row.firstChild; c; c = c.nextSibling) {
+        if (c.nodeType === 3 && !(c.nodeValue || "").trim()) { continue; }
+        if (c.nodeType === 1 && c.tagName === "IMG" && c.classList.contains("icon")) { icon = c; }
+        else if (c.nodeType === 1 && c.classList.contains("icon-container")) { icon = c; }
+        break;
+      }
+      if (!icon) { continue; }
+      var body = doc.createElement("div");
+      body.className = "ml-ward-body";
+      row.insertBefore(body, icon.nextSibling);
+      var node = body.nextSibling;
+      while (node) {
+        var next = node.nextSibling;
+        body.appendChild(node);
+        node = next;
+      }
+      row.setAttribute("data-ml-ward-item", "1");
+    }
+  }
+
   /* 商店分类是「img.icon + a」两个兄弟节点；包成一层，图标才能和卡片同排。 */
   function markShopCats(root, scope, scoped) {
     var shop = (scope && scope.id === "clothingShop-div")
@@ -831,6 +866,8 @@
         if (n.closest && n.closest(".ml-option-group")) { continue; }
         /* 商店分类栏是 44px 图标格子，不是正文选项；打包会把分类格搬空。 */
         if (n.closest && n.closest("#shopCategories")) { continue; }
+        /* 衣柜衣物行同理：图标要留在 .wardrobeItem 行卡里，不能被单独收走。 */
+        if (n.closest && n.closest(".wardrobeItem")) { continue; }
         if (n.parentNode && n.parentNode.closest && n.parentNode.closest(".icon-container")) { continue; }
         list.push(n);
       }
@@ -918,6 +955,9 @@
         /* 商店分类栏有自己的 44px 格子与 CSS；把图标+链接收进整宽选项卡会让
            .category-tab 变空壳，分类栏塌成“全宽空条 + 小方块”。 */
         if (link.closest && link.closest("#shopCategories")) { continue; }
+        /* 衣柜衣物行由 packWardrobeRows 统一成一张行卡；再包选项卡会拆成
+           「图标+名字卡」与「属性散字」两截，图标也会逃出卡外。 */
+        if (link.closest && link.closest(".wardrobeItem")) { continue; }
 
         var holder = link.parentNode;
         var icon = iconBefore(link);
@@ -1505,6 +1545,7 @@
       if (wardrobeBits) {
         tidySeparators(passages);
         markEmptyDetails(passages, wardrobeBits);
+        packWardrobeRows(passages);
       }
       return;
     }
@@ -1528,6 +1569,7 @@
     if (wardrobeBits) {
       tidySeparators(passages);
       markEmptyDetails(passages, wardrobeBits);
+      packWardrobeRows(passages);
     }
     collapseBreaks(passages, null);
     var before = passages.querySelectorAll(".ml-option-group").length;

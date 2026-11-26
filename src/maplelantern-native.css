@@ -1542,6 +1542,14 @@ html[data-ml-native="on"] #passages .passage [data-ml-empty-holder] {
 }
 
 html[data-ml-native="on"][data-ml-opt-options="1"] #passages .passage .ml-option-group > img.icon {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
   width: 28px;
   height: 28px;
   max-width: 28px;
@@ -1766,6 +1774,76 @@ html[data-ml-native="on"] #passages .passage .wardrobe-action > a {
   margin: 0 !important;
   padding: 8px 10px !important;
   font-size: 13px !important;
+}
+
+/* 衣柜衣物行：图标要在卡内，整行一张卡。
+   原版 .wardrobeItem 自己带边框、.wardrobe-action 又给 50% 宽度——衣物行和
+   动作按钮共用后者，结果每张卡只占半屏、右边永远空一半，裸 img.icon 还被
+   原版的负 margin / 绝对定位带到卡外上方。这里只接管带图标的衣物行
+   （native.js 打的 data-ml-ward-item），无图标动作按钮保持两列胶囊。 */
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 0 6px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--mln-border) !important;
+  border-radius: 12px !important;
+  background: var(--mln-surface) !important;
+  box-shadow: none !important;
+  box-sizing: border-box;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > img.icon,
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .icon-container {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  flex: 0 0 38px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  transform: none !important;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body > a.link-internal.macro-link,
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ml-ward-item="1"] > .ml-ward-body > a.macro-link {
+  display: inline-flex !important;
+  align-items: center;
+  width: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: var(--mln-text) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-align: left !important;
 }
 
 html[data-ml-native="on"] #passages .passage #listoutfits > label.no-numberify {
