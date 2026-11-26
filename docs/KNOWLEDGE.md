@@ -198,7 +198,7 @@ DoL 手机端的“页面缩放”与预览工具不是同一个值。实测：
 ## 5. 验证命令（当前链路）
 
 ```powershell
-node --test tests\*.test.js                                  # 205 项：契约 / 原生 / 自定义 / DOM
+pwsh -File tools\verify.ps1                                  # 全链 4 步：334 测试 + 宿主探针 + 防漂移 + 指纹
 python tests\custom_host.py                                  # 真实 DOM 宿主 58 断言（含像素取色）
 python tests\custom_viewports.py                             # 六档视口 49 断言（实测「应用背景」可点）
 python tests\custom_formats.py                               # 图片格式矩阵（自建 tests\fmt 素材）
@@ -215,6 +215,14 @@ python C:\Users\27352\Doubao\skills\dol-ui-design\scripts\check_ui_mod.py dist\M
 `boot.json` 必须是 **UTF-8 无 BOM**；**版本双源**为 `src\dossier-core.js` 的 `VERSION` 与 `src\boot.json` 的 `version`（1.4.x 起；1.3.x 及以前是 `src\core.js`），两处必须一致，且已由 `tests\contract.test.js` 强制断言——漏改一处会表现为「包是新的、行为是旧的」。
 
 `tests\_edge_profile_*` / `tests\shots` / `tests\fmt` / `tests\fixtures` 全部是**可再生产物**（脚本自建），不入库、可随时删除；删掉后重跑对应脚本会重新生成。
+
+### 1.5.13 发布轮（2026-11-26）
+
+- **改动**：① 触屏悬停位移收进 `@media (hover: hover)`（10 条规则）；② 抽屉正文底部留白 16→10px，着装页内容高 421→415；③ 衣柜衣物行卡化：`packWardrobeRows()` 把裸 `img.icon` + 名称/属性收进整宽行卡（图标 38×38 在卡内，行 358×74），主循环与 `adoptOrphanIcons` 跳过 `.wardrobeItem`，无图标动作行仍两列（175 宽）。
+- **回归**：全量 **334/334**；`tools\verify.ps1` 4/4（73 文件 / 指纹 `6253bd2a…`）；`pack.ps1` 14 PASS / 1 WARN（历史 StoneFreeHost）/ 0 FAIL；两次重打同 SHA `2c623bcc…`（233,682 B / 19 条目）。
+- **发布链**：`github.com:443` 直连超时，改走 GitHub Git Data API 逐提交 replay —— 4 个提交 SHA 与本地逐位相同，`main` → `eb0e6c5`，tag `v1.5.13` 同 SHA，无需 reset。Release `458862580`：本体 233,682 B / `2c623bcc…82f01`，图库 14,352,460 B / `455cebb4…e3ca78`。
+- **回读校验**：Release JSON（2 资产 digest 与本地全等）、tag ref、`contents?ref=v1.5.13`（`boot.json` / `core.js` 均 1.5.13，`tests/wardrobe-card.test.js` 在树内）、本体资产下载回读 SHA —— 四层全过。
+- **资产上传坑**：`upload_url` 是 URI Template（`{?name,label}`），直接拼查询串会 `Invalid URI`；先剥 `{` 段再 `EscapeDataString`，详见 `ERR-20261126-008`。
 
 ### 1.3.8 孩子详情恢复原版正文色（2026-11-15）
 
