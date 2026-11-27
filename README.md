@@ -9,7 +9,7 @@ QQ群:630879012
 
 - **UI kit 组件层**：新增 `ui-kit.js` / `ui-kit.css`，抽出 row / card / section / segmented / mark 五入口，统一 normal / hover / active / selected / disabled / danger / empty / loading 八状态；迁移此刻、身心、着装、设置、布景与原生衣柜。44px 触控、细指针 hover、按压只缩放、三路动效关断；分段控件 disabled 不被选中覆盖，键盘跳过禁用项。全量 **340/340 PASS**（17 文件）；12 张 contact 视觉基线覆盖 3 主题 × 390/600/899/1280，DOM 溢出 0。
 - **版本可辨识**：升到 1.6.0 并同步六源（本体 `boot` / `core` / `dossier-core` / `deco-core`，图库 `boot` / `README`）、图库依赖与测试字面，避免设备按「同 id + 同版本」继续沿用旧包。
-- **回归**：全量 **340/340 PASS**（17 文件）；`verify.ps1` 4/4；主包 21 条目、图库 214 条目；双包探针 PASS（106 背景 + 106 前景、9 层、7 页签、320 无溢出、pageErrors 0）。
+- **回归**：全量 **340/340 PASS**（17 文件）；`verify.ps1` 4/4；主包 21 条目、图库 214 条目；双包探针 PASS（106 背景 + 106 前景、9 层、7 页签、320 无溢出、pageErrors 0）；真实 `file://` IDB 安装探针 PASS（全新 profile、双包回读、7 页签、106+106、1280/390 0 越界、pageerror 0）；改前 HEAD 12 组像素基线严格 0.5% 10/12（grass 3 组 0.595–0.598% 窄超）。
 
 ## 1.5.14 重点
 
