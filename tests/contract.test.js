@@ -18,6 +18,7 @@ const customCss = fs.readFileSync(path.join(SRC, "custom.css"), "utf8");
 const core = fs.readFileSync(path.join(SRC, "core.js"), "utf8");
 const boot = JSON.parse(fs.readFileSync(path.join(SRC, "boot.json"), "utf8"));
 const dossierCore = fs.readFileSync(path.join(SRC, "dossier-core.js"), "utf8");
+const decoCore = fs.readFileSync(path.join(SRC, "deco-core.js"), "utf8");
 const dossierPanel = fs.readFileSync(path.join(SRC, "dossier-panel.js"), "utf8");
 const dossierAssets = fs.readFileSync(path.join(SRC, "dossier-assets.js"), "utf8");
 const html = fs.readFileSync(path.join(__dirname, "..", "prototype", "index.html"), "utf8");
@@ -31,20 +32,25 @@ const FOREIGN_GUARD = ":not\\(:has\\(#cheat_extended_options,#CE_settingsDiv,.CE
 
 test("boot.json：身份、版本、四个必填列表与文件存在性", () => {
   assert.equal(boot.name, "MapleLantern");
-  assert.equal(boot.version, "1.5.14");
+  assert.equal(boot.version, "1.6.0");
   /* 版本双源必须一致：boot.json 与 dossier-core.js 的 VERSION 任一漏改，
      玩家侧看到的就是「包是新的、行为是旧的」 */
-  assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);  assert.match(boot.nickName, /灯台/);
+  assert.equal(dossierCore.match(/var VERSION = "([^"]+)"/)[1], boot.version);
+  /* deco-core 与图库包也是版本源；只改 boot 会让布景诊断/图库依赖停在旧值 */
+  assert.equal(decoCore.match(/VERSION: "([^"]+)"/)[1], boot.version);
+  const mlDep = packBoot.dependenceInfo.find((d) => d.modName === "MapleLantern");
+  assert.equal(mlDep.version, ">=" + boot.version, "图库包对本体最低版本必须同步");
+  assert.match(boot.nickName, /灯台/);
   for (const key of ["scriptFileList", "styleFileList", "tweeFileList", "imgFileList"]) {
     assert.ok(Array.isArray(boot[key]), key + " 必须是数组");
   }
   assert.deepEqual(boot.scriptFileList,
-    ["core.js", "deco-core.js", "maplelantern-native.js", "render.js",
+    ["core.js", "ui-kit.js", "deco-core.js", "maplelantern-native.js", "render.js",
      "dossier-core.js", "dossier-assets.js", "dossier-theme.js", "dossier-panel.js", "custom.js", "deco-panel.js"],
-    "core 必须先于 native/render；布景核心只依赖 core，布景工作台收尾；自定义按 core→assets→theme→panel→custom 顺序跟在后面");
+    "core 必须先于 native/render；ui-kit 是纯语义层，紧随 core；布景核心只依赖 core，布景工作台收尾；自定义按 core→assets→theme→panel→custom 顺序跟在后面");
   assert.deepEqual(boot.scriptFileList_inject_early, ["compat-preload.js"],
     "MEE 兼容层必须在所有普通脚本之前注入");
-  assert.deepEqual(boot.styleFileList, ["style.css", "maplelantern-native.css", "effects.css", "custom.css", "deco.css", "ornaments.css"], "effects 必须最后加载，keyframes 才能覆盖两套样式；custom.css 收尾；ornaments.css 负责主题边饰，放最后；布景样式在它之前");
+  assert.deepEqual(boot.styleFileList, ["style.css", "ui-kit.css", "maplelantern-native.css", "effects.css", "custom.css", "deco.css", "ornaments.css"], "ui-kit 语义层紧跟基础样式；effects 负责 keyframes；custom.css 收尾；ornaments.css 负责主题边饰，放最后；布景样式在它之前");
   for (const list of [boot.scriptFileList, boot.scriptFileList_inject_early, boot.styleFileList, boot.additionFile || []]) {
     for (const f of list) {
       assert.ok(fs.existsSync(path.join(SRC, f)), f + " 不在包内");

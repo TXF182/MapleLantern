@@ -3,14 +3,20 @@
 Degrees of Lewdity `0.5.12.13` 的只读信息台 + 原生界面替换层。只改呈现，不碰游戏数值与存档写入。
 QQ群:630879012
 
-当前版本：**1.5.14**
+当前版本：**1.6.0**
+
+## 1.6.0 重点
+
+- **UI kit 组件层**：新增 `ui-kit.js` / `ui-kit.css`，抽出 row / card / section / segmented / mark 五入口，统一 normal / hover / active / selected / disabled / danger / empty / loading 八状态；迁移此刻、身心、着装、设置、布景与原生衣柜。44px 触控、细指针 hover、按压只缩放、三路动效关断；分段控件 disabled 不被选中覆盖，键盘跳过禁用项。全量 **340/340 PASS**（17 文件）；12 张 contact 视觉基线覆盖 3 主题 × 390/600/899/1280，DOM 溢出 0。
+- **版本可辨识**：升到 1.6.0 并同步六源（本体 `boot` / `core` / `dossier-core` / `deco-core`，图库 `boot` / `README`）、图库依赖与测试字面，避免设备按「同 id + 同版本」继续沿用旧包。
+- **回归**：全量 **340/340 PASS**（17 文件）；`verify.ps1` 4/4；主包 21 条目、图库 214 条目；双包探针 PASS（106 背景 + 106 前景、9 层、7 页签、320 无溢出、pageErrors 0）。
 
 ## 1.5.14 重点
 
 - **衣柜行卡兜底**：`packWardrobeRows()` 不再依赖 `#wardrobewear` / `#wardrobe` 容器，凡 `.wardrobeItem` 都整理（商店列表除外）；选项卡片已先分组时用 `:has()` 把 `.ml-option-group` 摊平、整行拉满宽、图标 reset 回 38×38，JS 标记失效也不会再出现「图标在卡外、右边空一半」。
 - **补漏调用点**：商店/分类分支此前只清分隔符、不整理衣物行，现已补 `packWardrobeRows()`；图标识别兼容 `span.spanIcon` 配件图标打头的行。
-- **版本可辨识**：升到 1.5.14 并同步五源、图库依赖与测试字面，避免设备按「同 id + 同版本」继续沿用旧包。
-- **回归**：`tests/wardrobe-card.test.js` +1 条 `:has()` 兜底契约（共 4 条），全量 **335/335 PASS**。
+- **回归**：`tests/wardrobe-card.test.js` +1 条 `:has()` 兜底契约（共 4 条），当时全量 **335/335 PASS**。
+
 ## 1.5.13 重点
 
 - **触屏点完不再“漂着”**：10 条带位移或缩放的悬停规则收进 `@media (hover: hover)`，手指抬起后按钮立即回位，侧栏按钮、浮窗按钮、正文选项卡一致；桌面悬停效果不变。
@@ -190,7 +196,7 @@ QQ群:630879012
 
 ## 历史版本（1.3.x）
 
-> 以下为 1.3.x 历史记录，当前行为以 1.5.7 与 `src/README.md` 为准。
+> 以下为 1.3.x 历史记录，当前行为以 1.6.0 与 `src/README.md` 为准。
 
 - 1.3.8：修复孩子详情类型值被主题色染色。
 - 1.3.7：手机端面板滚动时临时关闭玻璃模糊，更流畅。
@@ -201,7 +207,7 @@ QQ群:630879012
 - 1.3.2：修复手机端作弊面板被推出屏幕。
 - 1.3.1：手机尺寸适配与环境层提亮；修复正文被压成两字列。
 
-## 主要特性（当前 1.5.7）
+## 主要特性（当前 1.6.0）
 
 - **布景九层**：背景 1–4 与前景 1–5 独立开关、层级、图库、预设与地点滤镜；106 张背景 + 106 张前景由独立图库包提供，背景/前景各读各的目录；自动背景与自动前景默认关闭、仅对显式名单地点生效，共用同一套地点判断，接管前会备份并可在关闭时恢复玩家原图。
 
@@ -210,6 +216,7 @@ QQ群:630879012
 - **主题边饰**：正文四周一层随主题换纹样的装饰花边，每套主题一种独立符号语言；可总开关。
 - **正文文字色**：设置页给「跟随主题 + 主题预设色点 + 自定义取色」，只作用于故事正文与标题；预设与自定义都按当前主题底色校验 ≥4.5:1，换到不达标的主题会自动回跟随主题。
 - **按压反馈**：按钮、页签、控件、图标与开关按下时轻微缩放提亮（不下沉），生成主题色涟漪；系统减少动效或设置关闭动效时不播放。
+- **UI kit 组件层**：`ui-kit.js` 提供 row / card / section / segmented / mark，统一八种状态；已迁移此刻、身心、着装、设置、布景与原生衣柜。44px 触控、细指针 hover、按压只缩放、三路动效关断；分段控件 disabled 不被选中覆盖，键盘跳过禁用项。
 - **主题环境层**：各主题专属粒子与光层；面板打开时环境层降亮，窄屏自动降载，动效可整体关断。
 - **动效**：面板、侧栏光带、页签、表盘等全套动效，三路关断（面板开关、模组开关、系统减少动效）。
 - **原生界面卡片化**：顶栏四格、状态大卡、正文选项卡片、侧栏入口与弹层统一卡片语言。
@@ -224,8 +231,8 @@ QQ群:630879012
 ## 安装
 
 1. 打开游戏，按 `Alt+M` 呼出 ModLoader。
-2. 「添加旁加载 Mod」选择 `MapleLantern-1.5.14.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
-3. 再导入 `MapleLantern-ImagePack-1.5.14.mod.zip` 布景图库（106 背景 + 106 前景，两包版本同步）；只装本体也能运行布景功能，但没有图可显示。
+2. 「添加旁加载 Mod」选择 `MapleLantern-1.6.0.mod.zip`；已装旧包先停用再导入，同名技术身份只能启用一个版本。
+3. 再导入 `MapleLantern-ImagePack-1.6.0.mod.zip` 布景图库（106 背景 + 106 前景，两包版本同步）；只装本体也能运行布景功能，但没有图可显示。
 4. 刷新页面。
 
 > 把 zip 复制进游戏目录不等于安装：模组由浏览器本地数据库加载。
@@ -248,9 +255,13 @@ pwsh -NoProfile -File tools\host-probe.ps1
 
 打包产物在 `dist\`，并写入 `dist\SHA256.txt`。
 
+1.6.0 产物（本地构建，未发布）：`dist\MapleLantern-1.6.0.mod.zip`（本体，不含图，240,431 B / 21 条目 / SHA256 `cc8e469cd9b6e1c6087c498d111342467195f5455a1ce2c800c567cc8cff665c`）与 `dist\MapleLantern-ImagePack-1.6.0.mod.zip`（14,352,462 B / 214 条目 / 212 图 / SHA256 `5885c117fc87daa8d60bdbac69e2e8aaa6f35af141de5eac04fe602e1e20e75a`）。
+
 1.5.11 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.11>）：`dist\MapleLantern-1.5.11.mod.zip`（本体，不含图，227,564 B / 19 条目 / SHA256 `e41929cf2fbb2a0a1926bc40cb4db19ef7b732236684c395f4a0345f11523986`）与 `dist\MapleLantern-ImagePack-1.5.11.mod.zip`（105 背景 + 105 前景，14,096,472 B / 212 条目 / 210 图 / SHA256 `c5172f5afafae59190fd91a5620699259755ef099d41dcbc1b638b3d185a8960`）。
 
 1.5.14 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.14>）：`dist\MapleLantern-1.5.14.mod.zip`（本体，不含图，234,182 B / 19 条目 / SHA256 `5786985b05f9a6e36f5f16cce16e61d50612be3b27682a46639280fe727c0512`）与 `dist\MapleLantern-ImagePack-1.5.14.mod.zip`（14,352,459 B / 214 条目 / 212 图 / SHA256 `e16afc298d9eb3b75143e9781049f52f9c02a829e81e8a9d843b8ca3877a09cb`）。
+
+> 注：1.5.14 是上一版已发布资产，不含 UI kit；当前 1.6.0 双包已在本地 `dist\` 重建，尚未推送 Release。
 1.5.13 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.13>）：`dist\MapleLantern-1.5.13.mod.zip`（本体，不含图，19 条目）与 `dist\MapleLantern-ImagePack-1.5.13.mod.zip`（214 条目 / 212 图）；体积与 SHA256 以 `dist\SHA256.txt` / `dist\SHA256-decor.txt` 为准。
 
 1.5.12 产物（已发布，<https://github.com/TXF182/MapleLantern/releases/tag/v1.5.12>）：`dist\MapleLantern-1.5.12.mod.zip`（本体，不含图，232,072 B / 19 条目 / SHA256 `767a1ef5296305bff3705db728a3e7776677a464e8623a4a47ce738f7178fddb`）与 `dist\MapleLantern-ImagePack-1.5.12.mod.zip`（106 背景 + 106 前景，14,352,459 B / 214 条目 / 212 图 / SHA256 `94c8a08d2200b9e9aa20d526e3387660bf9e458bd8b4b781900832925a2f8edd`）。

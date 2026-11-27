@@ -1,12 +1,13 @@
 {
   "name": "MapleLantern",
-  "version": "1.5.14",
+  "version": "1.6.0",
   "nickName": "灯台 Lantern",
   "scriptFileList_inject_early": [
     "compat-preload.js"
   ],
   "scriptFileList": [
     "core.js",
+    "ui-kit.js",
     "deco-core.js",
     "maplelantern-native.js",
     "render.js",
@@ -19,6 +20,7 @@
   ],
   "styleFileList": [
     "style.css",
+    "ui-kit.css",
     "maplelantern-native.css",
     "effects.css",
     "custom.css",

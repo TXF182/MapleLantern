@@ -1,4 +1,6 @@
-# 灯台 · Lantern（MapleLantern 1.5.14）
+# 灯台 · Lantern（MapleLantern 1.6.0）
+
+- **1.6.0 · UI kit 组件层**：新增 `ui-kit.js` / `ui-kit.css`，抽出 row / card / section / segmented / mark 五入口，统一 normal / hover / active / selected / disabled / danger / empty / loading 状态；迁移此刻、身心、着装、设置、布景与原生衣柜；触控区 44px、hover 只走细指针、按压只缩放、三路动效关断。分段控件 disabled 不被选中同步覆盖，方向键/Home/End 跳过禁用项；section hint 与空槽文字改用 muted（绿茵 faint 对浅底仅 3.05:1）。全量 **340/340 PASS**（17 个测试文件）；12 张 contact 视觉基线覆盖 3 主题 × 390/600/899/1280。版本已升到 1.6.0，六源与图库依赖同步。
 
 - **1.5.14 · 衣柜行卡兜底**：`packWardrobeRows()` 改为扫描全部 `.wardrobeItem`（商店列表除外），不再依赖 `#wardrobewear`/`#wardrobe` 容器；商店分类分支补调用；选项卡片已分组时用 `:has()` 摊平 `.ml-option-group`、整行 100% 宽、图标 38×38 回卡内，JS 标记失效也不复发。`.wardrobe-card.test.js` 增至 4 条（新增 `:has()` 兜底契约），全量 **335/335 PASS**。
 
@@ -229,7 +231,7 @@ Degrees of Lewdity `0.5.12.13` / SugarCube `2.36.1` 的**只读信息台 + 原�
 
 本轮（2026-11-23，Windows）实测；205–209 为历史专项读数：
 
-- `node --test tests\*.test.js`：**326 / 326 PASS**（13 个测试文件；1.5.1 绿茵/边饰/文字色；1.5.2 商店按钮链接；1.5.3 原生长列表性能与关闭态清标回归；1.5.4 DolSmartPhone 手机弹窗关闭键；1.5.5 主题预览卡与切换过场；1.5.6 手机岛收口、继承复位、日志图标与通用图片高度；1.5.7 布景独立页、页内图库、自动地点名单、备份恢复与懒加载；1.5.8 图库健康检查与缺包防误选；1.5.9 自动收录、排除不回流与一键添加所有地点；1.5.10 桌面七页签等分；1.5.11 前景目录分流、自动前景共用名单与手动恢复）
+- `node --test tests\*.test.js`：**340 / 340 PASS**（17 个测试文件；1.5.1 绿茵/边饰/文字色；1.5.2 商店按钮链接；1.5.3 原生长列表性能与关闭态清标回归；1.5.4 DolSmartPhone 手机弹窗关闭键；1.5.5 主题预览卡与切换过场；1.5.6 手机岛收口、继承复位、日志图标与通用图片高度；1.5.7 布景独立页、页内图库、自动地点名单、备份恢复与懒加载；1.5.8 图库健康检查与缺包防误选；1.5.9 自动收录、排除不回流与一键添加所有地点；1.5.10 桌面七页签等分；1.5.11 前景目录分流、自动前景共用名单与手动恢复；1.5.12 图库本地可用/最近 8 项/JSON 往返；1.5.13 触屏 hover 收口与衣柜整宽行卡；1.5.14 衣柜行卡兜底；1.6.0 UI kit 原语/状态矩阵/四高频面语义）
 - `node tools\bench-native.js`：静态 6 选项页单次换页 **apply 5 次 / 补扫 2 拍 / pack 1 次 / 必要写入 6 次（跳过 345 次同值写）**；CE 面板打开后正文 refresh 20 次 **ceNorm +0**；200 选项页连续 20 次 apply **39ms、pack 0 次、写入 0 次（跳过 1380 次同值写）**
 - 移动端（≤899px）`html` 与弹层背景改为 `background-attachment: scroll`，避免固定背景在弹层内滚动时每帧重绘；桌面仍 `fixed`
 - 真实 `Lake Shore`（390×844，Edge 隔离 profile，宿主 DoLGameUI 4.2.0 启用，1.1.8 包）：**4 个选项全部为 `.ml-option-group`**，卡片高 44px、组间距 4px、`strayIcons=[]`；`img.icon` 与 `.icon-container` 图标均在卡内 28×28；`html` 背景 `rgb(5,8,19)` + 82 层星场、`backgroundAttachment=fixed`，`body` 与 `#passages` 均透明

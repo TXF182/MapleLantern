@@ -13,7 +13,7 @@
 })(typeof window !== "undefined" ? window : globalThis, function () {
   "use strict";
 
-  var VERSION = "1.5.14";
+  var VERSION = "1.6.0";
   var STORAGE_KEY = "MapleLantern.settings.v1";
   var TAB_KEYS = ["now", "vitals", "worn", "deco", "system", "switches", "settings"];
 

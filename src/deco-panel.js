@@ -16,6 +16,11 @@
   if (root.MapleLanternDecoPanel && root.MapleLanternDecoPanel.__ready) return;
 
   var doc = root.document;
+  var UI = root.MapleLanternUI;
+  function ui(node, kind, state) {
+    if (UI && typeof UI.mark === "function") { UI.mark(node, kind, state); }
+    return node;
+  }
   var T = {
     zh: {
       title: "布景",
@@ -758,6 +763,7 @@
         if (picks[k].getAttribute("data-deco-pick-name") !== "none") picks[k].disabled = true;
       }
     }
+    markDeco(state.page);
   }
 
   function buildStatus() {
@@ -1326,9 +1332,36 @@
     page.appendChild(options);
     page.appendChild(buildFilter());
     page.appendChild(buildReset());
+    markDeco(page);
     pane.appendChild(page);
     refresh();
     probeImagePack();
+  }
+
+  /* 布景页由多个 builder 拼成；统一在挂载前补 UI kit 语义，避免每个
+     builder 各写一套 data-ui。空图层卡走 empty，已选图层走 filled。 */
+  function markDeco(scope) {
+    if (!scope || typeof scope.querySelectorAll !== "function") return;
+    var packStatus = state.packStatus;
+    var danger = packStatus === "partial" || packStatus === "missing";
+    /* 只有状态条承载「图库缺包」的告警；预设、自动、地点等区块仍可用，
+       不跟着整页变红。 */
+    var statuses = scope.querySelectorAll(".ml-deco-status");
+    for (var i = 0; i < statuses.length; i++) {
+      ui(statuses[i], "section", danger ? "danger" : "normal");
+    }
+    var sections = scope.querySelectorAll(".ml-deco-section, .ml-deco-group");
+    for (var s = 0; s < sections.length; s++) {
+      ui(sections[s], "section", "normal");
+    }
+    var cards = scope.querySelectorAll(".ml-deco-card");
+    for (var j = 0; j < cards.length; j++) {
+      var nameNode = cards[j].querySelector(".ml-deco-name");
+      var name = nameNode ? String(nameNode.textContent || "").trim() : "";
+      ui(cards[j], "card", name && name !== "none" ? "filled" : "empty");
+    }
+    var picker = scope.querySelector(".ml-deco-picker");
+    if (picker) ui(picker, "card", "normal");
   }
 
   function rebuildPage() {

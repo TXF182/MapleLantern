@@ -1,0 +1,271 @@
+/* 灯台 MapleLantern — UI kit
+ * 只提供语义层：--ml-ui-* 令牌 + data-ui / data-ui-state 状态矩阵。
+ * 不覆盖既有 .ml-* 布局，迁移面通过追加类与属性获得一致状态。
+ * 作用域同时覆盖灯台面板与原生正文，避免两套外观继续分叉。
+ */
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) {
+  --ml-ui-touch: 44px;
+  --ml-ui-gap-1: 4px;
+  --ml-ui-gap-2: 8px;
+  --ml-ui-gap-3: 12px;
+  --ml-ui-gap-4: 16px;
+  --ml-ui-pad-row: 10px;
+  --ml-ui-line: var(--ml-line, var(--mln-line, rgba(255, 255, 255, .12)));
+  --ml-ui-line-strong: var(--ml-line-strong, rgba(255, 255, 255, .22));
+  --ml-ui-surface: var(--ml-bg-soft, var(--mln-surface, #12161B));
+  --ml-ui-surface-raise: var(--ml-bg-raise, var(--mln-surface-2, #1A1E25));
+  --ml-ui-text: var(--ml-text, var(--mln-text, #E9E3D6));
+  --ml-ui-muted: var(--ml-muted, var(--mln-muted, #ADA69A));
+  --ml-ui-faint: var(--ml-faint, var(--mln-faint, #857F75));
+  --ml-ui-accent: var(--ml-accent, var(--mln-accent, #E3B25F));
+  --ml-ui-accent-soft: var(--ml-accent-soft, rgba(227, 178, 95, .16));
+  --ml-ui-danger: var(--ml-danger, var(--mln-danger, #C65449));
+  --ml-ui-radius: var(--ml-radius, var(--mln-radius, 12px));
+  --ml-ui-radius-sm: var(--mln-radius-sm, 10px);
+  --ml-ui-focus: 0 0 0 2px var(--ml-ui-surface), 0 0 0 4px var(--ml-ui-accent);
+}
+
+/* ---------------------------------------------------------------- 原语底座 */
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="row"] {
+  min-width: 0;
+  min-height: var(--ml-ui-touch);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="card"] {
+  min-width: 0;
+  overflow: hidden;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="section"] {
+  min-width: 0;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) .ml-ui-section-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--ml-ui-gap-2);
+  min-width: 0;
+  margin-bottom: var(--ml-ui-gap-2);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) .ml-ui-section-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ml-ui-text);
+  font-weight: 600;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) .ml-ui-section-hint {
+  flex: none;
+  margin: 0;
+  /* 提示文字按 WCAG 正文门槛取 muted；绿茵 faint 对 #E6F0D4 仅 3.05:1，不能用于正文。 */
+  color: var(--ml-ui-muted);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) .ml-ui-section-body {
+  min-width: 0;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) .ml-ui-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- 状态矩阵
+ * normal 由各组件原样式负责；hover 只在细指针设备播放；
+ * active 只缩放、不下沉；selected / disabled / danger / empty / loading
+ * 统一由 data-ui-state 驱动，避免每页各写一套。
+ */
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="selected"] {
+  border-color: var(--ml-ui-accent);
+  box-shadow: inset 0 0 0 1px var(--ml-ui-accent-soft);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="disabled"] {
+  opacity: .55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="danger"] {
+  border-color: var(--ml-ui-danger);
+  color: var(--ml-ui-danger);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="empty"] {
+  border-style: dashed;
+  /* 空槽文字是可达性内容，不按 faint 处理（绿茵 faint 仅 3.05:1）。 */
+  color: var(--ml-ui-muted);
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="loading"] {
+  position: relative;
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="loading"]::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--ml-ui-accent-soft), transparent);
+    transform: translateX(-100%);
+    animation: ml-ui-loading 1.35s ease-in-out infinite;
+    pointer-events: none;
+  }
+}
+
+@keyframes ml-ui-loading {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* 交互卡：只在 hover 可用设备上给反馈，触屏不粘连。 */
+@media (hover: hover) and (pointer: fine) {
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="card"]:is(.ml-stat, .ml-slot, .ml-theme-tile, .ml-deco-card):hover {
+    border-color: var(--ml-ui-line-strong);
+    box-shadow: 0 6px 18px -14px rgba(0, 0, 0, .65);
+  }
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-option="1"]:hover {
+    color: var(--ml-ui-text);
+    border-color: var(--ml-ui-accent);
+  }
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-option="1"]:active {
+  transform: scale(.97);
+  box-shadow: none;
+}
+
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-option="1"]:focus-visible,
+:is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="row"]:focus-visible,
+html[data-ml-native="on"] #passages .passage .wardrobeItem[data-ui="row"]:focus-visible {
+  outline: 2px solid var(--ml-ui-accent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- 迁移面 */
+
+/* 此刻：状态卡与速览块。 */
+:is(#ml-root) .ml-stat[data-ui="card"] .ml-stat-k,
+:is(#ml-root) .ml-stat[data-ui="card"] .ml-stat-v {
+  min-width: 0;
+}
+
+:is(#ml-root) .ml-quick[data-ui="section"] .ml-ui-section-body {
+  display: block;
+}
+
+/* 身心：行内标签给固定可读宽度，长标签省略；超上限行走 danger。 */
+:is(#ml-root) .ml-vrow[data-ui="row"] .ml-vrow-k {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:is(#ml-root) .ml-vrow[data-ui-state="danger"] {
+  border-color: color-mix(in srgb, var(--ml-ui-danger) 42%, transparent);
+}
+
+@supports not (color: color-mix(in srgb, #fff 10%, transparent)) {
+  :is(#ml-root) .ml-vrow[data-ui-state="danger"] {
+    border-color: var(--ml-ui-danger);
+  }
+}
+
+/* 着装：空槽虚线；已填槽保持卡面。 */
+:is(#ml-root) .ml-slot[data-ui="card"] {
+  min-height: 48px;
+  justify-content: center;
+}
+
+/* 设置：字段是 section，分段控件是 segmented；主题卡统一选中描边。 */
+:is(#ml-root) .ml-field[data-ui="section"] {
+  min-width: 0;
+}
+
+:is(#ml-root) .ml-seg[data-ui="segmented"] {
+  min-width: 0;
+}
+
+:is(#ml-root) .ml-seg[data-ui="segmented"] [data-ui-option="1"] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:is(#ml-root) .ml-theme-tile[data-ui="card"][data-ui-state="selected"] {
+  box-shadow: inset 0 0 0 1px var(--ml-ui-accent), 0 0 0 1px var(--ml-ui-accent-soft);
+}
+
+/* 布景：图层卡、分组与状态区获得同一套卡片/区段语义。 */
+:is(#ml-root) .ml-deco-card[data-ui="card"] {
+  border-radius: var(--ml-ui-radius);
+}
+
+:is(#ml-root) .ml-deco-status[data-ui="section"] .ml-ui-section-h {
+  margin-bottom: var(--ml-ui-gap-1);
+}
+
+/* 原生衣柜：行卡已由 native 层拉满宽；这里只补 44px 触控与状态。 */
+:is(html[data-ml-native="on"] #passages .passage) .wardrobeItem[data-ui="row"] {
+  min-height: var(--ml-ui-touch);
+}
+
+/* ---------------------------------------------------------------- 响应式 */
+
+@media (max-width: 600px) {
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) {
+    --ml-ui-pad-row: 8px;
+  }
+  :is(#ml-root) .ml-ui-section-h {
+    gap: var(--ml-ui-gap-1);
+  }
+  :is(#ml-root) .ml-slot[data-ui="card"] {
+    min-height: var(--ml-ui-touch);
+  }
+}
+
+@media (max-width: 899px) {
+  :is(#ml-root) .ml-ui-section-h {
+    align-items: flex-start;
+  }
+  :is(#ml-root) .ml-ui-section-hint {
+    max-width: 46%;
+    text-align: right;
+  }
+}
+
+@media (min-width: 1280px) {
+  :is(#ml-root) .ml-ui-section-h {
+    gap: var(--ml-ui-gap-3);
+  }
+}
+
+/* 动效关闭：加载 shimmer 与按压/悬停位移全部停掉。 */
+#ml-root[data-motion="off"] [data-ui-state="loading"]::after,
+html[data-ml-native="on"][data-ml-motion="off"] #passages .passage [data-ui-state="loading"]::after {
+  animation: none;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-state="loading"]::after {
+    animation: none;
+    opacity: 0;
+  }
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui-option="1"]:active,
+  :is(#ml-root, html[data-ml-native="on"] #passages .passage) [data-ui="card"]:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}

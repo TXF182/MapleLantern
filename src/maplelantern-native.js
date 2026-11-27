@@ -12,7 +12,12 @@
 
   var doc = document;
   var D = C.DEFAULTS;
+  var UI = window.MapleLanternUI;
   var ATTR = "data-ml-native";
+  function ui(node, kind, state) {
+    if (UI && typeof UI.mark === "function") { UI.mark(node, kind, state); }
+    return node;
+  }
 
   var state = {
     mounted: false,
@@ -505,6 +510,7 @@
         node = next;
       }
       row.setAttribute("data-ml-ward-item", "1");
+      ui(row, "row", "filled");
     }
   }
 

@@ -12,6 +12,11 @@
 
   var doc = document;
   var D = C.DEFAULTS;
+  var UI = window.MapleLanternUI;
+  function ui(node, kind, state) {
+    if (UI && typeof UI.mark === "function") { UI.mark(node, kind, state); }
+    return node;
+  }
 
   var state = {
     mounted: false,
@@ -635,6 +640,7 @@
 
   function statCard(label, value, tone) {
     var card = el("div", "ml-stat" + (tone ? " is-" + tone : ""));
+    ui(card, "card", tone || "normal");
     var k = el("span", "ml-stat-k"); k.textContent = label;
     var v = el("strong", "ml-stat-v"); v.textContent = value;
     card.appendChild(k); card.appendChild(v);
@@ -684,6 +690,7 @@
     var quickVitals = (model.vitals || []).filter(function (v) { return quickKeys.indexOf(v.key) >= 0; });
     if (quickVitals.length) {
       var quick = el("div", "ml-quick");
+      ui(quick, "section", "normal");
       var quickHead = el("div", "ml-quick-h");
       quickHead.textContent = s["now.quick"];
       quick.appendChild(quickHead);
@@ -864,6 +871,7 @@
     (model.vitals || []).forEach(function (v) {
       shown++;
       var row = el("div", "ml-vrow");
+      ui(row, "row", v.over ? "danger" : "normal");
       var k = el("span", "ml-vrow-k");
       k.textContent = s["vital." + v.key];
       var bar = el("span", "ml-bar");
@@ -904,9 +912,10 @@
     var grid = el("div", "ml-worn");
     (model.worn || []).forEach(function (w) {
       var cell = el("div", "ml-slot");
+      var shown = state.lang === "zh" && w.cn ? w.cn : w.name;
+      ui(cell, "card", shown ? "filled" : "empty");
       var sk = el("span", "ml-slot-k");
       sk.textContent = labels[w.slot] || w.slot;
-      var shown = state.lang === "zh" && w.cn ? w.cn : w.name;
       var sv = el("span", "ml-slot-v" + (shown ? "" : " is-empty"));
       sv.textContent = shown || s["worn.empty"];
       if (shown) { sv.setAttribute("title", w.cn && w.name ? w.cn + " · " + w.name : shown); }
@@ -922,6 +931,7 @@
 
   function dlRow(key, value) {
     var row = el("div", "ml-dl-row");
+    ui(row, "row", "normal");
     var dt = el("dt"); dt.textContent = key;
     var dd = el("dd"); dd.textContent = value;
     row.appendChild(dt); row.appendChild(dd);
@@ -949,6 +959,7 @@
     pane.appendChild(dl);
 
     var copy = el("button", "ml-btn ml-btn-wide", { type: "button" });
+    ui(copy, "action", "normal");
     copy.appendChild(svg("copy"));
     var span = el("span"); span.textContent = s["system.copy"];
     copy.appendChild(span);
@@ -1003,6 +1014,7 @@
       return;
     }
     var box = el("div", "ml-field");
+    ui(box, "section", "loading");
     var hint = el("p", "ml-note is-faint");
     hint.textContent = C.strings(state.lang)["deco.loading"] || "布景模块尚未就绪";
     box.appendChild(hint);
@@ -1029,6 +1041,7 @@
 
     items.forEach(function (item) {
       var box = el("div", "ml-field ml-field--opt", { "data-opt-key": item.key });
+      ui(box, "section", "normal");
       var k = el("div", "ml-field-k");
       var label = el("span", "ml-field-label");
       label.textContent = item.label;
@@ -1037,6 +1050,7 @@
       hint.textContent = item.hint;
       k.appendChild(hint);
       var wrap = el("div", "ml-switch-wrap");
+      ui(wrap, "row", "normal");
       var sw = el("button", "ml-switch", {
         type: "button", role: "switch",
         "aria-checked": state.settings[item.key] === false ? "false" : "true",
@@ -1060,6 +1074,7 @@
 
     function field(title, control) {
       var box = el("div", "ml-field");
+      ui(box, "section", "normal");
       var k = el("div", "ml-field-k");
       k.textContent = title;
       box.appendChild(k); box.appendChild(control);
@@ -1067,6 +1082,44 @@
     }
 
     function segmented(options, current, onPick, modifier) {
+      function decorate(btn, opt) {
+        if (!opt.preview) { btn.textContent = opt.label; return; }
+        /* 设置页里的主题卡只读该主题调色板：卡内场景走 --ml-pv-*，
+           卡片自身仍是当前已生效主题的控件，不整体切主题造成闪烁。 */
+        var palette = C.paletteFor(opt.value);
+        var pv = {
+          "--ml-pv-bg": palette.bg,
+          "--ml-pv-soft": palette.bgSoft,
+          "--ml-pv-raise": palette.bgRaise,
+          "--ml-pv-text": palette.text,
+          "--ml-pv-muted": palette.muted,
+          "--ml-pv-line": palette.line,
+          "--ml-pv-accent": palette.accent,
+          "--ml-pv-accent-ink": palette.accentInk,
+          "--ml-pv-jade": palette.jade,
+          "--ml-pv-rose": palette.rose
+        };
+        Object.keys(pv).forEach(function (k) { btn.style.setProperty(k, pv[k]); });
+        btn.setAttribute("data-theme-preview", opt.value);
+        btn.title = opt.label;
+        ui(btn, "card", current === opt.value ? "selected" : "normal");
+        var scene = el("span", "ml-theme-scene", { "aria-hidden": "true" });
+        var name = el("span", "ml-theme-name");
+        name.textContent = opt.label;
+        btn.appendChild(scene); btn.appendChild(name);
+      }
+
+      if (UI && typeof UI.segmented === "function") {
+        return UI.segmented({
+          className: "ml-seg" + (modifier ? " " + modifier : ""),
+          current: current,
+          options: options,
+          buttonClass: function (opt) { return opt.preview ? "ml-seg-btn ml-theme-tile" : "ml-seg-btn"; },
+          decorate: decorate,
+          onPick: onPick
+        });
+      }
+
       var group = el("div", modifier ? "ml-seg " + modifier : "ml-seg", { role: "radiogroup" });
       options.forEach(function (opt) {
         var btn = el("button", opt.preview ? "ml-seg-btn ml-theme-tile" : "ml-seg-btn", {
@@ -1074,32 +1127,7 @@
           "aria-checked": current === opt.value ? "true" : "false",
           "data-value": opt.value
         });
-        if (opt.preview) {
-          /* 设置页里的主题卡只读该主题调色板：卡内场景走 --ml-pv-*，
-             卡片自身仍是当前已生效主题的控件，不整体切主题造成闪烁。 */
-          var palette = C.paletteFor(opt.value);
-          var pv = {
-            "--ml-pv-bg": palette.bg,
-            "--ml-pv-soft": palette.bgSoft,
-            "--ml-pv-raise": palette.bgRaise,
-            "--ml-pv-text": palette.text,
-            "--ml-pv-muted": palette.muted,
-            "--ml-pv-line": palette.line,
-            "--ml-pv-accent": palette.accent,
-            "--ml-pv-accent-ink": palette.accentInk,
-            "--ml-pv-jade": palette.jade,
-            "--ml-pv-rose": palette.rose
-          };
-          Object.keys(pv).forEach(function (k) { btn.style.setProperty(k, pv[k]); });
-          btn.setAttribute("data-theme-preview", opt.value);
-          btn.title = opt.label;
-          var scene = el("span", "ml-theme-scene", { "aria-hidden": "true" });
-          var name = el("span", "ml-theme-name");
-          name.textContent = opt.label;
-          btn.appendChild(scene); btn.appendChild(name);
-        } else {
-          btn.textContent = opt.label;
-        }
+        decorate(btn, opt);
         btn.addEventListener("click", function () {
           Array.prototype.forEach.call(group.children, function (b) {
             b.setAttribute("aria-checked", b.getAttribute("data-value") === opt.value ? "true" : "false");
@@ -1283,6 +1311,7 @@
 
     function switchControl(key, label, hintText) {
       var wrap = el("div", "ml-switch-wrap");
+      ui(wrap, "row", "normal");
       var sw = el("button", "ml-switch", {
         type: "button", role: "switch",
         "aria-checked": state.settings[key] ? "true" : "false",

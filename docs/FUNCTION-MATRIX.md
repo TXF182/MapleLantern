@@ -1,26 +1,33 @@
 # 灯台 MapleLantern — 功能矩阵
 
-> 生成：2026-11-21 / 版本 1.5.1（行号锚点以 1.5.1 源码为准）。
+> 生成：2026-11-27 / 版本 **1.6.0**（行号锚点以 1.6.0 源码为准；1.5.1–1.5.13 的细分行号保留作历史，大改后按文末「行号复核命令」重抓）。
 > 用途：按「功能 → 文件:行号 → 实现要点 → 测试 → 坑位」快速定位。行号随改码漂移，大改后按文末「行号复核命令」重抓锚点。
 > 维护纪律：新增/改名函数时同步本表与 `docs/KNOWLEDGE-GRAPH.md`。
+> **1.6.0 扫描口径**：`src` 21 文件 = 11 JS + 7 CSS + `boot.json` + `README.md`；测试 17 个 `*.test.js` / **340 断言**；图库 106 背景 + 106 前景；`tools/verify.ps1` 4/4（76 文件 / `63e90109f370a51d`，stamp `482206de…`）。1.6.0 新增 `ui-kit.js` / `ui-kit.css` 两文件（五入口原语 + 状态矩阵 + 四高频面/布景/原生衣柜迁移），行号与测试计数在此表补齐。
 
 ## 0. 模块总览（加载顺序 = boot.json `scriptFileList`）
 
 | ID | 文件 | 行数 | 职责 | 全局出口 |
 |---|---|---|---|---|
-| MOD-core | `src/core.js` | ~637 | 纯逻辑层：设置/字符串/主题/视口/面板原点，无 DOM | `window.MapleLanternCore` |
-| MOD-native | `src/maplelantern-native.js` | ~2160 | 原生层接管：侧栏四格、状态卡、商店/衣柜、CE 共存、入口注入 | `window.MapleLanternNative` |
-| MOD-render | `src/render.js` | ~1780 | 面板渲染：悬浮球、面板、页签、按压反馈、生命周期 | `window.MapleLantern` |
-| MOD-dossier-core | `src/dossier-core.js` | ~540 | 自定义外观逻辑：颜色推导、对比度、背景几何、设置净化 | `window.MapleLanternDossierCore` |
-| MOD-dossier-assets | `src/dossier-assets.js` | ~310 | 图库：IndexedDB 存取、解码缩放、webp 检测、CSP data URL | `window.MapleLanternDossierAssets` |
-| MOD-dossier-theme | `src/dossier-theme.js` | ~215 | 外观应用层：CSS 变量、背景层几何、主题变量快照 | `window.MapleLanternDossierTheme` |
-| MOD-dossier-panel | `src/dossier-panel.js` | ~1120 | 自定义外观设置面板：舞台拖拽、文件拾取、颜色/滑杆控件 | `window.MapleLanternDossierPanel` |
-| MOD-custom | `src/custom.js` | ~60 | 外观持久化与应用入口 | `window.MapleLanternCustom` |
-| MOD-compat | `src/compat-preload.js` | ~110 | inject_early：MEE 假阳性修复（`window.mee` 未安装保持 undefined） | — |
-| CSS-native | `src/maplelantern-native.css` | ~4660 | 原生层样式（`html[data-ml-native="on"]` 前导） | — |
-| CSS-style | `src/style.css` | ~1740 | 面板层样式（`#ml-root` 作用域） | — |
-| CSS-effects | `src/effects.css` | ~790 | 动效层 keyframes | — |
-| CSS-custom | `src/custom.css` | ~500 | 玩家自定义外观三件套（背景/按钮底纹/浮窗卡片） | — |
+| MOD-core | `src/core.js` | 781 | 纯逻辑层：设置/字符串/主题/视口/面板原点，无 DOM | `window.MapleLanternCore` |
+| MOD-deco-core | `src/deco-core.js` | 1,110 | 九层布景纯逻辑：4 背景 + 5 前景、地点链、自动收录、预设、JSON 往返、宿主桥接 | `window.MapleLanternDeco` |
+| MOD-native | `src/maplelantern-native.js` | 2,395 | 原生层接管：侧栏四格、状态卡、商店/衣柜、CE 共存、入口注入 | `window.MapleLanternNative` |
+| MOD-render | `src/render.js` | 1,940 | 面板渲染：悬浮球、面板、页签、按压反馈、生命周期 | `window.MapleLantern` |
+| MOD-ui-kit | `src/ui-kit.js` | 169 | UI 组件原语：row/card/section/segmented/mark；状态与键盘语义 | `window.MapleLanternUI` |
+| MOD-dossier-core | `src/dossier-core.js` | 568 | 自定义外观逻辑：颜色推导、对比度、背景几何、设置净化 | `window.MapleLanternDossierCore` |
+| MOD-dossier-assets | `src/dossier-assets.js` | 325 | 图库：IndexedDB 存取、解码缩放、webp 检测、CSP data URL | `window.MapleLanternDossierAssets` |
+| MOD-dossier-theme | `src/dossier-theme.js` | 241 | 外观应用层：CSS 变量、背景层几何、主题变量快照 | `window.MapleLanternDossierTheme` |
+| MOD-dossier-panel | `src/dossier-panel.js` | 1,145 | 自定义外观设置面板：舞台拖拽、文件拾取、颜色/滑杆控件 | `window.MapleLanternDossierPanel` |
+| MOD-custom | `src/custom.js` | 71 | 外观持久化与应用入口 | `window.MapleLanternCustom` |
+| MOD-deco-panel | `src/deco-panel.js` | 1,612 | 布景页：九层卡、图库选择器、图库包状态、自动地点、预设、JSON 导入导出 | `window.MapleLanternDecoPanel` |
+| MOD-compat | `src/compat-preload.js` | 110 | inject_early：MEE 假阳性修复（`window.mee` 未安装保持 undefined） | — |
+| CSS-native | `src/maplelantern-native.css` | 5,364 | 原生层样式（`html[data-ml-native="on"]` 前导） | — |
+| CSS-style | `src/style.css` | 2,104 | 面板层样式（`#ml-root` 作用域） | — |
+| CSS-effects | `src/effects.css` | 859 | 动效层 keyframes | — |
+| CSS-custom | `src/custom.css` | 503 | 玩家自定义外观三件套（背景/按钮底纹/浮窗卡片） | — |
+| CSS-deco | `src/deco.css` | 188 | 布景页九层卡/图库选择器/状态条样式 | — |
+| CSS-ornaments | `src/ornaments.css` | 136 | 主题边饰：`#passages::before` 四边框、标题枝、八套主题、小屏收敛 | — |
+| CSS-ui-kit | `src/ui-kit.css` | 271 | UI 语义层：44px 触控、间距/线/面/文字/强调/危险令牌、状态矩阵、600/899/1280 与减少动效 | — |
 
 ## 1. JS 功能矩阵
 
@@ -46,24 +53,24 @@
 | ID | 功能 | 位置 | 要点 | 测试 |
 |---|---|---|---|---|
 | FN-render-mount | `__mounted` 防重挂 | render.js:11 | 重复加载直接 return | dom |
-| FN-render-boot | boot() / window.MapleLantern 出口 | render.js:1741/1753 | 绑定全部事件；出口含 toggle/openPanel/closePanel/destroy/refresh 等 | dom/native-round2 |
-| FN-render-settings | loadSettings/saveSettings/setSetting/applySettings | render.js:159/183/195/216 | 设置读写（`MapleLantern.settings.v1`）；applySettings 同步 body 属性与原生层 | core/dom |
-| FN-render-buildroot | buildRoot() | render.js:369 | 构建 #ml-root 面板 DOM | dom |
-| FN-render-tabs | renderTabs/activateTab/onTabKey | render.js:482/530/556 | 六页签切换与键盘 | dom |
-| FN-render-now | renderNow/renderBridge/bridgeRow | render.js:619/695/739 | 「此刻」页：桥接行（含第三方） | dom |
-| FN-render-vitals | renderVitals | render.js:835 | 「身心」页 | dom |
-| FN-render-worn | renderWorn | render.js:872 | 「着装」页 | dom |
-| FN-render-system | renderSystem | render.js:912 | 「系统」页：诊断/复制 | dom |
-| FN-render-switches | renderSwitches | render.js:974 | 「开关」页 | dom |
-| FN-render-settings | renderSettings | render.js:1049 | 「设置」页：滑杆/主题/密度/语言/门控；滑杆生成含 pointercancel 清理；主题下的「文字色」行只重画色点不重建整页 |
-| FN-render-textcolor | colorControl（renderSettings 内） | render.js:1079-1140 | 自动/预设色点/自定义取色器；换主题时 `textColorFor` 不达标即回 auto + 提示 | dom/contract |
-| FN-render-findbutton | findButton(root, rx, allowAnchor) | render.js:773 | 按钮查找；`allowAnchor` 支持 `<a>` 入口（1.4.22 修复） | native-round2 |
-| FN-render-thirdparty | findOptionsButton/findOverlayButton/openThirdParty | render.js:786/791/809 | 第三方美化页入口策略 | native-round2 |
-| FN-render-panel | openPanel/closePanel/togglePanel/syncPanelOrigin | render.js:1241/1296/1333/1272 | 面板开关；closePanel(reason) 触发级联 destroy | dom |
-| FN-render-orb | placeOrb/onOrbDown/onGripDown | render.js:337/1406/1486 | 悬浮球拖拽/双击回中（仅「悬浮灯台」开启时） | dom |
-| FN-render-press | PRESS_SELECTOR/onPressFx/clearPressTimers | render.js:1657-1700 | 按压反馈 JS 侧：pointerdown 加 `.ml-is-pressed`，只缩放不下沉 | contract |
-| FN-render-passage | applyPassage/onPassage | render.js:1549/1563 | passage 渲染后同步（不再加入场 transform，1.4.22 修复） | contract |
-| FN-render-destroy | destroy() | render.js:1620 | 级联：撤销事件、清 root、清按压、原生/主题/面板层 destroy | dom |
+| FN-render-boot | boot() / window.MapleLantern 出口 | render.js:1900/1912 | 绑定全部事件；出口含 toggle/openPanel/closePanel/destroy/refresh 等 | dom/native-round2 |
+| FN-render-settings | loadSettings/saveSettings/setSetting/applySettings | render.js:165/189/201/240 | 设置读写（`MapleLantern.settings.v1`）；applySettings 同步 body 属性与原生层 | core/dom |
+| FN-render-buildroot | buildRoot() | render.js:394 | 构建 #ml-root 面板 DOM | dom |
+| FN-render-tabs | renderTabs/activateTab/onTabKey | render.js:510/558/585 | 七页签切换与键盘 | dom |
+| FN-render-now | renderNow/renderBridge/bridgeRow | render.js:650/727/771 | 「此刻」页：桥接行（含第三方） | dom |
+| FN-render-vitals | renderVitals | render.js:867 | 「身心」页 | dom |
+| FN-render-worn | renderWorn | render.js:905 | 「着装」页 | dom |
+| FN-render-system | renderSystem | render.js:947 | 「系统」页：诊断/复制 | dom |
+| FN-render-switches | renderSwitches | render.js:1024 | 「开关」页 | dom |
+| FN-render-settings-page | renderSettings | render.js:1072 | 「设置」页：滑杆/主题/密度/语言/门控；滑杆生成含 pointercancel 清理；主题下的「文字色」行只重画色点不重建整页 | dom |
+| FN-render-textcolor | colorControl（renderSettings 内） | render.js:1158-1221 | 自动/预设色点/自定义取色器；换主题时 `textColorFor` 不达标即回 auto + 提示 | dom/contract |
+| FN-render-findbutton | findButton(root, rx, allowAnchor) | render.js:805 | 按钮查找；`allowAnchor` 支持 `<a>` 入口（1.4.22 修复） | native-round2 |
+| FN-render-thirdparty | findOptionsButton/findOverlayButton/openThirdParty | render.js:818/823/841 | 第三方美化页入口策略 | native-round2 |
+| FN-render-panel | openPanel/closePanel/togglePanel/syncPanelOrigin | render.js:1399/1454/1491/1430 | 面板开关；closePanel(reason) 触发级联 destroy | dom |
+| FN-render-orb | placeOrb/onOrbDown/onGripDown | render.js:362/1564/1644 | 悬浮球拖拽/双击回中（仅「悬浮灯台」开启时） | dom |
+| FN-render-press | PRESS_SELECTOR/onPressFx/clearPressTimers | render.js:1816-1865 | 按压反馈 JS 侧：pointerdown 加 `.ml-is-pressed`，只缩放不下沉 | contract |
+| FN-render-passage | applyPassage/onPassage | render.js:1707/1721 | passage 渲染后同步（不再加入场 transform，1.4.22 修复） | contract |
+| FN-render-destroy | destroy() | render.js:1778 | 级联：撤销事件、清 root、清按压、原生/主题/面板层 destroy | dom |
 
 ### 1.3 maplelantern-native.js（原生层）
 
@@ -112,6 +119,52 @@
 | FN-custom-boot | storage/attach/migrate/boot | custom.js:14/20/36/45 | CSP data URL 注释(custom.js:18) + 启动装配 | custom |
 | FN-compat-mee | variables/hasDaily/guard/makeProxy/ensureDaily | compat-preload.js:21-110 | `window.mee` 代理：MEE 未安装保持 undefined，避免 `if (window.mee)` 假阳性 | compat-preload |
 
+### 1.5 deco-core.js（九层布景纯逻辑）
+
+| ID | 功能 | 位置 | 要点 | 测试 |
+|---|---|---|---|---|
+| FN-deco-layers | LAYERS 九层定义 | deco-core.js:19-29 | 4 背景 `baseZ -30/-25/-20/-15` + 5 前景 `300/305/310/315/320`；`varKey/showKey/zKey` 与原「前景背景模组」兼容 | deco |
+| FN-deco-catalog | CATALOG 图库键 | deco-core.js:40-58 | **106 项**：88 地点 + Core4 + 14 街道总线 + 3 室内借用页 + `hotel`；目录只决定选择器展示 | deco |
+| FN-deco-passage | PASSAGE_MAP | deco-core.js:61-75 | 6 条：`bus station` / `soup kitchen` / `soup kitchen closed` / `police back office` / `underground dance` / `underground dance intro` | deco |
+| FN-deco-bus | BUS_ALIAS | deco-core.js:77-81 | `commercial→com_alley` / `industrial→ind_alley` / `residential→res_alley`，修正 `$bus` 街区档位与图库键不同名 | deco |
+| FN-deco-path | safeImagePath / imagePath | deco-core.js:140/158 | 背景目录 `img/decorations/ml/background1`、前景 `foreground1`；绝对/`..`/非 png 路径拒绝，legacy 路径归一 | deco |
+| FN-deco-location | locationInfo | deco-core.js:184-254 | 地点链：visual 派生 → `$location` → 父级回退；`town/outside` 才吃 `$bus`，passage 优先插链首 | deco |
+| FN-deco-auto | autoCatalogName / ensureAutoLocation | deco-core.js:296/311 | 白名单内自动收录；玩家手动移除进 `decoAutoBgExcluded` 不再回流；`skill` 由入口触发 | deco |
+| FN-deco-presets | savePreset / applyPreset / deletePreset / nextPresetSlot | deco-core.js:335-398 | 预设槽 1–99；保存九图、Z、override、显示与自动名单；套用前先恢复自动层 | deco |
+| FN-deco-recent | decoRecent / decoRemember | deco-core.js:399/413 | 最近使用去重、置顶、上限 8；空值不入表 | deco |
+| FN-deco-export | exportDeco / importDeco | deco-core.js:486/521 | JSON 往返：只覆盖布景键；Z 夹紧 ±50；路径拒绝 `..`；坏数据整段拒收 | deco |
+| FN-deco-overlay | computeOverlay / applyOverlay | deco-core.js:568/819 | 夜间/雨天滤镜只作用于声明层；颜色/亮度输出可预测 | deco |
+| FN-deco-autoapply | applyAutoBackground / applyAutoForeground | deco-core.js:641/687 | 备份玩家原图/显示；重复匹配不覆盖备份；关闭后完整恢复 | deco |
+| FN-deco-register | registerLayers / mode | deco-core.js:971/1063 | 原模组存在则只读兼容让出渲染权；原模组缺失时灯台注册九层；异常不向游戏抛 | deco |
+| FN-deco-refresh | refresh / applyAutoOnPassage | deco-core.js:807/709 | passage 渲染后刷新；自动背景/前景按当前地点链套用 | deco |
+
+### 1.6 deco-panel.js（布景页 UI）
+
+| ID | 功能 | 位置 | 要点 | 测试 |
+|---|---|---|---|---|
+| FN-deco-page | renderPage / rebuildPage | deco-panel.js:1315/1367 | `deco` 页签入口；九层卡 + 状态条 + 图库/自动/预设/交换四区 | deco-panel |
+| FN-deco-mark | markDeco / syncPackStatus 重标 | deco-panel.js:1343/733 | 布景语义标注；缺包只让 `.ml-deco-status` 承载 danger，预设/自动/地点区块保持 normal | deco-panel |
+| FN-deco-layersui | buildLayers / layerCard / layerGroup | deco-panel.js:941/879/926 | 4 背景 + 5 前景分组；缩略图、显示开关、Z 滑杆、选择/清除 | deco-panel |
+| FN-deco-picker | openPicker / renderPickerGrid / renderRecentRow | deco-panel.js:1384/1452/1421 | 图库选择器：搜索 150ms 去抖、中文输入法组合期不重建、最近使用 8 项可点可清 | deco-panel |
+| FN-deco-set | setImage / setVisible / setZ | deco-panel.js:507/535/542 | 写 `background_image* / foreground_image*`、`show_*`、`deco_bg*/deco_fg*`；路径与 Z 走净化 | deco-panel |
+| FN-deco-pack | probeImagePack / probe / syncPackStatus | deco-panel.js:659/676/733 | 图库包检测：ready/partial/missing 三态；缩略图按需加载、失败态不阻塞面板 | deco-panel |
+| FN-deco-autoUI | buildAuto / addLocation / addAllLocations / removeLocation | deco-panel.js:1101/585/597/619 | 自动背景/前景开关、当前地点加入、一键全收录、移除进排除 | deco-panel |
+| FN-deco-presetUI | buildPresets | deco-panel.js:971 | 预设保存/套用/删除；槽位 1–99 与名称输入 | deco-panel |
+| FN-deco-exchange | buildExchange | deco-panel.js:1042 | 配置 JSON 导出/导入；失败提示与整段拒收 | deco-panel |
+| FN-deco-filterUI | buildFilter | deco-panel.js:1250 | 夜间/雨天滤镜开关与强度；只改声明层 | deco-panel |
+| FN-deco-boot | bootHost / onPassage / onStoryReady / bindHost / destroy | deco-panel.js:1520/1530/1541/1550/1564 | 原模组先注册；1000ms 后补自举；passage/storyready/destroy 生命周期 | deco-panel |
+
+### 1.7 ui-kit.js（UI 原语与状态语义）
+
+| ID | 功能 | 位置 | 要点 | 测试 |
+|---|---|---|---|---|
+| FN-ui-mark | mark(node, kind, state) | ui-kit.js:24 | 只追加 `data-ui` / `data-ui-state` 与 `ml-ui-*` 类；既有 DOM 可复用，不重建布局 | ui-kit |
+| FN-ui-row | row(opts) | ui-kit.js:38 | 整宽行卡；默认 `normal`；迁移身心行、开关行、`dlRow` 与原生衣柜行 | ui-kit/dom |
+| FN-ui-card | card(opts) | ui-kit.js:44 | 状态卡/主题预览/空槽；可带 label/value；主题卡与 option 分开标记避免覆盖 | ui-kit/dom |
+| FN-ui-section | section(opts) | ui-kit.js:62 | 标题 + hint + body；hint 用 `--ml-ui-muted`（绿茵 faint 仅 3.05:1，不作正文） | ui-kit |
+| FN-ui-segmented | segmented(opts) | ui-kit.js:95 | radiogroup；`aria-checked`、`data-ui-option`、方向键/Home/End；disabled 保持 disabled 状态且键盘跳过 | ui-kit |
+| FN-ui-export | window.MapleLanternUI | ui-kit.js:161 | 导出 el/mark/row/card/section/segmented；ES5，无 :scope/模板字符串/可选链 | ui-kit/contract |
+
 ## 2. CSS 分区矩阵
 
 ### 2.1 maplelantern-native.css（`html[data-ml-native="on"]` 前导；行号 = 分区起点）
@@ -136,7 +189,7 @@
 | CSSN-motion | 动效 | :3786 | 入场/呼吸动效 |
 | CSSN-cyber | 赛博朋克主题装饰 | :4083 | `[data-ml-theme="cyberpunk"]` |
 | CSSN-grass | 绿茵主题（阳光草场浅色档） | 见 `[data-ml-theme="grass"]` 段 | 割草条纹、斑驳阳光、青绿边框与亮色语义覆盖 |
-| CSSO-frame | 主题边饰层（`src/ornaments.css`） | 文件首段 | `#passages::before` 12px `border-image` 帧 + `.passage` 内衬 + `h1::after` 标题枝；八套图案、auto 无图案、≤600 收 8px、≤420 仅标题枝 |
+| CSSO-frame | 主题边饰层（独立 `src/ornaments.css`，见 2.6） | 2.6 | `#passages::before` 12px `border-image` 帧 + `.passage` 内衬 + `h1::after` 标题枝 |
 | CSSN-texture | 主题纹理层 | :4477 | 纹理变量层 |
 | CSSN-press | 原生按压反馈 | :4584 | 按压组：平铺规则与 `:not(:has(...))` 排除规则**分列**（1.5.0 拆净，见契约 D3） |
 
@@ -179,6 +232,37 @@
 | CSSC-stage | 8c 设置页预览舞台 | :175 |
 | CSSC-controls | 8c 设置页控件 | :411 |
 
+### 2.5 deco.css（布景页）
+
+| ID | 分区 | 位置 | 主要选择器/内容 |
+|---|---|---|---|
+| CSSD-page | 页容器/状态条 | :2-19 | `.ml-deco-page`、`.ml-deco-status`、`.ml-deco-pill`、`.ml-deco-chain`、图库三态色 |
+| CSSD-group | 九层分组 | :21-39 | `.ml-deco-section`、`.ml-deco-group`、`details` 折叠头与箭头 |
+| CSSD-grid | 九层卡网格 | :40-66 | 三列 `.ml-deco-grid`、缩略图 2:1、缺失态红边 |
+| CSSD-controls | 卡内控件/重试 | :67-188 | 小按钮、图库就绪隐藏重试、勾选、滑杆、选择器/预设/JSON 区 |
+
+### 2.6 ornaments.css（主题边饰）
+
+| ID | 分区 | 位置 | 主要选择器/内容 |
+|---|---|---|---|
+| CSSO-tokens | 边饰变量 | :13-19 | `--mln-orn-frame/title/a/thick/pad`；auto 保持 `none` |
+| CSSO-frame | 正文四边框 | :23-39 | `#passages` 内衬 + `#passages::before` 12px `border-image`；`pointer-events:none` |
+| CSSO-passage | 正文内衬/标题枝 | :40-61 | `.passage` 内衬、`h1::after` 枝；不挂 background |
+| CSSO-themes | 八套主题图案 | :62-113 | cyberpunk/amber/jade/star/fog/school/paper/grass 八套 `--mln-orn-*` |
+| CSSO-small | 小屏收敛 | :114-135 | ≤600 收 8px；≤420 仅标题枝；静态、无动画 |
+
+### 2.7 ui-kit.css（UI 语义层）
+
+| ID | 分区 | 位置 | 主要选择器/内容 |
+|---|---|---|---|
+| CSSU-tokens | 原语令牌 | :6-26 | 44px 触控、4 档间距、线/面/文字/强调/危险/圆角/focus；同时挂 `#ml-root` 与原生正文 |
+| CSSU-primitives | 原语底座 | :30-77 | row 最小 44px；card `min-width:0/overflow:hidden`；section 标题省略、hint 不换行 |
+| CSSU-states | 状态矩阵 | :85-126 | selected / disabled / danger / empty / loading；loading 只在 `prefers-reduced-motion:no-preference` 播 shimmer |
+| CSSU-hover | 细指针 hover | :131-151 | 只在 `(hover:hover) and (pointer:fine)`；active 只 `scale(.97)`，无 `translateY` |
+| CSSU-migrate | 迁移面 | :154-222 | 此刻/身心/着装/设置/布景/原生衣柜的追加语义，不覆盖原 `.ml-*` 布局 |
+| CSSU-responsive | 响应式 | :226-251 | 600 收间距与空槽高度；899 hint 右对齐；1280 放大 section gap |
+| CSSU-motion | 动效关断 | :254-270 | `data-motion=off` + 原生 `data-ml-motion=off` + `prefers-reduced-motion` 三覆盖 |
+
 ## 3. 设置键矩阵
 
 ### 3.1 灯台主设置（`MapleLantern.settings.v1`，默认见 core.js:242）
@@ -207,17 +291,41 @@
 | 通用 | fontScale / surfaceAlpha / syncMl | syncMl=true 时同步灯台主题变量（dossier-core.js:376 ML_MAP） |
 | 颜色 | colors.{accent,surface,text,line} | 空串=跟随灯台主题 |
 
+### 3.3 布景九层（游戏存档 `V.*`，不是 localStorage；以 `deco-core.js` 为准）
+
+| 键组 | 键 | 说明 |
+|---|---|---|
+| 图层图 | `background_image1..4` / `foreground_image1..5` | 图层图名（图库键）；空/none/undefined 均视为无图 |
+| 显示 | `show_background1..4` / `show_foreground1..5` | 未声明为显示，显式 `false` 才隐藏 |
+| Z 偏移 | `decoImageZ` → `deco_bg1..4` / `deco_fg1..5` | 基准 Z + 偏移，夹紧 ±50；非数值按 0 |
+| 路径覆盖 | `decoImagePath` → 图层 id | `safeImagePath` 只允许 png 与图库目录，拒绝 `..` |
+| 自动背景 | `decoAutoBgEnabled` / `decoAutoBgLocations` / `decoAutoBgExcluded` / `decoAutoBgActive` / `decoAutoBgSource` / `decoAutoBgBackup` / `decoAutoBgBackupShow` | 开启后按地点链收录；移除进排除；`Active/Backup` 用于关闭后恢复 |
+| 自动前景 | `decoAutoFgEnabled` / `decoAutoFgLocations` / `decoAutoFgActive` / `decoAutoFgSource` / `decoAutoFgBackup` / `decoAutoFgBackupShow` | 与背景同构；`decoAutoFgLocations` 独立白名单 |
+| 预设 | `decoPresets` | 槽 1–99；每槽含九图、Z、路径、显示与自动名单 |
+| 最近使用 | `decoRecent` | 去重置顶，上限 8 |
+| 滤镜 | `decoColorOverlay` / `decoFilterLayers` / `decoAutoBgFilterEnabled` | 夜间/雨天只作用于声明层；关闭清空 |
+
 ## 4. 测试矩阵
+
+**17 个 `*.test.js` / 340 断言**（`pwsh tools\verify.ps1` 2026-11-27 实测：340/340 PASS，fail 0 / cancelled 0 / skipped 0）。
 
 | 测试文件 | 覆盖 |
 |---|---|
-| core.test.js | core 纯逻辑全量（含 1.5.1 版本断言、绿茵调色板与浅底对比度、石墨迁移、文字色预设逐色 ≥4.5:1） |
-| dom.test.js | render 面板层 DOM 装配（含文字色落值/换主题回退） |
-| native.test.js / native-round2.test.js | 原生层打标（round2 含 `<a>` 入口等 1.4.22 修复回归） |
-| contract.test.js | CSS/JS 契约不变量（D3 = 按压选择器不得混排 `:has` 成员；1.5.1 增绿茵落值、边饰八套/开关/小屏、石墨零残留、文字色只挂正文层）；全量 246 断言 |
+| core.test.js | core 纯逻辑全量（版本断言、九主题调色板与浅底对比度、文字色逐色 ≥4.5:1） |
+| dom.test.js | render 面板层 DOM 装配（文字色落值/换主题回退） |
+| native.test.js / native-round2.test.js | 原生层打标（round2 含 `<a>` 入口、CE 结构签名回归） |
+| contract.test.js | CSS/JS 契约不变量（按压选择器分列、主题落值、边饰八套/开关/小屏、文字色只挂正文层） |
 | custom.test.js / custom-card.test.js | custom.js 外观应用与浮窗卡片 |
-| dossier-lifecycle.test.js | dossier 四件套生命周期（1.5.0 修复回归） |
+| dossier-lifecycle.test.js | dossier 四件套生命周期（含 1.5.0 修复回归） |
 | compat-preload.test.js | MEE 代理（假阳性修复回归） |
+| deco.test.js | 九层定义、路径/Z/地点链、`$bus` 三档、PASSAGE_MAP 六条、自动背景/前景、预设、JSON 往返、滤镜、CATALOG 106 |
+| deco-panel.test.js | 布景页生命周期、九层卡、图库选择器、图库包三态、自动地点、预设、交换、销毁 |
+| theme-matrix.test.js | 主题元数据唯一性/顺序、zh/en 文案、4.5:1 对比度、预览、面板块/原生块/边饰 |
+| hover-guard.test.js | 触屏 hover 粘连回归（`@media (hover:hover)` 10 条规则） |
+| wardrobe-card.test.js | 衣柜行卡化（图标回卡内、整行 100%、动作行两列、商店分支） |
+| ui-kit.test.js | UI kit 原语/状态矩阵/四高频面语义/布景与原生衣柜/segmented disabled 与键盘 |
+| dolsmartphone-compat.test.js | DolSmartPhone 手机壳隔离矩阵（`#phone-wrapper` 整机子树） |
+| modhub-companion.test.js | ModHub 伴生入口与兼容 |
 
 ## 5. 坑位速查（详文在 KNOWLEDGE.md）
 
@@ -227,6 +335,9 @@
 | 缩放判据（预览 vs 设备） | KNOWLEDGE.md §2 |
 | 动效库分区 | KNOWLEDGE.md §4「动效库分区」 |
 | 自定义外观四道判据 + CSP | KNOWLEDGE.md §7.2/7.3 |
+| 布景九层 / 地点链 / `$bus` 三档 / PASSAGE_MAP | KNOWLEDGE.md 顶部 1.5.11–1.5.14 记录；`docs/COVERAGE.md` |
+| 布景图库 106+106 / 前景安全区 `x=86–237` | `docs/FOREGROUND-STYLE.md` |
+| 图库包三态（ready/partial/missing）与重试门控 | `src/deco-panel.js:659/733`；`tools/deco-pack-probe.js` |
 | 原生层开关 + CE 共存 | KNOWLEDGE.md §8 / ERR-20261115-002/003 |
 | 错误台账全集 | KNOWLEDGE.md §6 |
 | 游戏外：冒烟门禁口径（init 非 mod 数、仅 A/B/C 判失败） | 项目根 `mce-e2e\real_smoke_baseline.json` |

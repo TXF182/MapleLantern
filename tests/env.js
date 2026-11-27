@@ -8,6 +8,7 @@ const JSDOM_PATH = "C:/Users/27352/Doubao/chats/2026-10-13/new-chat-2/MapleBirch
 const { JSDOM } = require(JSDOM_PATH);
 
 const CORE = fs.readFileSync(path.join(__dirname, "..", "src", "core.js"), "utf8");
+const UI_KIT = fs.readFileSync(path.join(__dirname, "..", "src", "ui-kit.js"), "utf8");
 const DECO_CORE = fs.readFileSync(path.join(__dirname, "..", "src", "deco-core.js"), "utf8");
 const NATIVE = fs.readFileSync(path.join(__dirname, "..", "src", "maplelantern-native.js"), "utf8");
 const INDEX = fs.readFileSync(path.join(__dirname, "..", "src", "render.js"), "utf8");
@@ -109,6 +110,7 @@ function createEnv(opts) {
 
   const w = dom.window;
   w.eval(CORE);
+  w.eval(UI_KIT);
   w.eval(DECO_CORE);
   w.eval(NATIVE);
   w.eval(INDEX);
